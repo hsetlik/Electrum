@@ -42,8 +42,13 @@ juce_add_plugin("${PROJECT_NAME}"
     FORMATS "${FORMATS}"
     PRODUCT_NAME "${PROJECT_NAME}")
 
-target_sources("${PLUGIN_NAME}" PRIVATE "${SOURCES}")
-target_compile_features("${PLUGIN_NAME}" PRIVATE cxx_std_20)
+juce_generate_juce_header("${PROJECT_NAME}")
+juce_enable_copy_plugin_step("${PROJECT_NAME}")
+
+
+target_sources("${PROJECT_NAME}" PRIVATE "${SOURCES}")
+
+target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 
 target_compile_definitions("${PROJECT_NAME}"
     PUBLIC
@@ -52,7 +57,7 @@ target_compile_definitions("${PROJECT_NAME}"
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0
-    )
+)
 
 target_link_libraries("${PROJECT_NAME}"
     PUBLIC
