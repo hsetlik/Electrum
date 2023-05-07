@@ -3,21 +3,22 @@ cmake_minimum_required(VERSION 3.4)
 project("BigSynth" VERSION 1.0.0)
 
 # Juce
-include(FetchContent)
-# Add JUCE dependency
-FetchContent_Declare(
-        juce
-        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_PROGRESS TRUE
-        GIT_TAG "7.0.4" # JUCE version goes here
-)
-FetchContent_MakeAvailable(juce)
+add_subdirectory(JUCE)
+add_subdirectory(JUCE/extras/AudioPluginHost)
 
 set(SOURCES
+# /Core
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginProcessor.h"
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginProcessor.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Core/CustomJuceHeader.h"
+# /Parameters
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/BigSynthValueTree.h"
+#/Audio
+"${CMAKE_CURRENT_LIST_DIR}/Audio/BigSynthSynthesizer.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/BigSynthSynthesizer.cpp"
 )
 
 
@@ -42,7 +43,6 @@ juce_add_plugin("${PROJECT_NAME}"
     FORMATS "${FORMATS}"
     PRODUCT_NAME "${PROJECT_NAME}")
 
-juce_generate_juce_header("${PROJECT_NAME}")
 juce_enable_copy_plugin_step("${PROJECT_NAME}")
 
 

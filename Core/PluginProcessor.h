@@ -9,16 +9,17 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "../Parameters/BigSynthValueTree.h"
 
 //==============================================================================
 /**
  */
-class TestpluginAudioProcessor : public juce::AudioProcessor {
+class BigSynthAudioProcessor : public juce::AudioProcessor 
+{
  public:
   //==============================================================================
-  TestpluginAudioProcessor();
-  ~TestpluginAudioProcessor() override;
+  BigSynthAudioProcessor();
+  ~BigSynthAudioProcessor() override;
 
   //==============================================================================
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -52,8 +53,10 @@ class TestpluginAudioProcessor : public juce::AudioProcessor {
   //==============================================================================
   void getStateInformation(juce::MemoryBlock &destData) override;
   void setStateInformation(const void *data, int sizeInBytes) override;
+  //==============================================================================
+  BSVT state;
 
  private:
   //==============================================================================
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestpluginAudioProcessor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BigSynthAudioProcessor)
 };

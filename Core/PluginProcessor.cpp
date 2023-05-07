@@ -10,7 +10,7 @@
 
 
 //==============================================================================
-TestpluginAudioProcessor::TestpluginAudioProcessor()
+BigSynthAudioProcessor::BigSynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(
           BusesProperties()
@@ -20,19 +20,20 @@ TestpluginAudioProcessor::TestpluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      )
+      ),
 #endif
+state (*this, nullptr, IDs::BIGSYNTH_STATE)
 {
 }
 
-TestpluginAudioProcessor::~TestpluginAudioProcessor() {}
+BigSynthAudioProcessor::~BigSynthAudioProcessor() {}
 
 //==============================================================================
-const juce::String TestpluginAudioProcessor::getName() const {
+const juce::String BigSynthAudioProcessor::getName() const {
   return JucePlugin_Name;
 }
 
-bool TestpluginAudioProcessor::acceptsMidi() const {
+bool BigSynthAudioProcessor::acceptsMidi() const {
 #if JucePlugin_WantsMidiInput
   return true;
 #else
@@ -40,7 +41,7 @@ bool TestpluginAudioProcessor::acceptsMidi() const {
 #endif
 }
 
-bool TestpluginAudioProcessor::producesMidi() const {
+bool BigSynthAudioProcessor::producesMidi() const {
 #if JucePlugin_ProducesMidiOutput
   return true;
 #else
@@ -48,7 +49,7 @@ bool TestpluginAudioProcessor::producesMidi() const {
 #endif
 }
 
-bool TestpluginAudioProcessor::isMidiEffect() const {
+bool BigSynthAudioProcessor::isMidiEffect() const {
 #if JucePlugin_IsMidiEffect
   return true;
 #else
@@ -56,39 +57,39 @@ bool TestpluginAudioProcessor::isMidiEffect() const {
 #endif
 }
 
-double TestpluginAudioProcessor::getTailLengthSeconds() const { return 0.0; }
+double BigSynthAudioProcessor::getTailLengthSeconds() const { return 0.0; }
 
-int TestpluginAudioProcessor::getNumPrograms() {
+int BigSynthAudioProcessor::getNumPrograms() {
   return 1;  // NB: some hosts don't cope very well if you tell them there are 0
              // programs, so this should be at least 1, even if you're not
              // really implementing programs.
 }
 
-int TestpluginAudioProcessor::getCurrentProgram() { return 0; }
+int BigSynthAudioProcessor::getCurrentProgram() { return 0; }
 
-void TestpluginAudioProcessor::setCurrentProgram(int index) {}
+void BigSynthAudioProcessor::setCurrentProgram(int index) {}
 
-const juce::String TestpluginAudioProcessor::getProgramName(int index) {
+const juce::String BigSynthAudioProcessor::getProgramName(int index) {
   return {};
 }
 
-void TestpluginAudioProcessor::changeProgramName(int index,
+void BigSynthAudioProcessor::changeProgramName(int index,
                                                  const juce::String &newName) {}
 
 //==============================================================================
-void TestpluginAudioProcessor::prepareToPlay(double sampleRate,
+void BigSynthAudioProcessor::prepareToPlay(double sampleRate,
                                              int samplesPerBlock) {
   // Use this method as the place to do any pre-playback
   // initialisation that you need..
 }
 
-void TestpluginAudioProcessor::releaseResources() {
+void BigSynthAudioProcessor::releaseResources() {
   // When playback stops, you can use this as an opportunity to free up any
   // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool TestpluginAudioProcessor::isBusesLayoutSupported(
+bool BigSynthAudioProcessor::isBusesLayoutSupported(
     const BusesLayout &layouts) const {
 #if JucePlugin_IsMidiEffect
   juce::ignoreUnused(layouts);
@@ -111,7 +112,7 @@ bool TestpluginAudioProcessor::isBusesLayoutSupported(
 }
 #endif
 
-void TestpluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
+void BigSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                             juce::MidiBuffer &midiMessages) 
 {
   juce::ScopedNoDenormals noDenormals;
@@ -142,25 +143,25 @@ void TestpluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 }
 
 //==============================================================================
-bool TestpluginAudioProcessor::hasEditor() const 
+bool BigSynthAudioProcessor::hasEditor() const 
 {
   return true;  // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor *TestpluginAudioProcessor::createEditor() 
+juce::AudioProcessorEditor *BigSynthAudioProcessor::createEditor() 
 {
-  return new TestpluginAudioProcessorEditor(*this);
+  return new BigSynthAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void TestpluginAudioProcessor::getStateInformation(juce::MemoryBlock &destData) 
+void BigSynthAudioProcessor::getStateInformation(juce::MemoryBlock &destData) 
 {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
   // as intermediaries to make it easy to save and load complex data.
 }
 
-void TestpluginAudioProcessor::setStateInformation(const void *data, int sizeInBytes) 
+void BigSynthAudioProcessor::setStateInformation(const void *data, int sizeInBytes) 
 {
   // You should use this method to restore your parameters from this memory
   // block, whose contents will have been created by the getStateInformation()
@@ -171,5 +172,5 @@ void TestpluginAudioProcessor::setStateInformation(const void *data, int sizeInB
 // This creates new instances of the plugin..
 AudioProcessor *JUCE_CALLTYPE createPluginFilter() 
 {
-  return new TestpluginAudioProcessor();
+  return new BigSynthAudioProcessor();
 }

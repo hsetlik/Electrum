@@ -9,18 +9,19 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "../Parameters/BigSynthValueTree.h"
 
 #include "PluginProcessor.h"
 
-
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 800
 //==============================================================================
 /**
  */
-class TestpluginAudioProcessorEditor : public juce::AudioProcessorEditor {
+class BigSynthAudioProcessorEditor : public juce::AudioProcessorEditor {
  public:
-  TestpluginAudioProcessorEditor(TestpluginAudioProcessor &);
-  ~TestpluginAudioProcessorEditor() override;
+  BigSynthAudioProcessorEditor(BigSynthAudioProcessor &);
+  ~BigSynthAudioProcessorEditor() override;
 
   //==============================================================================
   void paint(juce::Graphics &) override;
@@ -29,6 +30,7 @@ class TestpluginAudioProcessorEditor : public juce::AudioProcessorEditor {
  private:
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
-  TestpluginAudioProcessor &audioProcessor;
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TestpluginAudioProcessorEditor)
+  BigSynthAudioProcessor &audioProcessor;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BigSynthAudioProcessorEditor)
 };
