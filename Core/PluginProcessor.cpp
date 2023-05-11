@@ -10,7 +10,7 @@
 
 
 //==============================================================================
-BigSynthAudioProcessor::BigSynthAudioProcessor()
+ElectrumAudioProcessor::ElectrumAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(
           BusesProperties()
@@ -22,18 +22,19 @@ BigSynthAudioProcessor::BigSynthAudioProcessor()
 #endif
       ),
 #endif
-state (*this, nullptr, IDs::BIGSYNTH_STATE)
+state (*this, nullptr, IDs::BIGSYNTH_STATE),
+synth (&state)
 {
 }
 
-BigSynthAudioProcessor::~BigSynthAudioProcessor() {}
+ElectrumAudioProcessor::~ElectrumAudioProcessor() {}
 
 //==============================================================================
-const juce::String BigSynthAudioProcessor::getName() const {
+const juce::String ElectrumAudioProcessor::getName() const {
   return JucePlugin_Name;
 }
 
-bool BigSynthAudioProcessor::acceptsMidi() const {
+bool ElectrumAudioProcessor::acceptsMidi() const {
 #if JucePlugin_WantsMidiInput
   return true;
 #else
@@ -41,7 +42,7 @@ bool BigSynthAudioProcessor::acceptsMidi() const {
 #endif
 }
 
-bool BigSynthAudioProcessor::producesMidi() const {
+bool ElectrumAudioProcessor::producesMidi() const {
 #if JucePlugin_ProducesMidiOutput
   return true;
 #else
@@ -49,7 +50,7 @@ bool BigSynthAudioProcessor::producesMidi() const {
 #endif
 }
 
-bool BigSynthAudioProcessor::isMidiEffect() const {
+bool ElectrumAudioProcessor::isMidiEffect() const {
 #if JucePlugin_IsMidiEffect
   return true;
 #else
@@ -57,39 +58,39 @@ bool BigSynthAudioProcessor::isMidiEffect() const {
 #endif
 }
 
-double BigSynthAudioProcessor::getTailLengthSeconds() const { return 0.0; }
+double ElectrumAudioProcessor::getTailLengthSeconds() const { return 0.0; }
 
-int BigSynthAudioProcessor::getNumPrograms() {
+int ElectrumAudioProcessor::getNumPrograms() {
   return 1;  // NB: some hosts don't cope very well if you tell them there are 0
              // programs, so this should be at least 1, even if you're not
              // really implementing programs.
 }
 
-int BigSynthAudioProcessor::getCurrentProgram() { return 0; }
+int ElectrumAudioProcessor::getCurrentProgram() { return 0; }
 
-void BigSynthAudioProcessor::setCurrentProgram(int index) {}
+void ElectrumAudioProcessor::setCurrentProgram(int index) {}
 
-const juce::String BigSynthAudioProcessor::getProgramName(int index) {
+const juce::String ElectrumAudioProcessor::getProgramName(int index) {
   return {};
 }
 
-void BigSynthAudioProcessor::changeProgramName(int index,
+void ElectrumAudioProcessor::changeProgramName(int index,
                                                  const juce::String &newName) {}
 
 //==============================================================================
-void BigSynthAudioProcessor::prepareToPlay(double sampleRate,
+void ElectrumAudioProcessor::prepareToPlay(double sampleRate,
                                              int samplesPerBlock) {
   // Use this method as the place to do any pre-playback
   // initialisation that you need..
 }
 
-void BigSynthAudioProcessor::releaseResources() {
+void ElectrumAudioProcessor::releaseResources() {
   // When playback stops, you can use this as an opportunity to free up any
   // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool BigSynthAudioProcessor::isBusesLayoutSupported(
+bool ElectrumAudioProcessor::isBusesLayoutSupported(
     const BusesLayout &layouts) const {
 #if JucePlugin_IsMidiEffect
   juce::ignoreUnused(layouts);
@@ -112,7 +113,7 @@ bool BigSynthAudioProcessor::isBusesLayoutSupported(
 }
 #endif
 
-void BigSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
+void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                             juce::MidiBuffer &midiMessages) 
 {
   juce::ScopedNoDenormals noDenormals;
@@ -143,25 +144,25 @@ void BigSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 }
 
 //==============================================================================
-bool BigSynthAudioProcessor::hasEditor() const 
+bool ElectrumAudioProcessor::hasEditor() const 
 {
   return true;  // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor *BigSynthAudioProcessor::createEditor() 
+juce::AudioProcessorEditor *ElectrumAudioProcessor::createEditor() 
 {
-  return new BigSynthAudioProcessorEditor(*this);
+  return new ElectrumAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void BigSynthAudioProcessor::getStateInformation(juce::MemoryBlock &destData) 
+void ElectrumAudioProcessor::getStateInformation(juce::MemoryBlock &destData) 
 {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
   // as intermediaries to make it easy to save and load complex data.
 }
 
-void BigSynthAudioProcessor::setStateInformation(const void *data, int sizeInBytes) 
+void ElectrumAudioProcessor::setStateInformation(const void *data, int sizeInBytes) 
 {
   // You should use this method to restore your parameters from this memory
   // block, whose contents will have been created by the getStateInformation()
@@ -172,5 +173,5 @@ void BigSynthAudioProcessor::setStateInformation(const void *data, int sizeInByt
 // This creates new instances of the plugin..
 AudioProcessor *JUCE_CALLTYPE createPluginFilter() 
 {
-  return new BigSynthAudioProcessor();
+  return new ElectrumAudioProcessor();
 }

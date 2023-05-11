@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 
-project("BigSynth" VERSION 1.0.0)
+project("Electrum" VERSION 1.0.0)
 
 # Juce
 add_subdirectory(JUCE)
@@ -15,10 +15,11 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Core/CustomJuceHeader.h"
 # /Parameters
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
-"${CMAKE_CURRENT_LIST_DIR}/Parameters/BigSynthValueTree.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 #/Audio
-"${CMAKE_CURRENT_LIST_DIR}/Audio/BigSynthSynthesizer.h"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/BigSynthSynthesizer.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumSynthesizer.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumSynthesizer.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Envelope.h"
 )
 
 

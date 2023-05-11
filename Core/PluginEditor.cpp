@@ -12,8 +12,8 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-BigSynthAudioProcessorEditor::BigSynthAudioProcessorEditor(
-    BigSynthAudioProcessor &p)
+ElectrumAudioProcessorEditor::ElectrumAudioProcessorEditor(
+    ElectrumAudioProcessor &p)
     : AudioProcessorEditor(&p), audioProcessor(p) {
   // Make sure that before the constructor has finished, you've set the
   // editor's size to whatever you need it to be.
@@ -22,10 +22,10 @@ BigSynthAudioProcessorEditor::BigSynthAudioProcessorEditor(
   
 }
 
-BigSynthAudioProcessorEditor::~BigSynthAudioProcessorEditor() {}
+ElectrumAudioProcessorEditor::~ElectrumAudioProcessorEditor() {}
 
 //==============================================================================
-void BigSynthAudioProcessorEditor::paint(juce::Graphics &g) 
+void ElectrumAudioProcessorEditor::paint(juce::Graphics &g) 
 {
   // (Our component is opaque, so we must completely fill the background with a
   // solid colour)
@@ -37,7 +37,7 @@ void BigSynthAudioProcessorEditor::paint(juce::Graphics &g)
                    juce::Justification::centred, 1);
 }
 
-void BigSynthAudioProcessorEditor::resized() 
+void ElectrumAudioProcessorEditor::resized() 
 {
   // This is generally where you'll want to lay out the positions of any
   // subcomponents in your editor..

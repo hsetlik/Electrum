@@ -1,7 +1,7 @@
 #pragma once
-#include "../Parameters/BigSynthValueTree.h"
+#include "../Parameters/ElectrumValueTree.h"
 
-class BigSynthSound : public SynthesiserSound
+class ElectrumSound : public SynthesiserSound
 {
 public:
     bool appliesToNote (int /*midiNoteNumber*/) //just plays this sound for any midi note
@@ -14,16 +14,16 @@ public:
     }
 };
 //===========================================================
-class BigSynthVoice : public SynthesiserVoice
+class ElectrumVoice : public SynthesiserVoice
 {
 private:
     BSVT* const state;
     const int index;
 public:
-    BigSynthVoice (BSVT* tree, int index);
+    ElectrumVoice (BSVT* tree, int index);
     bool canPlaySound (SynthesiserSound* sound) override
     {
-        return dynamic_cast<BigSynthSound*> (sound) != nullptr;
+        return dynamic_cast<ElectrumSound*> (sound) != nullptr;
     }
     void setSampleRate (double newRate, int blockSize=512)
     {
@@ -42,11 +42,12 @@ public:
 
 };
 //===========================================================
-class BigSynthSynthesizer : public Synthesiser
+class ElectrumSynthesizer : public Synthesiser
 {
 private:
     BSVT* const state;
+    void renderVoices (AudioBuffer<float>& buffer, int startSample, int numSamples) override;
 public:
-    BigSynthSynthesizer (BSVT* tree);
+    ElectrumSynthesizer (BSVT* tree);
 };
 

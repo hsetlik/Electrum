@@ -9,17 +9,18 @@
 
 #pragma once
 
-#include "../Parameters/BigSynthValueTree.h"
+#include "../Parameters/ElectrumValueTree.h"
+#include "../Audio/ElectrumSynthesizer.h"
 
 //==============================================================================
 /**
  */
-class BigSynthAudioProcessor : public juce::AudioProcessor 
+class ElectrumAudioProcessor : public juce::AudioProcessor 
 {
  public:
   //==============================================================================
-  BigSynthAudioProcessor();
-  ~BigSynthAudioProcessor() override;
+  ElectrumAudioProcessor();
+  ~ElectrumAudioProcessor() override;
 
   //==============================================================================
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -55,8 +56,8 @@ class BigSynthAudioProcessor : public juce::AudioProcessor
   void setStateInformation(const void *data, int sizeInBytes) override;
   //==============================================================================
   BSVT state;
-
+  ElectrumSynthesizer synth;
  private:
   //==============================================================================
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BigSynthAudioProcessor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)
 };

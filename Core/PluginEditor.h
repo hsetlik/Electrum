@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../Parameters/BigSynthValueTree.h"
+#include "../Parameters/ElectrumValueTree.h"
 
 #include "PluginProcessor.h"
 
@@ -18,10 +18,10 @@
 //==============================================================================
 /**
  */
-class BigSynthAudioProcessorEditor : public juce::AudioProcessorEditor {
+class ElectrumAudioProcessorEditor : public juce::AudioProcessorEditor {
  public:
-  BigSynthAudioProcessorEditor(BigSynthAudioProcessor &);
-  ~BigSynthAudioProcessorEditor() override;
+  ElectrumAudioProcessorEditor(ElectrumAudioProcessor &);
+  ~ElectrumAudioProcessorEditor() override;
 
   //==============================================================================
   void paint(juce::Graphics &) override;
@@ -30,7 +30,7 @@ class BigSynthAudioProcessorEditor : public juce::AudioProcessorEditor {
  private:
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
-  BigSynthAudioProcessor &audioProcessor;
+  ElectrumAudioProcessor &audioProcessor;
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BigSynthAudioProcessorEditor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessorEditor)
 };
