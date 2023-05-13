@@ -2,7 +2,7 @@
 #include "../Core/CustomJuceHeader.h"
 #include "Identifiers.h"
 
-class BSVT : public AudioProcessorValueTreeState
+class EVT : public AudioProcessorValueTreeState
 {
 private:
     static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
@@ -12,7 +12,7 @@ private:
         return layout;
     }
 public:
-    BSVT(AudioProcessor &proc,
+    EVT(AudioProcessor &proc,
          UndoManager *undo,
          const Identifier &valueTreeType) : 
          AudioProcessorValueTreeState(proc, undo, valueTreeType, createParameterLayout())

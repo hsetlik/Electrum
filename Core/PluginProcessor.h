@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../Parameters/ElectrumValueTree.h"
-#include "../Audio/ElectrumSynthesizer.h"
+#include "../Audio/ElectrumEngine.h"
 
 //==============================================================================
 /**
@@ -55,8 +55,8 @@ class ElectrumAudioProcessor : public juce::AudioProcessor
   void getStateInformation(juce::MemoryBlock &destData) override;
   void setStateInformation(const void *data, int sizeInBytes) override;
   //==============================================================================
-  BSVT state;
-  ElectrumSynthesizer synth;
+  EVT state;
+  ElectrumEngine engine;
  private:
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)

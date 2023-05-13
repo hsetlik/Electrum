@@ -16,10 +16,15 @@ set(SOURCES
 # /Parameters
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
 #/Audio
-"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumSynthesizer.h"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumSynthesizer.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Envelope.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Oscillator.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/AudioBasics.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.cpp"
 )
 
 
