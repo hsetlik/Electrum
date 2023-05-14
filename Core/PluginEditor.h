@@ -32,5 +32,6 @@ class ElectrumAudioProcessorEditor : public juce::AudioProcessorEditor {
   // access the processor object that created it.
   ElectrumAudioProcessor &audioProcessor;
 
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessorEditor)
 };

@@ -22,12 +22,20 @@ ElectrumAudioProcessor::ElectrumAudioProcessor()
 #endif
       ),
 #endif
-state (*this, nullptr, IDs::BIGSYNTH_STATE),
+state (*this, nullptr, IDs::ELECTRUM_STATE),
 engine (&state)
 {
+#if PERFETTO
+    MelatoninPerfetto::get().beginSession();
+#endif
 }
 
-ElectrumAudioProcessor::~ElectrumAudioProcessor() {}
+ElectrumAudioProcessor::~ElectrumAudioProcessor() 
+{
+#if PERFETTO
+    MelatoninPerfetto::get().endSession();
+#endif
+}
 
 //==============================================================================
 const juce::String ElectrumAudioProcessor::getName() const {

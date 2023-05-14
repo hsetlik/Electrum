@@ -6,6 +6,17 @@ project("Electrum" VERSION 1.0.0)
 add_subdirectory(JUCE)
 add_subdirectory(JUCE/extras/AudioPluginHost)
 
+include(FetchContent)
+
+# Juce module wrapper for Perfetto profiler
+FetchContent_Declare (
+  melatonin_perfetto
+  GIT_REPOSITORY https://github.com/sudara/melatonin_perfetto.git
+  GIT_TAG origin/main
+)
+
+FetchContent_MakeAvailable (melatonin_perfetto)
+
 set(SOURCES
 # /Core
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginEditor.h"
@@ -74,4 +85,6 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
+    PRIVATE
+    Melatonin::Perfetto
   )

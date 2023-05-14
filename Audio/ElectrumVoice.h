@@ -2,6 +2,8 @@
 #include "Modulators/Envelope.h"
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
+#include "../Parameters/MathUtil.h"
+
 
 class ElectrumVoice
 {
@@ -11,14 +13,21 @@ private:
     int currentNote;
     float currentNoteVelocity;
     bool gateIsOn;
+    int currentBlockSize;
+    double sampleRate;
+    PlaceholderEnvelope env;
+    PlaceholderOsc osc;
 public:
     ElectrumVoice(EVT* tree, int idx);
+    // call this from prepareToPlay
+    void prepareVoice(double newRate, int newBlockSize);
     // returns whether the voice can start a new note
     bool isBusy();
     void startNote(int note, float velocity);
     void stopNote();
-    
 
-
-
+    int getCurrentNote() { return currentNote; }
+    //called for each sample on audio thread
+    void renderNextSample (float& left, float& right);
+    int getIndex() const { return index; }
 };

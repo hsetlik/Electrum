@@ -1,7 +1,7 @@
 #pragma once
 #include "../../Core/CustomJuceHeader.h"
-#define PLACEHOLDER_ATTACK_MS 60
-#define PLACEHOLDER_DECAY_MS 60
+#define PLACEHOLDER_ATTACK_MS 60.0f
+#define PLACEHOLDER_DECAY_MS 200.0f
 
 class PlaceholderEnvelope
 {
@@ -39,12 +39,12 @@ public:
         static float decayDelta = 0.0f;
         if (gateIsOn)
         {
-            attackDelta = 1.0f / (float)((sampleRate * (double)PLACEHOLDER_ATTACK_MS) / 1000.0f);
+            attackDelta = 1.0f / (float)((sampleRate * PLACEHOLDER_ATTACK_MS) / 1000.0f);
             lastOutput = std::min(lastOutput + attackDelta, 1.0f);
         }
         else
         {
-            decayDelta = 1.0f / (float)((sampleRate * (double)PLACEHOLDER_DECAY_MS) / 1000.0f);
+            decayDelta = 1.0f / (float)((sampleRate * PLACEHOLDER_DECAY_MS) / 1000.0f);
             lastOutput = std::max(lastOutput - decayDelta, 0.0f);
         }
         return lastOutput;

@@ -13,6 +13,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 #include <juce_cryptography/juce_cryptography.h>
+#include <melatonin_perfetto/melatonin_perfetto.h>
 
 
 #if JUCE_TARGET_HAS_BINARY_DATA
