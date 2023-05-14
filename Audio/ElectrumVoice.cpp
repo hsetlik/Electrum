@@ -5,7 +5,7 @@ state (tree),
 index (idx),
 currentNote(-1),
 currentNoteVelocity(0.0f),
-gateIsOn(false),
+gate(false),
 currentBlockSize(512),
 sampleRate(44100.0f)
 {
@@ -14,21 +14,21 @@ sampleRate(44100.0f)
 
 bool ElectrumVoice::isBusy()
 {
-    return gateIsOn || (!env.isFinished());
+    return gate || (!env.isFinished());
 }
 
 void ElectrumVoice::startNote(int note, float vel)
 {
     currentNote = note;
     currentNoteVelocity = vel;
-    gateIsOn = true;
+    gate = true;
     env.gateStart();
 }
 
 void ElectrumVoice::stopNote()
 {
     env.gateEnd();
-    gateIsOn = false;
+    gate = false;
 }
 
 void ElectrumVoice::prepareVoice(double newRate, int newBlockSize)

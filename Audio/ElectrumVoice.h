@@ -12,7 +12,7 @@ private:
     const int index;
     int currentNote;
     float currentNoteVelocity;
-    bool gateIsOn;
+    bool gate;
     int currentBlockSize;
     double sampleRate;
     PlaceholderEnvelope env;
@@ -22,6 +22,7 @@ public:
     // call this from prepareToPlay
     void prepareVoice(double newRate, int newBlockSize);
     // returns whether the voice can start a new note
+    bool gateIsOn() { return gate; }
     bool isBusy();
     void startNote(int note, float velocity);
     void stopNote();

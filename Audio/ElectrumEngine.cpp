@@ -20,6 +20,7 @@ void ElectrumEngine::noteOn(int note, float velocity)
     jassert(voice != nullptr);
     std::cout << "Starting note " << note << " on voice " << voice->getIndex() << "\n";
     voice->startNote(note, velocity);
+    std::cout << numBusyVoices() << " voices are busy\n";
 }
 
 void ElectrumEngine::noteOff(int note)
@@ -47,12 +48,14 @@ ElectrumVoice* ElectrumEngine::getFreeVoice()
     return nullptr;
 }
 
+
+
 ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 {
     //ElectrumVoice* voice = nullptr;
     for (auto v : voices)
     {
-        if (v->getCurrentNote() == note)
+        if (v->getCurrentNote() == note && v->gateIsOn())
             return v;
     }
     return nullptr;
@@ -69,8 +72,9 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         if (it != midi.end())
         {
             auto metadata = *it;
-            if (metadata.samplePosition == s)
+            while (metadata.samplePosition == s && it != midi.end())
             {
+                metadata = *it;
                 auto message = metadata.getMessage();
                 if (message.isNoteOn())
                 {
@@ -84,6 +88,7 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 
                 // make sure we increment the iterator after processing each message
                 it++;
+           
             }
         }
         //STEP 2: Render the actual samples
