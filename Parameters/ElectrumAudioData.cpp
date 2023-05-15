@@ -7,7 +7,10 @@ ElectrumAudioData::ElectrumAudioData()
     {
         std::cout << "Adding wavetabe set number: " << i << "...\n";
         oscillators.add(new WavetableSet(WaveUtil::getDefaultWaveSet()));
+        auto oscString = oscillators.getLast()->getWavesAsString();
+        std::cout << oscillators.getLast()->numWaves() << " waves stored in " << oscString.size() << " bytes\n";
     }
+
 }
 
 ElectrumAudioData::ElectrumAudioData(ValueTree& state)

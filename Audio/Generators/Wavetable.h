@@ -170,6 +170,32 @@ struct WaveUtil
         }
         return out;
     }
+
+    static std::vector<Wave> wavesFromString(const std::string& str)
+    {
+        const size_t waveLength = TABLE_SIZE * sizeof(float);
+        std::string current = "";
+        std::vector<Wave> out;
+        for (auto& c : str)
+        {
+            current.push_back(c);
+            if (current.size() == waveLength)
+            {
+                out.push_back(fromString(current));
+                current = "";
+            }
+        }
+        return out;
+    }
+    static std::string stringFromWaves(std::vector<Wave>& waves)
+    {
+        std::string out = "";
+        for (auto& wave : waves)
+        {
+            out += toString(wave);
+        }
+        return out;
+    }
 };
 
 struct BandLimitedWave
@@ -189,6 +215,11 @@ private:
 public:
     Wavetable (Wave& firstWave);
     float getSample(float phase, double freq, double sampleRate);
+    std::string getWaveAsString()
+    {
+        auto& w = data[0].table;
+        return WaveUtil::toString(w);
+    }
 };
 
 struct WavetableSet
@@ -197,8 +228,18 @@ private:
     std::vector<Wavetable> tables;
 public:
     WavetableSet(std::vector<Wave> waves);
+    WavetableSet(std::string waveData);
     float getSample(float phase, float tablePos, double freq, double sampleRate);
-// default waves
+    size_t numWaves() const { return tables.size(); }
+    std::string getWavesAsString()
+    {
+        std::string out = "";
+        for (auto& t : tables)
+        {
+            out += t.getWaveAsString();
+        }
+        return out;
+    }
 };
 
 

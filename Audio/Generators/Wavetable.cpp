@@ -126,6 +126,18 @@ WavetableSet::WavetableSet(std::vector<Wave> waves)
     }
 }
 
+WavetableSet::WavetableSet(std::string waveData)
+{
+    auto waves = WaveUtil::wavesFromString(waveData);
+    std::cout << "Set has " << waves.size() << " waves\n";
+    for (size_t i = 0; i < waves.size(); ++i)
+    {
+        std::cout << "Preparing wavetable number " << i << "\n";
+        auto wave = waves[i];
+        tables.push_back(Wavetable(wave));
+    }
+}
+
 float WavetableSet::getSample(float phase, float tablePos, double freq, double sampleRate)
 {
     static float lower;
