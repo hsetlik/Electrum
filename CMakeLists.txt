@@ -28,6 +28,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.cpp"
 #/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Envelope.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Oscillator.h"
@@ -38,6 +40,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.cpp"
 )
 
 

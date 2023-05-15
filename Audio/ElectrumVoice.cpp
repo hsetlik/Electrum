@@ -9,7 +9,10 @@ gate(false),
 currentBlockSize(512),
 sampleRate(44100.0f)
 {
-
+    for (int i = 0; i < NUM_OSCILLATORS; i++)
+    {
+        oscs.add(new WavetableOscillator(state, i));
+    }
 }
 
 bool ElectrumVoice::isBusy()
@@ -40,7 +43,14 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
 {
     if (!isBusy())
         return;
-    float output = osc.getNextSample(Math::midiToHz(currentNote)) * env.getSample() * 0.25f; //this .3 is temporary gain limiting...
+    static float output = 0.0f;
+    output = 0.0f;
+    for (auto o : oscs)
+    {
+        //TODO: once modulation is set up, we need calculate the instantaneour wavetable position here
+        output += o->getNextSample(Math::midiToHz(currentNote), sampleRate, 0.0f);
+    }
+    output = output * env.getSample() * 0.25f;
     left += output;
     right += output;
 }

@@ -9,7 +9,7 @@ state (tree)
 {
     for (int i = 0; i < NUM_VOICES; i++)
     {
-        voices.add (new ElectrumVoice (state, i));
+        voices.add (new ElectrumVoice(state, i));
     }
 
 }

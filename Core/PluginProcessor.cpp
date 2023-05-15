@@ -26,7 +26,7 @@ state (*this, nullptr, IDs::ELECTRUM_STATE),
 engine (&state)
 {
 #if PERFETTO
-    MelatoninPerfetto::get().beginSession();
+  MelatoninPerfetto::get().beginSession();
 #endif
 }
 

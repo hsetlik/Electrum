@@ -16,7 +16,11 @@ namespace Math
     {
         return 440.0f * std::pow (SEMITONE_RATIO, (float)midiNum - 69);
     }
-    inline void runFFT(int N, float *ar, float *ai)
+}
+
+struct FFT
+{
+    static void runFloat(int N, float *ar, float *ai)
     /*
      in-place complex fft
      
@@ -87,4 +91,4 @@ namespace Math
             }
         }
     }
-}
+};

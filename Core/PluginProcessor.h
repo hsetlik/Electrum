@@ -55,12 +55,14 @@ class ElectrumAudioProcessor : public juce::AudioProcessor
   void getStateInformation(juce::MemoryBlock &destData) override;
   void setStateInformation(const void *data, int sizeInBytes) override;
   //==============================================================================
-  EVT state;
-  ElectrumEngine engine;
+
  private:
 #if PERFETTO
     std::unique_ptr<perfetto::TracingSession> tracingSession;
 #endif
+public:
+  EVT state;
+  ElectrumEngine engine;
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)
 };

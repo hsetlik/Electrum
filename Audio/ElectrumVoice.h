@@ -3,6 +3,7 @@
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
 #include "../Parameters/MathUtil.h"
+#include "Generators/WavetableOscillator.h"
 
 
 class ElectrumVoice
@@ -17,6 +18,8 @@ private:
     double sampleRate;
     PlaceholderEnvelope env;
     PlaceholderOsc osc;
+    OwnedArray<WavetableOscillator> oscs;
+
 public:
     ElectrumVoice(EVT* tree, int idx);
     // call this from prepareToPlay
