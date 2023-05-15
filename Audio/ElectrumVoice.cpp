@@ -40,7 +40,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
 {
     if (!isBusy())
         return;
-    float output = osc.getNextSample(Math::midiToHz(currentNote)) * env.getSample() * 0.35f; //this .3 is temporary gain limiting...
+    float output = osc.getNextSample(Math::midiToHz(currentNote)) * env.getSample() * 0.25f; //this .3 is temporary gain limiting...
     left += output;
     right += output;
 }

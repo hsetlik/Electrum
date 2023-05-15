@@ -36,6 +36,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.cpp"
 )
 
 
