@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../Parameters/ElectrumValueTree.h"
-
+#include "../GUI/ElectrumEditor.h"
 #include "PluginProcessor.h"
 
 #define WINDOW_WIDTH 1200
@@ -18,7 +18,8 @@
 //==============================================================================
 /**
  */
-class ElectrumAudioProcessorEditor : public juce::AudioProcessorEditor {
+class ElectrumAudioProcessorEditor : public juce::AudioProcessorEditor
+{
  public:
   ElectrumAudioProcessorEditor(ElectrumAudioProcessor &);
   ~ElectrumAudioProcessorEditor() override;
@@ -31,7 +32,7 @@ class ElectrumAudioProcessorEditor : public juce::AudioProcessorEditor {
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
   ElectrumAudioProcessor &audioProcessor;
-
-
+  EVT* const state;
+  ElectrumEditor mainPanel;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessorEditor)
 };

@@ -28,6 +28,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.cpp"
 #/Audio
@@ -42,6 +43,16 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.cpp"
+#/GUI
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/OscillatorEditor.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/OscillatorEditor.cpp"
+#/GUI/Modulation
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.cpp"
 )
 
 

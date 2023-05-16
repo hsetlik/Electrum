@@ -29,6 +29,7 @@ public:
     bool isBusy();
     void startNote(int note, float velocity);
     void stopNote();
+    void updateForBlock();
 
     int getCurrentNote() { return currentNote; }
     //called for each sample on audio thread

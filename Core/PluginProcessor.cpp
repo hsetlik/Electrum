@@ -88,6 +88,7 @@ void ElectrumAudioProcessor::changeProgramName(int index, const juce::String &ne
 void ElectrumAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) 
 {
   engine.prepareToPlay (sampleRate, samplesPerBlock);
+  DLog::log("Prepared to play with sample rate: " + String(sampleRate) + " and block size: " + String(samplesPerBlock));
 }
 
 void ElectrumAudioProcessor::releaseResources() 
@@ -122,8 +123,14 @@ bool ElectrumAudioProcessor::isBusesLayoutSupported(
 
 void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) 
 {
+  static bool hasCompleted = false;
   juce::ScopedNoDenormals noDenormals;
   engine.processBlock(buffer, midiMessages);
+  if (!hasCompleted)
+  {
+    hasCompleted = true;
+    DLog::log("ProcessBlock completed");
+  }
 }
 
 //==============================================================================

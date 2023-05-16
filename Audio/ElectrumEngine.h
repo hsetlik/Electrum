@@ -23,6 +23,7 @@ private:
     ElectrumVoice* getVoicePlayingNote(int note);
 
     int numBusyVoices();
+    void updateParamsForBlock();
 
 public:
     EVT* const state;

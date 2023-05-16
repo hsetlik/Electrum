@@ -1,7 +1,6 @@
 #pragma once
 #include "Identifiers.h"
 #include "../Audio/Generators/Wavetable.h"
-#define NUM_OSCILLATORS 1
 class ElectrumAudioData
 {
 private:

@@ -18,9 +18,7 @@ void ElectrumEngine::noteOn(int note, float velocity)
 {
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
-    std::cout << "Starting note " << note << " on voice " << voice->getIndex() << "\n";
     voice->startNote(note, velocity);
-    std::cout << numBusyVoices() << " voices are busy\n";
 }
 
 void ElectrumEngine::noteOff(int note)
@@ -30,11 +28,10 @@ void ElectrumEngine::noteOff(int note)
     if(voice != nullptr)
     {
         voice->stopNote();
-        std::cout << "Stopping note " << note << " on voice " << voice->getIndex() << "\n";
     }
     else
     {
-        std::cout << "No voices found playing note " << note << "\n";
+        DLog::log("No voice found for note: " + String(note));
     }
 }
 
@@ -63,7 +60,9 @@ ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
     TRACE_DSP();
+    //updateParamsForBlock();
     MidiBufferIterator it = midi.begin();
+    
     //make sure we have stereo
     jassert(buffer.getNumChannels() >= 2);
     for (int s = 0; s < buffer.getNumSamples(); s++)
@@ -72,9 +71,8 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         if (it != midi.end())
         {
             auto metadata = *it;
-            while (metadata.samplePosition == s && it != midi.end())
+            while (it != midi.end() && metadata.samplePosition == s)
             {
-                metadata = *it;
                 auto message = metadata.getMessage();
                 if (message.isNoteOn())
                 {
@@ -88,7 +86,7 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 
                 // make sure we increment the iterator after processing each message
                 it++;
-           
+                metadata = *it;
             }
         }
         //STEP 2: Render the actual samples
@@ -127,5 +125,13 @@ int ElectrumEngine::numBusyVoices()
             ++count;
     }
     return count;
+}
+
+
+void ElectrumEngine::updateParamsForBlock()
+{
+    for (auto v : voices)
+        v->updateForBlock();
+
 }
 //=============================================================
