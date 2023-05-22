@@ -4,16 +4,24 @@
 #include "../Parameters/ElectrumValueTree.h"
 #include "AudioBasics.h"
 #include "ElectrumVoice.h"
+#include <stack>
 #define NUM_VOICES 18
 
 class ElectrumEngine
 {
 private:
+    struct TimestampedMidiMessage
+    {
+        int timestamp;
+        MidiMessage message;
+    };
+    std::queue<TimestampedMidiMessage> midiQueue;
 // state
     double sampleRate;
     int blockSize;
     OwnedArray<ElectrumVoice> voices;
     float left, right;
+    
 // functions
     void noteOn(int note, float velocity);
     void noteOff(int note);
@@ -24,6 +32,9 @@ private:
 
     int numBusyVoices();
     void updateParamsForBlock();
+//helpers for processBlock
+    void loadMidiEvents(MidiBuffer& midi);
+    void handleMidiMessage(MidiMessage& message);
 
 public:
     EVT* const state;

@@ -2,7 +2,7 @@
 #include "Identifiers.h"
 #include "ElectrumAudioData.h"
 
-class EVT : public AudioProcessorValueTreeState
+class EVT
 {
 private:
     static ValueTree createModulationsTree()
@@ -20,11 +20,12 @@ private:
     }
 
     std::unique_ptr<ElectrumAudioData> audioData;
+    APVTS coreTree;
 public:
     EVT(AudioProcessor &proc,
          UndoManager *undo,
          const Identifier &valueTreeType) : 
-         AudioProcessorValueTreeState(proc, undo, valueTreeType, IDs::createElectrumLayout()),
+         coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()),
          audioData(std::make_unique<ElectrumAudioData>())
     {
 
@@ -37,5 +38,7 @@ public:
             return audioData->getOscillatorValue(idx, phase, tablePos, freq, sampleRate);
         return 0.0f;
     }
+
+    APVTS* getAPVTS() { return &coreTree; }
 
 };

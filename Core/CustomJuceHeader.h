@@ -26,9 +26,9 @@
  using namespace juce;
 #endif
 
-using apvts = juce::AudioProcessorValueTreeState;
-using sAttach = apvts::SliderAttachment;
-using sAttachPtr = std::unique_ptr<apvts::SliderAttachment>;
+using APVTS = juce::AudioProcessorValueTreeState;
+using sAttach = APVTS::SliderAttachment;
+using sAttachPtr = std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>;
 
 #if ! JUCE_DONT_DECLARE_PROJECTINFO
 namespace ProjectInfo

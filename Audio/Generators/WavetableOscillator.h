@@ -7,10 +7,13 @@ private:
     const int index;
     float phase;
     float baseWavetablePos;
+    float baseLevel;
 public:
     WavetableOscillator(EVT* t, int idx);
     float getNextSample(double freq, double sampleRate, float position);
     void setBasePosition(float value) { baseWavetablePos = value; }
+    void setBaseLevel(float value) { baseLevel = value; }
     void updateBasePos();
+    void updateBaseLevel();
 
 };

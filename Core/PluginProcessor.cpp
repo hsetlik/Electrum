@@ -38,11 +38,13 @@ ElectrumAudioProcessor::~ElectrumAudioProcessor()
 }
 
 //==============================================================================
-const juce::String ElectrumAudioProcessor::getName() const {
+const juce::String ElectrumAudioProcessor::getName() const 
+{
   return JucePlugin_Name;
 }
 
-bool ElectrumAudioProcessor::acceptsMidi() const {
+bool ElectrumAudioProcessor::acceptsMidi() const 
+{
 #if JucePlugin_WantsMidiInput
   return true;
 #else
@@ -50,7 +52,8 @@ bool ElectrumAudioProcessor::acceptsMidi() const {
 #endif
 }
 
-bool ElectrumAudioProcessor::producesMidi() const {
+bool ElectrumAudioProcessor::producesMidi() const 
+{
 #if JucePlugin_ProducesMidiOutput
   return true;
 #else
@@ -58,7 +61,8 @@ bool ElectrumAudioProcessor::producesMidi() const {
 #endif
 }
 
-bool ElectrumAudioProcessor::isMidiEffect() const {
+bool ElectrumAudioProcessor::isMidiEffect() const 
+{
 #if JucePlugin_IsMidiEffect
   return true;
 #else
@@ -68,7 +72,8 @@ bool ElectrumAudioProcessor::isMidiEffect() const {
 
 double ElectrumAudioProcessor::getTailLengthSeconds() const { return 0.0; }
 
-int ElectrumAudioProcessor::getNumPrograms() {
+int ElectrumAudioProcessor::getNumPrograms() 
+{
   return 1;  // NB: some hosts don't cope very well if you tell them there are 0
              // programs, so this should be at least 1, even if you're not
              // really implementing programs.
@@ -78,7 +83,8 @@ int ElectrumAudioProcessor::getCurrentProgram() { return 0; }
 
 void ElectrumAudioProcessor::setCurrentProgram(int index) {}
 
-const juce::String ElectrumAudioProcessor::getProgramName(int index) {
+const juce::String ElectrumAudioProcessor::getProgramName(int index) 
+{
   return {};
 }
 
@@ -98,8 +104,8 @@ void ElectrumAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool ElectrumAudioProcessor::isBusesLayoutSupported(
-    const BusesLayout &layouts) const {
+bool ElectrumAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const 
+    {
 #if JucePlugin_IsMidiEffect
   juce::ignoreUnused(layouts);
   return true;
@@ -123,14 +129,8 @@ bool ElectrumAudioProcessor::isBusesLayoutSupported(
 
 void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) 
 {
-  static bool hasCompleted = false;
   juce::ScopedNoDenormals noDenormals;
   engine.processBlock(buffer, midiMessages);
-  if (!hasCompleted)
-  {
-    hasCompleted = true;
-    DLog::log("ProcessBlock completed");
-  }
 }
 
 //==============================================================================

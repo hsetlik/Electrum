@@ -7,8 +7,7 @@ label("oscLabel" + String(idx), "Oscillator " + String(idx)),
 sLevel(tree, IDs::oscillatorLevel.toString() + String(idx)),
 sPos(tree, IDs::oscillatorPos.toString() + String(idx))
 {
-    String levelID = IDs::oscillatorLevel.toString() + String(index);
-    String posID = IDs::oscillatorPos.toString() + String(index);
+
     // sLevel = std::make_unique<ModulationDestSlider>(state, levelID);
     // sPos = std::make_unique<ModulationDestSlider>(state, posID);
     // addAndMakeVisible(sLevel.get());
@@ -27,6 +26,7 @@ void OscillatorEditor::resized()
     auto knobsRegion = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
     sLevel.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).toNearestInt());
     sPos.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).toNearestInt());
+
 
 }
     

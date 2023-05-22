@@ -4,8 +4,8 @@
 #include "DLog.h"
 // Every Identifier for every parameter should be in here
 #define NUM_OSCILLATORS 3
-#define OSC_POS_DEFAULT 0.0f
-#define OSC_LEVEL_DEFAULT 1.0f
+#define OSC_POS_DEFAULT 0.1f
+#define OSC_LEVEL_DEFAULT 0.8f
 
 using frange = NormalisableRange<float>;
 namespace IDs
@@ -34,19 +34,19 @@ DECLARE_ID(modulationDepth)
 inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
 {
     AudioProcessorValueTreeState::ParameterLayout layout;
-    frange posRange(0.0f, 0.1f, 0.0001f);
-    frange levelRange(0.0f, 0.1f, 0.0001f);
+    frange posRange(0.0f, 1.0f, 0.0001f);
+    frange levelRange(0.0f, 1.0f, 0.0001f);
     for (int i = 0; i < NUM_OSCILLATORS; i++)
     {
         auto iStr = juce::String(i);
-        auto positionId = oscillatorPos.toString() + iStr;
-        std::cout << "ID: " << positionId.toStdString() << "\n";
-        auto levelId = oscillatorLevel.toString() + iStr;
+        String positionId = oscillatorPos.toString() + iStr;
+        String levelId = oscillatorLevel.toString() + iStr;
         auto levelName = "Oscillator " + iStr + " level";
         auto positionName = "Oscillator " + iStr + " position";
-
-        layout.add(std::make_unique<AudioParameterFloat>(positionId, positionName, posRange, OSC_POS_DEFAULT));
-        layout.add(std::make_unique<AudioParameterFloat>(levelId, levelName, levelRange, OSC_LEVEL_DEFAULT));
+        DLog::log("Osc Level: " + levelId);
+        DLog::log("Osc Pos: " + positionId);
+        layout.add(std::make_unique<AudioParameterFloat>(positionId, positionId, posRange, OSC_POS_DEFAULT));
+        layout.add(std::make_unique<AudioParameterFloat>(levelId, levelId, levelRange, OSC_LEVEL_DEFAULT));
     }
     return layout;
 }

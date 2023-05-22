@@ -48,7 +48,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     for (auto o : oscs)
     {
         //TODO: once modulation is set up, we need calculate the instantaneour wavetable position here
-        output += o->getNextSample(Math::midiToHz(currentNote), sampleRate, 0.4f);
+        output += o->getNextSample(Math::midiToHz(currentNote), sampleRate, 0.0f);
     }
     output = output * env.getSample() * 0.25f;
     left += output;
@@ -60,5 +60,6 @@ void ElectrumVoice::updateForBlock()
     for (auto o : oscs)
     {
         o->updateBasePos();
+        o->updateBaseLevel();
     }
 }

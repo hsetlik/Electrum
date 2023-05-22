@@ -60,40 +60,25 @@ ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
     TRACE_DSP();
-    //updateParamsForBlock();
-    MidiBufferIterator it = midi.begin();
-    
+    updateParamsForBlock();
+    loadMidiEvents(midi);
     //make sure we have stereo
     jassert(buffer.getNumChannels() >= 2);
     for (int s = 0; s < buffer.getNumSamples(); s++)
     {
         //STEP 1: Check if we have a midi event on this sample
-        if (it != midi.end())
+        while(!midiQueue.empty() && midiQueue.front().timestamp == s)
         {
-            auto metadata = *it;
-            while (it != midi.end() && metadata.samplePosition == s)
-            {
-                auto message = metadata.getMessage();
-                if (message.isNoteOn())
-                {
-                    noteOn(message.getNoteNumber(), message.getFloatVelocity());
-                }
-                else if (message.isNoteOff())
-                {
-                    noteOff(message.getNoteNumber());
-                }
-                //other else ifs can handle other types of midi message as needed
-
-                // make sure we increment the iterator after processing each message
-                it++;
-                metadata = *it;
-            }
+            handleMidiMessage(midiQueue.front().message);
+            midiQueue.pop();
         }
+
         //STEP 2: Render the actual samples
         renderNextSample(left, right);
         buffer.setSample(0, s, left);
         buffer.setSample(1, s, right);
     }
+    jassert(midiQueue.empty());
 }
 
 void ElectrumEngine::prepareToPlay(double newSampleRate, int newBlockSize)
@@ -132,6 +117,36 @@ void ElectrumEngine::updateParamsForBlock()
 {
     for (auto v : voices)
         v->updateForBlock();
+
+}
+
+void ElectrumEngine::loadMidiEvents(MidiBuffer& midi)
+{
+    for(auto it = midi.begin(); it != midi.end(); ++it)
+    {
+        auto metadata = *it;
+        TimestampedMidiMessage m;
+        m.timestamp = metadata.samplePosition;
+        m.message = metadata.getMessage();
+        midiQueue.push(m);
+    }
+
+}
+void ElectrumEngine::handleMidiMessage(MidiMessage& message)
+{
+    // big ol else if to handle every type of MIDI message
+    if (message.isNoteOn())
+    {
+        noteOn(message.getNoteNumber(), message.getVelocity());
+    }
+    else if(message.isNoteOff())
+    {
+        noteOff(message.getNoteNumber());
+    }
+    else
+    {
+        DLog::log("Unhandled MIDI message: " + message.getDescription());
+    }
 
 }
 //=============================================================
