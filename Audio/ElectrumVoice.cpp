@@ -47,7 +47,8 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     output = 0.0f;
     for (auto o : oscs)
     {
-        //TODO: once modulation is set up, we need calculate the instantaneour wavetable position here
+        //TODO: need to calculate position mod and level mod here
+
         output += o->getNextSample(Math::midiToHz(currentNote), sampleRate, 0.0f);
     }
     output = output * env.getSample() * 0.25f;
@@ -61,5 +62,18 @@ void ElectrumVoice::updateForBlock()
     {
         o->updateBasePos();
         o->updateBaseLevel();
+    }
+}
+
+
+float ElectrumVoice::getModValueForSample(const String& srcID)
+{
+    if (srcID == IDs::modWheelSource.toString())
+    {
+        return state->getModWheel();
+    }
+    else
+    {
+        return 0.0f;
     }
 }

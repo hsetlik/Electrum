@@ -21,7 +21,10 @@ public:
     {
         auto lBounds = getLocalBounds().toFloat();
         label.setBounds(lBounds.removeFromTop(17.0f).toNearestInt());
-        sourceComp.setBounds(lBounds.toNearestInt());
+        const int x = (int)lBounds.getX();
+        const int y = (int)lBounds.getY();
+        const int srcWidth = 35;
+        sourceComp.setBounds(x, y, srcWidth, srcWidth);
 
     }
 };

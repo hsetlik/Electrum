@@ -1,6 +1,8 @@
 #pragma once
 #include "../Core/CustomJuceHeader.h"
 #define SEMITONE_RATIO 1.05946309436f
+#ifndef MATHUTIL_H
+#define MATHUTIL_H
 namespace Math
 {
     inline float flerp (float a, float b, float t)
@@ -92,3 +94,5 @@ struct FFT
         }
     }
 };
+
+#endif

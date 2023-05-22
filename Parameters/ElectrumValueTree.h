@@ -56,12 +56,16 @@ private:
     //state
     std::unique_ptr<ElectrumAudioData> audioData;
     APVTS coreTree;
+    std::atomic<bool> sustainPedalOn;
+    std::atomic<float> modWheelValue;
 public:
     EVT(AudioProcessor &proc,
          UndoManager *undo,
          const Identifier &valueTreeType) : 
          audioData(std::make_unique<ElectrumAudioData>()),
-         coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout())
+         coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()),
+         sustainPedalOn(false),
+         modWheelValue(0.0f)
     {
 
 
@@ -93,6 +97,14 @@ public:
         auto mod = getModulation(source, dest);
         return mod.isValid();
     }
+    //removes a modulation routing
+    void removeModulation(const String& src, const String& dest)
+    {
+        auto mod = getModulation(src, dest);
+        // make sure we're removing a modulation that actually exists
+        jassert(mod.isValid());
+        getModulationsTree().removeChild(mod, nullptr);
+    }
     // get an unordered_map of all the sources and depths for a given source
     std::unordered_map<String, float> getModulationsForDest(const String& dest)
     {
@@ -109,5 +121,10 @@ public:
         }
         return out;
     }
+    void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }
+    bool getSustainPedal() { return sustainPedalOn.load(); }
+
+    void setModWheel(float val) { modWheelValue = val; }
+    float getModWheel() { return modWheelValue.load(); }
 
 };

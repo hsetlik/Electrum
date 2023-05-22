@@ -32,6 +32,9 @@ public:
     void updateForBlock();
 
     int getCurrentNote() { return currentNote; }
+    //called to get the current value of the given modulation source for this voice
+    float getModValueForSample(const String& srcID);
+
     //called for each sample on audio thread
     void renderNextSample (float& left, float& right);
     int getIndex() const { return index; }

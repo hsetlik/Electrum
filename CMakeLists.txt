@@ -56,6 +56,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.cpp"
 )
 
 

@@ -81,6 +81,7 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         buffer.setSample(0, s, left);
         buffer.setSample(1, s, right);
     }
+    //ensure that the midi queue is empty (i.e. no out of range timestamps)
     jassert(midiQueue.empty());
 }
 
@@ -145,6 +146,19 @@ void ElectrumEngine::handleMidiMessage(MidiMessage& message)
     else if(message.isNoteOff())
     {
         noteOff(message.getNoteNumber());
+    }
+    else if(message.isSustainPedalOn())
+    {
+        state->setSustainPedal(true);
+    }
+    else if(message.isSustainPedalOff())
+    {
+        state->setSustainPedal(false);
+    }
+    else if(message.isController() && message.getControllerNumber() == 1) // handle mod wheel
+    {
+        float modVal = 127.0f / (float)message.getControllerValue();
+        state->setModWheel(modVal);
     }
     else
     {
