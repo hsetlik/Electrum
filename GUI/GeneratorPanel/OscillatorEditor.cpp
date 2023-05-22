@@ -8,10 +8,6 @@ sLevel(tree, IDs::oscillatorLevel.toString() + String(idx)),
 sPos(tree, IDs::oscillatorPos.toString() + String(idx))
 {
 
-    // sLevel = std::make_unique<ModulationDestSlider>(state, levelID);
-    // sPos = std::make_unique<ModulationDestSlider>(state, posID);
-    // addAndMakeVisible(sLevel.get());
-    // addAndMakeVisible(sPos.get());
     addAndMakeVisible(&label);
     addAndMakeVisible(&sLevel);
     addAndMakeVisible(&sPos);

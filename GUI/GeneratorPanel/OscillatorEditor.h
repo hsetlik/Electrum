@@ -1,6 +1,6 @@
 #pragma once
-#include "Modulation/ModulationDestSlider.h"
-#include "../Parameters/Identifiers.h"
+#include "../Modulation/ModulationDestSlider.h"
+#include "../../Parameters/Identifiers.h"
 
 class OscillatorEditor : public Component
 {

@@ -22,3 +22,14 @@ void ModulationDestSlider::paint(Graphics& g)
     g.setColour(Colour::fromRGB(252, 161, 3));
 
 }
+
+void ModulationDestSlider::mouseDown(const juce::MouseEvent& e) 
+{
+
+}
+
+
+void ModulationDestSlider::itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails)
+{
+
+}

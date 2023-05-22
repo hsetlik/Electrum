@@ -162,11 +162,11 @@ struct WaveUtil
     {
         const float* arr = reinterpret_cast<const float*>(str.c_str());
         Wave out;
-        int len = str.size() / sizeof(float);
+        int len = (int)(str.size() / sizeof(float));
         jassert(len == (int)TABLE_SIZE);
         for (int i = 0; i < len; i++)
         {
-            out[i] = arr[i];
+            out[(size_t)i] = arr[i];
         }
         return out;
     }

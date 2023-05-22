@@ -46,11 +46,11 @@ set(SOURCES
 #/GUI
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/OscillatorEditor.h"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/OscillatorEditor.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/ModWheelSource.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
 #/GUI/Modulation
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"

@@ -30,6 +30,9 @@ DECLARE_ID(modulationSource)
 DECLARE_ID(modulationDest)
 DECLARE_ID(modulationDepth)
 
+// modulation sources
+DECLARE_ID(modWheelSource)
+
 
 
 #undef DECLARE_ID

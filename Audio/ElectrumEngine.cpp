@@ -19,6 +19,9 @@ void ElectrumEngine::noteOn(int note, float velocity)
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
     voice->startNote(note, velocity);
+    auto busy = numBusyVoices();
+    String str = (busy == 1) ? " voice is busy" : " voices are busy";
+    DLog::log(String(busy) + str);
 }
 
 void ElectrumEngine::noteOff(int note)

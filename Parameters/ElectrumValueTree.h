@@ -69,9 +69,7 @@ public:
 
     float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate)
     {
-        if (audioData != nullptr)
-            return audioData->getOscillatorValue(idx, phase, tablePos, freq, sampleRate);
-        return 0.0f;
+        return audioData->getOscillatorValue(idx, phase, tablePos, freq, sampleRate);
     }
     APVTS* getAPVTS() { return &coreTree; }
     // Modulation info stuff
