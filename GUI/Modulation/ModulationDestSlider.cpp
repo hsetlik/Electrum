@@ -19,8 +19,6 @@ void ModulationDestSlider::resized()
 
 void ModulationDestSlider::paint(Graphics& g)
 {
-    g.fillAll(Colour::fromRGB(82, 222, 196));
     g.setColour(Colour::fromRGB(252, 161, 3));
-    g.fillRect(paramSlider.getBounds().toFloat());
 
 }

@@ -15,6 +15,9 @@ DECLARE_ID(ELECTRUM_STATE)
 // oscillator
 DECLARE_ID(oscillatorPos)
 DECLARE_ID(oscillatorLevel)
+// envelope
+DECLARE_ID(attackMs)
+DECLARE_ID(decayMs)
 
 DECLARE_ID(WAVETABLE_DATA)
 DECLARE_ID(wavetableName)
