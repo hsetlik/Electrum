@@ -1,6 +1,7 @@
 #pragma once
 #include "Identifiers.h"
 #include "ElectrumAudioData.h"
+#include "../GUI/Color.h"
 
 class EVT
 {

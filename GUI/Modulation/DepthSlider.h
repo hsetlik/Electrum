@@ -16,8 +16,8 @@ private:
     static Slider::RotaryParameters getDepthSliderParams()
     {
         Slider::RotaryParameters params;
-        params.startAngleRadians = MathConstants<float>::pi - 0.0000001f;
-        params.endAngleRadians = 0.0f;
+        params.startAngleRadians = 0.0f; 
+        params.endAngleRadians = MathConstants<float>::pi * 1.5f;
         params.stopAtEnd = true;
         return params;
     }
@@ -28,4 +28,5 @@ public:
     void sliderValueChanged(Slider* s) override;
     void resized() override;
     void setIndex(int idx) { destIndex = idx; }    
+    int getIndex() const { return destIndex; }
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include "../../Parameters/ElectrumValueTree.h"
-#include "DepthSlider.h"
+#include "DepthSliderStack.h"
 
 
 class ModulationDestSlider : public Component, public DragAndDropTarget
@@ -8,12 +8,11 @@ class ModulationDestSlider : public Component, public DragAndDropTarget
 private:
     EVT* const state;
     const String paramID;
-    OwnedArray<DepthSlider> depthSliders;
+    DepthSliderStack stack;
 
     bool hasModulationFrom(const String& srcID);
     void addModulationFor(const String& srcID);
     void removeModulationFrom(const String& srcID);
-    void reindexDepthSliders();
 public:
     ModulationDestSlider(EVT* tree, const String& id);
     void resized() override;

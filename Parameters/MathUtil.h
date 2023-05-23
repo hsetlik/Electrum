@@ -18,6 +18,11 @@ namespace Math
     {
         return 440.0f * std::pow (SEMITONE_RATIO, (float)midiNum - 69);
     }
+
+    inline float fconstrain(float min, float max, float value)
+    {
+        return std::min(std::max(value, min), max);
+    }
 }
 
 struct FFT

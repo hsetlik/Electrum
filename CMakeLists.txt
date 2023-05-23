@@ -39,6 +39,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumVoice.cpp"
+#/Audio/Generators
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/Wavetable.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.h"
@@ -46,11 +47,11 @@ set(SOURCES
 #/GUI
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Color.h"
 #/GUI/Modulation
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"
@@ -58,6 +59,13 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSliderStack.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSliderStack.cpp"
+#/GUI/ModulatorPanel
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
+#/GUI/GeneratorPanel
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
 )
 
 

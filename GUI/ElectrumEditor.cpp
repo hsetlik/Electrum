@@ -2,6 +2,7 @@
 
 ElectrumEditor::ElectrumEditor(EVT* tree) : state(tree), modWhlSource(tree)
 {
+    setLookAndFeel(&lnf);
     for (int i = 0; i < NUM_OSCILLATORS; ++i)
     {
         oscEditors.add(new OscillatorEditor(state, i));
@@ -12,6 +13,7 @@ ElectrumEditor::ElectrumEditor(EVT* tree) : state(tree), modWhlSource(tree)
 }
 ElectrumEditor::~ElectrumEditor()
 {
+    setLookAndFeel(nullptr);
 
 }
 
