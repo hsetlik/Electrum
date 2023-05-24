@@ -1,5 +1,4 @@
 #include "Perlin.h"
-JUCE_IMPLEMENT_SINGLETON(Perlin)
 /**
  * Computes the largest integer value not greater than the float one
  *
@@ -118,39 +117,29 @@ float Perlin::getNoise(float x)
     t1 *= t1;
     n1 = t1 * t1 * grad(hash(i1), x1);
     // scale by 0.395 to get into the -1,1 range
-    return (n0 + n1) * 0.395f;
-}
-Perlin::Perlin() : currentX(0.0f)
-{
-
-}
-Perlin::~Perlin()
-{
-    clearSingletonInstance();
+    float output = (n0 + n1) * 0.395f;
+    if(output < -1.0f || output > 1.0f)
+    {
+        DLog::log("Out of range output " + String(output) + " for x = " + String(x));
+    }
+    return output;
 }
 
 
-float Perlin::getFractalPriv(size_t octaves, float frequency,  float lacunarity)
+float Perlin::getFractal(float x, size_t octaves, float frequency,  float lacunarity)
 {
     float output = 0.0f;
     float denom = 0.0f;
-    currentX += frequency * 1.0f;
     float currentFreq = frequency;
     float amp = 1.0f;
 
     for(size_t i = 0; i < octaves; i++)
     {
-        output += (amp * getNoise(currentX * currentFreq));
+        output += (amp * getNoise(x * currentFreq));
         denom += amp;
 
         currentFreq *= lacunarity;
         amp *= (1.0f / lacunarity);
     }
     return output / denom;
-}
-
-float Perlin::getFractal(size_t octaves, float freq, float lacunarity)
-{
-    auto* i = Perlin::getInstance();
-    return i->getFractalPriv(octaves, freq, lacunarity);
 }

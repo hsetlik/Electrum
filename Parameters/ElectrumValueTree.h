@@ -67,7 +67,7 @@ private:
 //========================================================================================
     // perlin stuff
     PerlinGenerator perlin;
-    float lastPerlinVal;
+    std::atomic<float> lastPerlinVal;
 public:
     EVT(AudioProcessor &proc,
          UndoManager *undo,
@@ -124,7 +124,7 @@ public:
     //gets the current output of the perlin generator
     float perlinValue() const
     {
-        return lastPerlinVal;
+        return lastPerlinVal.load();
     }
 
     float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate)

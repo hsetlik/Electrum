@@ -2,18 +2,14 @@
 #define PERLIN_H
 #pragma once
 #include "../../Parameters/MathUtil.h"
+#include "../../Parameters/DLog.h"
 
 class Perlin
 {
 private:
     static float getNoise(float x);
-    float currentX;
-    float getFractalPriv(size_t octaves, float frequency,  float lacunarity);
-   Perlin();
-   ~Perlin();
 public:
-   static float getFractal(size_t octaves, float frequency, float lacunarity);
-   JUCE_DECLARE_SINGLETON(Perlin, false)
+   static float getFractal(float x, size_t octaves, float frequency, float lacunarity);
 };
 
 class PerlinGenerator
@@ -22,11 +18,13 @@ private:
     size_t currentOctaves;
     float currentFreq;
     float currentLacunarity;
+    float currentX;
 public:
     PerlinGenerator() :
     currentOctaves(1),
     currentFreq(1.0f),
-    currentLacunarity(2.0f)
+    currentLacunarity(2.0f),
+    currentX(0.0f)
     {
 
     }
@@ -38,7 +36,8 @@ public:
     }
     float getNextValue()
     {
-        return Perlin::getFractal(currentOctaves, currentFreq, currentLacunarity);
+        currentX += (currentFreq / 100000.0f);
+        return Perlin::getFractal(currentX, currentOctaves, currentFreq, currentLacunarity);
     }
 
 };

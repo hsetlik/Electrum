@@ -8,7 +8,7 @@
 #define OSC_LEVEL_DEFAULT 0.8f
 
 #define PERLIN_OCTAVES_DEFAULT 2
-#define PERLIN_FREQ_DEFAULT 3.0f
+#define PERLIN_FREQ_DEFAULT 1.0f
 #define PERLIN_LAC_DEAULT 2.0f
 
 using frange = NormalisableRange<float>;
@@ -90,7 +90,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
         layout.add(std::make_unique<AudioParameterFloat>(levelId, levelName, levelRange, OSC_LEVEL_DEFAULT));
     }
     // perlin noise params
-    frange pFreqRange(0.1f, 100.0f, 0.0001f);
+    frange pFreqRange(1.0f, 100.0f, 0.0001f);
     String pFreqID = perlinFreq.toString();
     String pFreqName = "Perlin Frequency";
     layout.add(std::make_unique<AudioParameterFloat>(pFreqID, pFreqName, pFreqRange, PERLIN_FREQ_DEFAULT));
@@ -99,7 +99,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     String pOctName = "Perlin Noise Octaves";
     layout.add(std::make_unique<AudioParameterInt>(pOctID, pOctName, 1, 20, PERLIN_OCTAVES_DEFAULT));
 
-    frange lacunarityRange(1.5f, 15.0f, 0.0001f);
+    frange lacunarityRange(1.0f, 5.0f, 0.0001f);
     String pLacID = perlinLacunarity.toString();
     String pLacName = "Perlin Noise Lacunarity";
     layout.add(std::make_unique<AudioParameterFloat>(pLacID, pLacName, lacunarityRange, PERLIN_LAC_DEAULT));

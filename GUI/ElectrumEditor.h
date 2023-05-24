@@ -3,6 +3,7 @@
 #include "GeneratorPanel/OscillatorEditor.h"
 #include "ModulatorPanel/ModWheelSource.h"
 #include "ModulatorPanel/PitchWheelSource.h"
+#include "ModulatorPanel/PerlinPanel.h"
 #include "ElectrumLookAndFeel.h"
 
 class ElectrumEditor : 
@@ -15,6 +16,7 @@ private:
     ModWheelSource modWhlSource;
     PitchWheelSource pitchWhlSource;
     ElectrumLookAndFeel lnf;
+    PerlinPanel perlin;
 public:
     ElectrumEditor(EVT* tree);
     ~ElectrumEditor() override;

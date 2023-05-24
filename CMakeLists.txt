@@ -68,6 +68,8 @@ set(SOURCES
 #/GUI/ModulatorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PitchWheelSource.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinPanel.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinPanel.cpp"
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
