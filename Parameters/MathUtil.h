@@ -14,11 +14,21 @@ namespace Math
     {
         return a + ((b - a) * t);
     }
+    // get the fundamenta frequency in hertz for a midi note
     inline double midiToHz(int midiNum)
     {
         return 440.0f * std::pow (SEMITONE_RATIO, (float)midiNum - 69);
     }
-
+    inline double midiToHzTunedUp(int midiNum, int cents)
+    {
+        double dCents = (double)cents / 100.0f;
+        return dlerp(midiToHz(midiNum), midiToHz(midiNum + 1), dCents);
+    }
+    inline double midiToHzTunedDown(int midiNum, int cents)
+    {
+        double dCents = (double)cents / 100.0f;
+        return dlerp(midiToHz(midiNum - 1), midiToHz(midiNum), 1.0f - dCents);
+    }
     inline float fconstrain(float min, float max, float value)
     {
         return std::min(std::max(value, min), max);
