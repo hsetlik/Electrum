@@ -5,9 +5,7 @@ state (tree),
 index (idx),
 currentNote(-1),
 currentNoteVelocity(0.0f),
-gate(false),
-currentBlockSize(512),
-sampleRate(44100.0f)
+gate(false)
 {
     for (int i = 0; i < NUM_OSCILLATORS; i++)
     {
@@ -34,11 +32,6 @@ void ElectrumVoice::stopNote()
     gate = false;
 }
 
-void ElectrumVoice::prepareVoice(double newRate, int newBlockSize)
-{
-    sampleRate = newRate;
-    currentBlockSize = newBlockSize;
-}
 void ElectrumVoice::renderNextSample(float& left, float& right)
 {
     if (!isBusy())
@@ -49,7 +42,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     {
         //TODO: need to calculate position mod and level mod here
 
-        output += o->getNextSample(Math::midiToHz(currentNote), sampleRate, 0.0f);
+        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), 0.0f);
     }
     output = output * env.getSample() * 0.25f;
     left += output;

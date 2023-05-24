@@ -1,8 +1,6 @@
 #include "ElectrumEngine.h"
 
 ElectrumEngine::ElectrumEngine (EVT* tree) : 
-sampleRate (44100.0f),
-blockSize(512),
 left (0.0f),
 right (0.0f),
 state (tree)
@@ -87,15 +85,6 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
     jassert(midiQueue.empty());
 }
 
-void ElectrumEngine::prepareToPlay(double newSampleRate, int newBlockSize)
-{
-    sampleRate = newSampleRate;
-    blockSize = newBlockSize;
-    for (int v = 0; v < voices.size(); v++)
-    {
-        voices[v]->prepareVoice(sampleRate, blockSize);
-    }
-}
 
 void ElectrumEngine::renderNextSample(float& l, float& r)
 {

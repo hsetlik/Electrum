@@ -33,16 +33,9 @@ void PerlinPanel::paint(Graphics& g)
     g.setColour(Color::lightTeal);
     const float perlinVal = state->perlinValue();
     const float centerY =  meterBounds.getY() + (meterBounds.getHeight() / 2.0f);
-    const float rectHeight = fabs(perlinVal * (meterBounds.getHeight() / 2.0f));
+    const float rectHeight = perlinVal * meterBounds.getHeight();
 
-    if (perlinVal > 0.0f)
-    {
-        g.fillRect(Rectangle<float>(meterBounds.getX(), centerY - rectHeight, meterBounds.getWidth(), rectHeight));
-    }
-    else
-    {
-        g.fillRect(Rectangle<float>(meterBounds.getX(), centerY, meterBounds.getWidth(), rectHeight));
-    }
+    g.fillRect(Rectangle<float>(meterBounds.getX(), meterBounds.getBottom() - rectHeight, meterBounds.getWidth(), rectHeight));
     ++numRepaints;
     if (numRepaints == 15)
     {

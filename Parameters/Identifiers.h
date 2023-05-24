@@ -90,7 +90,8 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
         layout.add(std::make_unique<AudioParameterFloat>(levelId, levelName, levelRange, OSC_LEVEL_DEFAULT));
     }
     // perlin noise params
-    frange pFreqRange(1.0f, 100.0f, 0.0001f);
+    frange pFreqRange(0.25f, 30.0f, 0.0001f);
+    pFreqRange.setSkewForCentre(5.0f);
     String pFreqID = perlinFreq.toString();
     String pFreqName = "Perlin Frequency";
     layout.add(std::make_unique<AudioParameterFloat>(pFreqID, pFreqName, pFreqRange, PERLIN_FREQ_DEFAULT));

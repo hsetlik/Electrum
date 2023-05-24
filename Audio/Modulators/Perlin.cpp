@@ -117,7 +117,7 @@ float Perlin::getNoise(float x)
     t1 *= t1;
     n1 = t1 * t1 * grad(hash(i1), x1);
     // scale by 0.395 to get into the -1,1 range
-    float output = (n0 + n1) * 0.395f;
+    float output = jmap(n0 + n1, -2.532f, 2.532f, 0.0f, 1.0f);
     if(output < -1.0f || output > 1.0f)
     {
         DLog::log("Out of range output " + String(output) + " for x = " + String(x));

@@ -3,6 +3,7 @@
 #pragma once
 #include "../../Parameters/MathUtil.h"
 #include "../../Parameters/DLog.h"
+#include "../../Parameters/AudioSystem.h"
 
 class Perlin
 {
@@ -36,7 +37,7 @@ public:
     }
     float getNextValue()
     {
-        currentX += (currentFreq / 100000.0f);
+        currentX += (currentFreq / (AudioSystem::getSampleRate() * 6.0f));
         return Perlin::getFractal(currentX, currentOctaves, currentFreq, currentLacunarity);
     }
 

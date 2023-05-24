@@ -93,7 +93,8 @@ void ElectrumAudioProcessor::changeProgramName(int index, const juce::String &ne
 //==============================================================================
 void ElectrumAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) 
 {
-  engine.prepareToPlay (sampleRate, samplesPerBlock);
+  AudioSystem::setSampleRate(sampleRate);
+  AudioSystem::setBlockSize(samplesPerBlock);
   DLog::log("Prepared to play with sample rate: " + String(sampleRate) + " and block size: " + String(samplesPerBlock));
 }
 

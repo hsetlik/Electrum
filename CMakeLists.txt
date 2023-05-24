@@ -29,6 +29,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.cpp"
 #/Audio/Modulators

@@ -1,6 +1,7 @@
 #pragma once
 #include "Identifiers.h"
 #include "ElectrumAudioData.h"
+#include "AudioSystem.h"
 #include "../GUI/Color.h"
 #include "../Audio/Modulators/Perlin.h"
 

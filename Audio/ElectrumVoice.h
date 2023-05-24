@@ -14,16 +14,13 @@ private:
     int currentNote;
     float currentNoteVelocity;
     bool gate;
-    int currentBlockSize;
-    double sampleRate;
     PlaceholderEnvelope env;
     PlaceholderOsc osc;
     OwnedArray<WavetableOscillator> oscs;
 
 public:
     ElectrumVoice(EVT* tree, int idx);
-    // call this from prepareToPlay
-    void prepareVoice(double newRate, int newBlockSize);
+
     // returns whether the voice can start a new note
     bool gateIsOn() { return gate; }
     bool isBusy();

@@ -17,8 +17,6 @@ private:
     };
     std::queue<TimestampedMidiMessage> midiQueue;
 // state
-    double sampleRate;
-    int blockSize;
     OwnedArray<ElectrumVoice> voices;
     float left, right;
     
@@ -41,7 +39,6 @@ public:
     ElectrumEngine(EVT* tree);
     // main callback
     void processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi);
-    void prepareToPlay(double newSampleRate, int newBlockSize);
     
 
 };
