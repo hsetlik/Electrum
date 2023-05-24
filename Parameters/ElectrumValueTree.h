@@ -2,6 +2,7 @@
 #include "Identifiers.h"
 #include "ElectrumAudioData.h"
 #include "../GUI/Color.h"
+#include "../Audio/Modulators/Perlin.h"
 
 class EVT
 {
@@ -19,6 +20,7 @@ private:
         tree.setProperty(IDs::modulationDepth, depth, nullptr);
         return tree;
     }
+//=================================================================================
     ValueTree getModulationsTree()
     {
         auto modTree = coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
@@ -54,11 +56,18 @@ private:
         }
         return ValueTree();
     }
+//========================================================================================
     //state
     std::unique_ptr<ElectrumAudioData> audioData;
     APVTS coreTree;
     std::atomic<bool> sustainPedalOn;
     std::atomic<float> modWheelValue;
+    std::atomic<float> pitchBendValue;
+
+//========================================================================================
+    // perlin stuff
+    PerlinGenerator perlin;
+    float lastPerlinVal;
 public:
     EVT(AudioProcessor &proc,
          UndoManager *undo,
@@ -66,10 +75,56 @@ public:
          audioData(std::make_unique<ElectrumAudioData>()),
          coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()),
          sustainPedalOn(false),
-         modWheelValue(0.0f)
+         modWheelValue(0.0f),
+         pitchBendValue(0.0f),
+         lastPerlinVal(0.0f)
     {
 
 
+    }
+    //helper functions for accesing the underlying atomic values. unchecked!
+    float getFloatParamValue(const String& id)
+    {
+        if(auto param = dynamic_cast<AudioParameterFloat*>(coreTree.getParameter(id)))
+        {
+            return param->get();
+        }
+        else
+        {
+            DLog::log("Could not get float parameter with ID: " + id);
+            return 0.0f;
+        }
+    }
+    int getIntParamValue(const String& id)
+    {
+        if(auto param = dynamic_cast<AudioParameterInt*>(coreTree.getParameter(id)))
+        {
+            return param->get();
+        }
+        else
+        {
+            DLog::log("Could not get int parameter with ID: " + id);
+            return -1;
+        }
+    }
+    // Since the perlin noise generator is shared by all voices, we handle it here
+    // updates the perlin noise generator with any UI changes
+    void updatePerlinForBlock()
+    {
+        float freq = getFloatParamValue(IDs::perlinFreq.toString());
+        float lac = getFloatParamValue(IDs::perlinLacunarity.toString());
+        size_t octaves = (size_t)getIntParamValue(IDs::perlinOctaves.toString());
+        perlin.setParams(octaves, freq, lac);
+    }
+    //advances the perlin generator for the next sample
+    void tickPerlinForSample()
+    {
+        lastPerlinVal = perlin.getNextValue();
+    }
+    //gets the current output of the perlin generator
+    float perlinValue() const
+    {
+        return lastPerlinVal;
     }
 
     float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate)
@@ -127,5 +182,9 @@ public:
 
     void setModWheel(float val) { modWheelValue = val; }
     float getModWheel() { return modWheelValue.load(); }
+
+    void setPitchBend(float val) { pitchBendValue = val; }
+    float getPitchBend() { return pitchBendValue.load(); }
+
 
 };

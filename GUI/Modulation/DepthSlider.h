@@ -22,6 +22,7 @@ public:
     const String sourceID;
     const String destID;
     CloseButton(const String& srcID, const String& dstID) :
+    Button(srcID + "to" + dstID + "Remove"),
     sourceID(srcID),
     destID(dstID),
     xPath(getXPath())
@@ -30,8 +31,20 @@ public:
     void paintButton(Graphics& g, bool highlighted, bool down) override;
 private:
     Path xPath;
-
-
+};
+//=============================================================================
+class ModSelectButton : public Button
+{
+public:
+    const String destID; 
+    const String sourceID; 
+    ModSelectButton(const String& dstID, const String& srcID) :
+    Button(srcID + "to" + dstID + "Select"),
+    destID(dstID),
+    sourceID(srcID)
+    {
+    }
+    void paintButton(Graphics& g, bool highlighted, bool down) override;
 };
 //=============================================================================
 class DepthSlider : public Component, public Slider::Listener
@@ -50,8 +63,8 @@ private:
     static Slider::RotaryParameters getDepthSliderParams()
     {
         Slider::RotaryParameters params;
-        params.startAngleRadians = MathConstants<float>::pi * -0.75;
-        params.endAngleRadians = MathConstants<float>::pi * 0.75;
+        params.startAngleRadians = MathConstants<float>::pi * 1.25f;
+        params.endAngleRadians = MathConstants<float>::pi * 2.75f;
         params.stopAtEnd = true;
         return params;
     }

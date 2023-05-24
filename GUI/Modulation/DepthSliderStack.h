@@ -6,6 +6,7 @@ class DepthSliderStack : public Component
 private:
     EVT* const state;
     OwnedArray<DepthSlider> sliders;
+    OwnedArray<ModSelectButton> selectButtons;
     void reindexSliders();
 public:
     const String destID;

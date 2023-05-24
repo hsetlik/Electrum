@@ -33,6 +33,13 @@ namespace Math
     {
         return std::min(std::max(value, min), max);
     }
+    //convert an int in the range 0, 16383 into a float in the range -1.0, 1.0
+    inline float toPitchBendValue(int val)
+    {
+        //make sure we're getting a valid value
+        jassert(val < 16384);
+        return jmap((float)val, 0.0f, 16383.0f, 0.0f, 1.0f);
+    }
 }
 
 struct FFT

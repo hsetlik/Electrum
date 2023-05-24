@@ -1,6 +1,9 @@
 #include "ElectrumEditor.h"
 
-ElectrumEditor::ElectrumEditor(EVT* tree) : state(tree), modWhlSource(tree)
+ElectrumEditor::ElectrumEditor(EVT* tree) : 
+state(tree), 
+modWhlSource(tree),
+pitchWhlSource(tree)
 {
     setLookAndFeel(&lnf);
     for (int i = 0; i < NUM_OSCILLATORS; ++i)
@@ -9,6 +12,7 @@ ElectrumEditor::ElectrumEditor(EVT* tree) : state(tree), modWhlSource(tree)
         addAndMakeVisible(oscEditors.getLast());
     }
     addAndMakeVisible(modWhlSource);
+    addAndMakeVisible(pitchWhlSource);
 
 }
 ElectrumEditor::~ElectrumEditor()
@@ -26,6 +30,7 @@ void ElectrumEditor::resized()
     auto lBounds = getLocalBounds().toFloat();
     auto modArea = lBounds.removeFromLeft(lBounds.getWidth() / 5.0f);
     modWhlSource.setBounds(modArea.removeFromTop(modArea.getWidth()).toNearestInt());
+    pitchWhlSource.setBounds(modArea.removeFromTop(modArea.getWidth()).toNearestInt());
     auto oscArea = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
     auto oscWidth = oscArea.getWidth() / (NUM_OSCILLATORS + 1);
     DLog::log("Oscillator width: " + String(oscWidth));

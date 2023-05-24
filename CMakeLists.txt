@@ -31,9 +31,12 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.cpp"
-#/Audio
+#/Audio/Modulators
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Envelope.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Oscillator.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.cpp"
+#/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioBasics.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.cpp"
@@ -64,6 +67,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSliderStack.cpp"
 #/GUI/ModulatorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PitchWheelSource.h"
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"

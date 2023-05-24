@@ -21,13 +21,16 @@ bool DepthSliderStack::hasModulationFrom(const String& srcID)
 void DepthSliderStack::addModulationFor(const String& srcID)
 {
     sliders.add(new DepthSlider(state, srcID, destID, sliders.size()));
+    selectButtons.add(new ModSelectButton(destID, srcID));
     addAndMakeVisible(sliders.getLast());
+    addAndMakeVisible(selectButtons.getLast());
     selectedSliderIndex = sliders.size() - 1;
     resized();
 }
 void DepthSliderStack::removeModulationFrom(const String& srcID)
 {
     static bool needToChangeSelection = false;
+    //remove the slider
     for (auto s : sliders)
     {
         if (s->sourceID == srcID)
@@ -35,6 +38,13 @@ void DepthSliderStack::removeModulationFrom(const String& srcID)
             needToChangeSelection = selectedSliderIndex == s->getIndex();
             sliders.removeObject(s, true);
     
+        }
+    }
+    for(auto b : selectButtons)
+    {
+        if (b->sourceID == srcID)
+        {
+            selectButtons.removeObject(b, true);
         }
     }
     reindexSliders();
@@ -51,17 +61,27 @@ void DepthSliderStack::resized()
     if (selectedSliderIndex == -1)
         return;
     //size all the sliders
-    auto lBounds = getLocalBounds();
-    for(auto s : sliders)
+    auto lBounds = getLocalBounds().toFloat();
+    // place the slider and select buttons
+    for(int i = 0; i < sliders.size(); i++)
     {
-        s->setBounds(lBounds);
+        if (i == selectedSliderIndex)
+        {
+            sliders[i]->setVisible(true);
+            sliders[i]->setBounds(lBounds.toNearestInt());
+        }
+        else
+        {
+            sliders[i]->setVisible(false);
+        }
     }
-    // make sure the selected slider is in front
-    sliders[selectedSliderIndex]->toFront(false);
+
 }
 void DepthSliderStack::paint(Graphics& g) 
 {
     auto lBounds = getLocalBounds().toFloat();
+    g.setColour(Color::lightGray);
+    g.fillEllipse(lBounds);
     
 }
 

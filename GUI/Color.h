@@ -14,5 +14,15 @@ DECLARE_COLOR(darkGray, 71, 71, 71)
 DECLARE_COLOR(closeRedBright, 209, 67, 67)
 DECLARE_COLOR(closeRedDark, 147, 49, 49)
 #undef DECLARE_COLOR
+// handy way to iterate thru every declared color. Similar to Identifiers.h.
+const std::vector<Colour> UIColors = 
+{
+    lightGray,
+    lightTeal,
+    darkGray,
+    closeRedBright,
+    closeRedDark
+};
+
 }
 #endif

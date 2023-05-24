@@ -2,6 +2,7 @@
 #include "../Parameters/ElectrumValueTree.h"
 #include "GeneratorPanel/OscillatorEditor.h"
 #include "ModulatorPanel/ModWheelSource.h"
+#include "ModulatorPanel/PitchWheelSource.h"
 #include "ElectrumLookAndFeel.h"
 
 class ElectrumEditor : 
@@ -12,6 +13,7 @@ private:
     EVT* const state;
     OwnedArray<OscillatorEditor> oscEditors;
     ModWheelSource modWhlSource;
+    PitchWheelSource pitchWhlSource;
     ElectrumLookAndFeel lnf;
 public:
     ElectrumEditor(EVT* tree);

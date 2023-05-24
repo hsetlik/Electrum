@@ -23,7 +23,7 @@ Slider &)
     Point<float> thumbPoint (fArea.getCentreX() + radius * std::cos (toAngle - MathConstants<float>::halfPi),
                              fArea.getCentreY() + radius * std::sin (toAngle - MathConstants<float>::halfPi));
     const float thumbWidth = 9.0f;
-    g.setColour(Color::lightGray);
+    g.setColour(Color::darkGray);
     g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
 }
 //=============================================================================================
@@ -41,6 +41,11 @@ void CloseButton::paintButton(Graphics& g, bool highlighted, bool down)
     g.fillEllipse(lBounds);
     g.setColour(Color::darkGray);
     g.fillPath(xPath);
+}
+//=============================================================================================
+void ModSelectButton::paintButton(Graphics& g, bool highlighted, bool down) 
+{
+
 }
 //=============================================================================================
 DepthSlider::DepthSlider(EVT* tree, const String& src, const String& dst, int idx) :

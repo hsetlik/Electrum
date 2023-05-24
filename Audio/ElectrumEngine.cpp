@@ -75,8 +75,10 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
             handleMidiMessage(midiQueue.front().message);
             midiQueue.pop();
         }
+        //STEP 2: Tick the modulator outputs
+        state->tickPerlinForSample();
 
-        //STEP 2: Render the actual samples
+        //STEP 3: Render the actual samples
         renderNextSample(left, right);
         buffer.setSample(0, s, left);
         buffer.setSample(1, s, right);
@@ -119,6 +121,7 @@ int ElectrumEngine::numBusyVoices()
 
 void ElectrumEngine::updateParamsForBlock()
 {
+    state->updatePerlinForBlock();
     for (auto v : voices)
         v->updateForBlock();
 
@@ -159,6 +162,10 @@ void ElectrumEngine::handleMidiMessage(MidiMessage& message)
     {
         float modVal = 127.0f / (float)message.getControllerValue();
         state->setModWheel(modVal);
+    }
+    else if(message.isPitchWheel())
+    {
+        state->setPitchBend(Math::toPitchBendValue(message.getPitchWheelValue()));
     }
     else
     {
