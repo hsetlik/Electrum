@@ -26,27 +26,7 @@ Slider &)
     g.setColour(Color::darkGray);
     g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
 }
-//=============================================================================================
-void CloseButton::paintButton(Graphics& g, bool highlighted, bool down) 
-{
-    auto lBounds = getLocalBounds().toFloat();
-    if (highlighted || down)
-    {
-        g.setColour(Color::closeRedBright);
-    }
-    else
-    {
-        g.setColour(Color::closeRedDark);
-    }
-    g.fillEllipse(lBounds);
-    g.setColour(Color::darkGray);
-    g.fillPath(xPath);
-}
-//=============================================================================================
-void ModSelectButton::paintButton(Graphics& g, bool highlighted, bool down) 
-{
 
-}
 //=============================================================================================
 DepthSlider::DepthSlider(EVT* tree, const String& src, const String& dst, int idx) :
 state(tree),

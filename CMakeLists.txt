@@ -58,7 +58,10 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Color.h"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/GUIUtil.h"
+#/GUI/Utility
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GUIUtil.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/WedgeButton.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/WedgeButton.cpp"
 #/GUI/Modulation
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"

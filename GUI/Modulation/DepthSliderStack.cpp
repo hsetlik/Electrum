@@ -1,5 +1,22 @@
 #include "DepthSliderStack.h"
 
+ModSelectButton::ModSelectButton(OwnedArray<ModSelectButton>* arr, const String& srcName) :
+WedgeButton(srcName + "SelectButton"),
+allButtons(arr),
+sourceID(srcName)
+{
+
+}
+
+void ModSelectButton::paintButton(Graphics& g, bool , bool )
+{
+    auto path = getCurrentWedgePath();
+    g.setColour(Color::darkGray);
+    g.fillPath(path);
+
+    
+}
+//====================================================================================================
 DepthSliderStack::DepthSliderStack(EVT* tree, const String& dst) : 
 state(tree), 
 destID(dst), 
@@ -21,7 +38,7 @@ bool DepthSliderStack::hasModulationFrom(const String& srcID)
 void DepthSliderStack::addModulationFor(const String& srcID)
 {
     sliders.add(new DepthSlider(state, srcID, destID, sliders.size()));
-    selectButtons.add(new ModSelectButton(destID, srcID));
+    selectButtons.add(new ModSelectButton(&selectButtons, srcID));
     addAndMakeVisible(sliders.getLast());
     addAndMakeVisible(selectButtons.getLast());
     selectedSliderIndex = sliders.size() - 1;
@@ -40,13 +57,15 @@ void DepthSliderStack::removeModulationFrom(const String& srcID)
     
         }
     }
+    //remove the select button
     for(auto b : selectButtons)
     {
-        if (b->sourceID == srcID)
+        if(b->sourceID == srcID)
         {
             selectButtons.removeObject(b, true);
         }
     }
+
     reindexSliders();
     if (needToChangeSelection)
     {
@@ -62,9 +81,17 @@ void DepthSliderStack::resized()
         return;
     //size all the sliders
     auto lBounds = getLocalBounds().toFloat();
+    DLog::log("DepthSliderStack is at: " + lBounds.toString());
+    auto r2 = lBounds.getWidth() / 2.0f;
+    auto r1 = r2 - 10.0f;
+    const float baseAngle = MathConstants<float>::pi * 1.25f;
+    float buttonAngle = MathConstants<float>::pi / (float)sliders.size();
     // place the slider and select buttons
     for(int i = 0; i < sliders.size(); i++)
     {
+        // place the select button
+        auto angle = baseAngle + (buttonAngle * (float)i);
+        selectButtons[i]->resizeWedge(angle, angle + buttonAngle, r1, r2);
         if (i == selectedSliderIndex)
         {
             sliders[i]->setVisible(true);

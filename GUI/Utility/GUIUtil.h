@@ -1,7 +1,7 @@
 #pragma once
 #ifndef GUIUTIL_H
 #define GUIUTIL_H
-#include "../Core/CustomJuceHeader.h"
+#include "../../Core/CustomJuceHeader.h"
 namespace GUIUtil
 {
     inline void strokeArc(Graphics& g, float x, float y, float w, float h, float startRads, float endRads, float lineWeight)
@@ -22,6 +22,21 @@ namespace GUIUtil
         float pivotX = area.getX() + (area.getWidth() / 2.0f);
         float pivotY = area.getY() + (area.getHeight() / 2.0f);
         return AffineTransform::rotation(angle, pivotX, pivotY);
+    }
+
+    inline Path ringSegment(float centerX, float centerY, float r1, float r2, float startRads, float endRads)
+    {
+        Path out;
+        Point<float> center(centerX, centerY);
+        auto innerArcStart = center.getPointOnCircumference(r1, startRads);
+        auto innerArcEnd = center.getPointOnCircumference(r1, endRads);
+        auto outerArcStart = center.getPointOnCircumference(r2, startRads);
+        auto outerArcEnd = center.getPointOnCircumference(r2, endRads);
+        out.addCentredArc(centerX, centerY, r1, r1, 0.0f, startRads, endRads);
+        out.lineTo(outerArcEnd);
+        out.addCentredArc(centerX, centerY, r2, r2, 0.0f, startRads, endRads);
+        out.lineTo(innerArcStart);
+        return out;
     }
 }
 

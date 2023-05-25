@@ -17,7 +17,7 @@ void ModulationSourceComponent::paint(Graphics& g)
 }
 
     
-void ModulationSourceComponent::mouseDown(const juce::MouseEvent& e) 
+void ModulationSourceComponent::mouseDown(const juce::MouseEvent&) 
 {
     DragAndDropContainer::findParentDragContainerFor(this)->startDragging(sourceID, this);
 }

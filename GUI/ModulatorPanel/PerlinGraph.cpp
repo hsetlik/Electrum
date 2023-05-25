@@ -9,6 +9,7 @@ img(Image::PixelFormat::RGB, GRAPH_FRAME_RATE * GRAPH_LENGTH_S, GRAPH_HEIGHT, tr
 }
 void PerlinGraph::timerCallback() 
 {
+    TRACE_COMPONENT();
     buf.push(state->perlinValue());
     renderImage(img, buf);
     repaint();

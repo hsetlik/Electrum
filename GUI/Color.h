@@ -1,7 +1,7 @@
 
 #pragma once
 #include "../Parameters/Identifiers.h"
-#include "GUIUtil.h"
+#include "Utility/GUIUtil.h"
 #ifndef COLOR_H
 #define COLOR_H
 namespace Color
@@ -24,7 +24,8 @@ const std::vector<Colour> UIColors =
     darkGray,
     closeRedBright,
     closeRedDark,
-    black
+    black,
+    brightYellow
 };
 
 }

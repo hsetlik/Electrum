@@ -15,7 +15,6 @@ public:
     buf(std::unique_ptr<T[]>(new T[capacity]))
     {
     }
-    bool isFull() { return tail == (head - 1) % capacity; }
     
     void push(T item)
     {

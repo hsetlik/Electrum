@@ -1,6 +1,18 @@
 #pragma once
 #include "DepthSlider.h"
+#include "../Utility/WedgeButton.h"
+//Special buttons for the mod. parameters
+class ModSelectButton : public WedgeButton
+{
+private:
+    OwnedArray<ModSelectButton>* const allButtons;
+public:
+    const String sourceID;
+    ModSelectButton(OwnedArray<ModSelectButton>* arr, const String& srcName);
+    void paintButton(Graphics& g, bool isOver, bool isHighlighted);
 
+};
+//==================================================================
 class DepthSliderStack : public Component
 {
 private:
