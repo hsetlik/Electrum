@@ -29,13 +29,14 @@ namespace GUIUtil
         Path out;
         Point<float> center(centerX, centerY);
         auto innerArcStart = center.getPointOnCircumference(r1, startRads);
-        auto innerArcEnd = center.getPointOnCircumference(r1, endRads);
-        auto outerArcStart = center.getPointOnCircumference(r2, startRads);
         auto outerArcEnd = center.getPointOnCircumference(r2, endRads);
+        out.startNewSubPath(innerArcStart);
         out.addCentredArc(centerX, centerY, r1, r1, 0.0f, startRads, endRads);
         out.lineTo(outerArcEnd);
-        out.addCentredArc(centerX, centerY, r2, r2, 0.0f, startRads, endRads);
-        out.lineTo(innerArcStart);
+        out.addCentredArc(centerX, centerY, r2, r2, 0.0f, endRads, startRads);
+
+        out.closeSubPath();
+        
         return out;
     }
 }

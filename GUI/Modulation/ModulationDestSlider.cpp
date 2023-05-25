@@ -16,7 +16,8 @@ stack(tree, id)
 void ModulationDestSlider::resized()
 {
     auto lBounds = getLocalBounds().toFloat();
-    stack.setBounds(lBounds.toNearestInt());
+    int shorter = (int)std::min(lBounds.getWidth(), lBounds.getHeight());
+    stack.setBounds(0, 0, shorter, shorter);
     paramSlider.setBounds (lBounds.reduced(lBounds.getWidth() / 4.0f).toNearestInt());
     paramSlider.toFront(false);
 }

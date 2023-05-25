@@ -57,7 +57,6 @@ void DepthSliderStack::removeModulationFrom(const String& srcID)
     
         }
     }
-    //remove the select button
     for(auto b : selectButtons)
     {
         if(b->sourceID == srcID)
@@ -85,13 +84,14 @@ void DepthSliderStack::resized()
     auto r2 = lBounds.getWidth() / 2.0f;
     auto r1 = r2 - 10.0f;
     const float baseAngle = MathConstants<float>::pi * 1.25f;
-    float buttonAngle = MathConstants<float>::pi / (float)sliders.size();
+    float buttonAngle = MathConstants<float>::pi / (float)(sliders.size() + 1);
     // place the slider and select buttons
     for(int i = 0; i < sliders.size(); i++)
     {
         // place the select button
-        auto angle = baseAngle + (buttonAngle * (float)i);
-        selectButtons[i]->resizeWedge(angle, angle + buttonAngle, r1, r2);
+        auto angle = baseAngle + (buttonAngle * (float)(i + 1));
+        selectButtons[i]->setWedgeParams(angle, angle + buttonAngle, r1, r2);
+        selectButtons[i]->resized();
         if (i == selectedSliderIndex)
         {
             sliders[i]->setVisible(true);
@@ -109,7 +109,6 @@ void DepthSliderStack::paint(Graphics& g)
     auto lBounds = getLocalBounds().toFloat();
     g.setColour(Color::lightGray);
     g.fillEllipse(lBounds);
-    
 }
 
 void DepthSliderStack::reindexSliders()
