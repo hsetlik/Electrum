@@ -14,6 +14,14 @@ namespace Math
     {
         return a + ((b - a) * t);
     }
+    inline Colour clerp(const Colour& a, const Colour& b, float t)
+    {
+        return Colour::fromHSV(
+        flerp(a.getHue(), b.getHue(), t),
+        flerp(a.getSaturation(), b.getSaturation(), t),
+        flerp(a.getBrightness(), b.getBrightness(), t),
+        flerp(a.getFloatAlpha(), b.getFloatAlpha(), t));
+    }
     // get the fundamenta frequency in hertz for a midi note
     inline double midiToHz(int midiNum)
     {

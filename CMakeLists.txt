@@ -29,6 +29,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/CircularBuffer.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
@@ -72,6 +73,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PitchWheelSource.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinPanel.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinPanel.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinGraph.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinGraph.cpp"
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"

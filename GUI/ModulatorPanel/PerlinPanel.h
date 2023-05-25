@@ -1,16 +1,15 @@
 #pragma once
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../Modulation/ModulationSourceComponent.h"
-#define METER_WIDTH 0.0675f
-#define METER_REFRESH_HZ 24
-
-class PerlinPanel : public Component, public Timer
+#include "PerlinGraph.h"
+class PerlinPanel : public Component
 {
 private:
     EVT* const state;
     Slider sFreq;
     Slider sLac;
     Slider sOct;
+    PerlinGraph graph;
 
     sAttachPtr freqAttach;
     sAttachPtr lacAttach;
@@ -19,11 +18,6 @@ public:
     PerlinPanel(EVT* tree);
     void resized() override;
     void paint(Graphics& g) override;
-    //timer
-    void timerCallback() override
-    {
-        repaint();
-    }
 
 
 };

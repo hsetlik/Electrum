@@ -33,7 +33,7 @@ void ElectrumEditor::resized()
     auto modArea = lBounds.removeFromLeft(lBounds.getWidth() / 5.0f);
     modWhlSource.setBounds(modArea.removeFromTop(modArea.getWidth() / 3.0f).toNearestInt());
     pitchWhlSource.setBounds(modArea.removeFromTop(modArea.getWidth() / 3.0f).toNearestInt());
-    perlin.setBounds(modArea.removeFromTop(modArea.getWidth() / 2.0f).toNearestInt());
+    perlin.setBounds(modArea.removeFromTop(modArea.getWidth()).toNearestInt());
     auto oscArea = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
     auto oscWidth = oscArea.getWidth() / (NUM_OSCILLATORS + 1);
     DLog::log("Oscillator width: " + String(oscWidth));
