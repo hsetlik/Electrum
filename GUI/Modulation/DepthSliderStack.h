@@ -5,10 +5,11 @@
 class ModSelectButton : public WedgeButton
 {
 private:
-    OwnedArray<ModSelectButton>* const allButtons;
+    int* const selectedSrcIdx;
+    int index;
 public:
     const String sourceID;
-    ModSelectButton(OwnedArray<ModSelectButton>* arr, const String& srcName);
+    ModSelectButton(int& selected, int idx, const String& srcName);
     void paintButton(Graphics& g, bool isOver, bool isHighlighted);
 
 };

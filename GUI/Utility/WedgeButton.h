@@ -9,10 +9,11 @@ public:
     WedgeButton(const String& name, float startAngle=0.0f, float endAngle=0.0f, float innerRadius=1.0f, float outerRadius=2.0f);
     void resized() override;
     void setWedgeParams(float startRads, float endRads, float r1, float r2);
+    void resizedWithCenter(float x, float y);
 private:
     float aStart, aEnd, r1, r2;
 
 protected:
-    Path getCurrentWedgePath();
+    Path getCurrentWedgePath(float centerX, float centerY);
 
 };

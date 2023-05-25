@@ -30,7 +30,6 @@ public:
     {
         return true;
     }
-    void mouseDown(const juce::MouseEvent& e) override;
     Slider paramSlider;
 private:
     sAttachPtr attach;

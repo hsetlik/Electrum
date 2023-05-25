@@ -10,13 +10,6 @@ r2(outerRadius)
 
 }
 
-
-void WedgeButton::resized()
-{
-    auto bounds = getCurrentWedgePath().getBounds();
-    setBounds(bounds.toNearestInt());
-}
-
 void WedgeButton::setWedgeParams(float startRads, float endRads, float rad1, float rad2)
 {
     aStart = startRads;
@@ -26,8 +19,13 @@ void WedgeButton::setWedgeParams(float startRads, float endRads, float rad1, flo
 }
 
 
-Path WedgeButton::getCurrentWedgePath()
+void WedgeButton::resizedWithCenter(float x, float y)
 {
-    auto lBounds = getParentComponent()->getLocalBounds().toFloat();
-    return GUIUtil::ringSegment(lBounds.getCentreX(), lBounds.getCentreY(), r1, r2, aStart, aEnd);
+    auto bounds = getCurrentWedgePath(x, y).getBounds();
+    setBounds(bounds.toNearestInt());
+}
+
+Path WedgeButton::getCurrentWedgePath(float centerX, float centerY)
+{
+    return GUIUtil::ringSegment(centerX, centerY, r1, r2, aStart, aEnd);
 }

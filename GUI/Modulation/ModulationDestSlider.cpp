@@ -16,8 +16,9 @@ stack(tree, id)
 void ModulationDestSlider::resized()
 {
     auto lBounds = getLocalBounds().toFloat();
-    int shorter = (int)std::min(lBounds.getWidth(), lBounds.getHeight());
-    stack.setBounds(0, 0, shorter, shorter);
+    float shorter = std::min(lBounds.getWidth(), lBounds.getHeight());
+    lBounds = Rectangle<float>(0.0f, 0.0f, shorter, shorter);
+    stack.setBounds(lBounds.toNearestInt());
     paramSlider.setBounds (lBounds.reduced(lBounds.getWidth() / 4.0f).toNearestInt());
     paramSlider.toFront(false);
 }
@@ -26,12 +27,6 @@ void ModulationDestSlider::paint(Graphics&)
 {
 
 }
-
-void ModulationDestSlider::mouseDown(const juce::MouseEvent& e) 
-{
-
-}
-
 
 void ModulationDestSlider::itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails)
 {
