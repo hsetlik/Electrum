@@ -1,6 +1,6 @@
 #include "WedgeButton.h"
 
-Path WedgeButton::getWedgePath(float x0, float y0, float startRads, float endRads, float r1, float r2)
+Path WedgeButton::getWedgePath(float x0, float y0, float startRads, float endRads, float r1, float r2, float offsetX, float offsetY)
 {
     Point<float> center(x0, y0);
 
@@ -31,7 +31,10 @@ Path WedgeButton::getWedgePath(float x0, float y0, float startRads, float endRad
     }
     out.lineTo(start2);
     out.closeSubPath();
-
+    if (offsetX != 0.0f || offsetY != 0.0f)
+    {
+        out.applyTransform(AffineTransform::translation(offsetX * -1.0f, offsetY * -1.0f));
+    }
     return out;
 }
 
@@ -56,7 +59,7 @@ r2(rad2)
 
 void WedgeButton::centerOn(Component* parent)
 {
-    auto pBounds = parent->getBounds().toFloat();
+    auto pBounds = parent->getLocalBounds().toFloat();
     auto bounds = getWedgeBounds(pBounds.getCentreX(), pBounds.getCentreY(), a1, a2, r1, r2);
     setBounds(bounds.toNearestInt());
 }

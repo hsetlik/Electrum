@@ -2,7 +2,17 @@
 #include "DepthSlider.h"
 #include "WedgeButton.h"
 
+class ModSelectButton : public WedgeButton
+{
+private:
+    int* const selectedIdx;
+    int index;
+public:
+    const String sourceID;
+    ModSelectButton(int& sel, int idx, const String& srcID);
+    void paintButton(Graphics& g, bool over, bool highlighted) override;
 };
+
 //==================================================================
 class DepthSliderStack : public Component
 {

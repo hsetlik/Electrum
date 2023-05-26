@@ -1,5 +1,5 @@
 #pragma once
-#include "../Utility/WedgeButton.h"
+#include "WedgeButton.h"
 
 class DepthSliderLookAndFeel : public LookAndFeel_V4
 {
@@ -25,8 +25,8 @@ private:
     static Slider::RotaryParameters getDepthSliderParams()
     {
         Slider::RotaryParameters params;
-        params.startAngleRadians = MathConstants<float>::pi * 1.25f;
-        params.endAngleRadians = MathConstants<float>::pi * 2.75f;
+        params.startAngleRadians = MathConstants<float>::pi * 1.35f;
+        params.endAngleRadians = MathConstants<float>::pi * 2.65f;
         params.stopAtEnd = true;
         return params;
     }

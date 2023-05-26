@@ -2,23 +2,22 @@
 
 ModSelectButton::ModSelectButton(int& sel, int idx, const String& srcName) :
 WedgeButton(srcName + "SelectButton"),
-selectedSrcIdx(&sel),
+selectedIdx(&sel),
 index(idx),
 sourceID(srcName)
 {
 
 }
 
-void ModSelectButton::paintButton(Graphics& g, bool , bool )
+void ModSelectButton::paintButton(Graphics& g, bool over , bool )
 {
-    auto selfBounds = getBounds().toFloat();
-    g.setColour(Color::closeRedBright);
-    g.fillRect(selfBounds);
-    auto lBounds = getParentComponent()->getLocalBounds().toFloat();
-    auto path = getCurrentWedgePath(lBounds.getCentreX(), lBounds.getCentreY());
-    g.setColour(Color::darkGray);
+    auto pBounds = getParentComponent()->getLocalBounds().toFloat();
+    auto fX = (float)getX();
+    auto fY = (float)getY();
+    auto path = getWedgePath(pBounds.getCentreX(), pBounds.getCentreY(), a1, a2, r1, r2, fX, fY);
+    auto col = over ? Color::closeRedBright : Color::closeRedDark;
+    g.setColour(col);
     g.fillPath(path);
-
 }
 //====================================================================================================
 DepthSliderStack::DepthSliderStack(EVT* tree, const String& dst) : 
@@ -87,8 +86,8 @@ void DepthSliderStack::resized()
     DLog::log("DepthSliderStack is at: " + lBounds.toString());
     auto r2 = lBounds.getWidth() / 2.0f;
     auto r1 = r2 - 10.0f;
-    const float baseAngle = MathConstants<float>::pi * 2.25f;
-    float buttonAngle = MathConstants<float>::pi / (float)(sliders.size() + 2);
+    const float baseAngle = MathConstants<float>::pi * 0.75f;
+    float buttonAngle = (MathConstants<float>::pi * 0.65f) / (float)(sliders.size() + 2);
     // place the slider and select buttons
     for(int i = 0; i < sliders.size(); i++)
     {
@@ -98,17 +97,21 @@ void DepthSliderStack::resized()
             sliders[i]->setVisible(true);
             sliders[i]->setEnabled(true);
             sliders[i]->setBounds(lBounds.toNearestInt());
-            sliders[i]->toFront(false);
+            //sliders[i]->toFront(false);
         }
         else
         {
             sliders[i]->setVisible(false);
         }
         // place the select button
-        auto angle = baseAngle + (buttonAngle * (float)(i + 1));
-        selectButtons[i]->setWedgeParams(angle, angle + buttonAngle, r1, r2);
-        selectButtons[i]->resizedWithCenter(lBounds.getCentreX(), lBounds.getCentreY());
-        //selectButtons[i]->toFront(false);
+        auto angle = baseAngle + (buttonAngle * (float)i);
+        selectButtons[i]->setStartAngle(angle);
+        selectButtons[i]->setEndAngle(angle + buttonAngle);
+        selectButtons[i]->setInnerRadius(r1);
+        selectButtons[i]->setOuterRadius(r2);
+        auto bBounds = selectButtons[i]->getWedgePathForCenter(lBounds.getCentreX(), lBounds.getCentreY()).getBounds();
+        selectButtons[i]->setBounds(bBounds.toNearestInt());
+
     }
 
 }
@@ -117,16 +120,17 @@ void DepthSliderStack::paint(Graphics& g)
     auto lBounds = getLocalBounds().toFloat();
     g.setColour(Color::lightGray);
     g.fillEllipse(lBounds);
-    auto startAngle = MathConstants<float>::pi * 0.75f;
-    auto endAngle = MathConstants<float>::pi * 1.25f;
-    auto r2 = lBounds.getWidth() / 2.0f;
-    auto r1 = r2 - 10.0f;
-    auto path = WedgeButton::getWedgePath(lBounds.getCentreX(), lBounds.getCentreY(), startAngle, endAngle, r1, r2);
-    auto pathBounds = path.getBounds();
-    g.setColour(Color::black);
-    g.fillRect(pathBounds);
-    g.setColour(Color::lightTeal);
-    g.fillPath(path);
+
+    for(auto b : selectButtons)
+    {
+        g.setColour(Color::lightTeal);
+        auto buttonPath = b->getWedgePathForCenter(lBounds.getCentreX(), lBounds.getCentreY());
+        DLog::log("Path in parent: " + buttonPath.toString().substring(0, 10));
+        g.fillPath(buttonPath);
+    }
+
+
+
 }
 
 void DepthSliderStack::reindexSliders()
