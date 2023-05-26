@@ -11,8 +11,17 @@ public:
     const String sourceID;
     ModSelectButton(int& sel, int idx, const String& srcID);
     void paintButton(Graphics& g, bool over, bool highlighted) override;
+    int getIndex() { return index; }
+    void setIndex(int i) { index = i; }
 };
 
+//==================================================================
+class ModCloseButton : public WedgeButton
+{
+public:
+    ModCloseButton(const String& destID);
+    void paintButton(Graphics& g, bool over, bool highlighted) override;
+};
 //==================================================================
 class DepthSliderStack : public Component
 {
@@ -20,6 +29,9 @@ private:
     EVT* const state;
     OwnedArray<DepthSlider> sliders;
     OwnedArray<ModSelectButton> selectButtons;
+    ModCloseButton closeButton;
+    void removeSelectedSource();
+    void selectSource(const String& sourceID);
     void reindexSliders();
 public:
     const String destID;

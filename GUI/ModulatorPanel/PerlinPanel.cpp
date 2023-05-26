@@ -1,15 +1,11 @@
 #include "PerlinPanel.h"
 PerlinPanel::PerlinPanel(EVT* tree) : 
 state(tree),
-sFreq(Slider::Rotary, Slider::NoTextBox),
-sLac(Slider::Rotary, Slider::NoTextBox),
-sOct(Slider::Rotary, Slider::NoTextBox),
+sFreq(tree, IDs::perlinFreq.toString()),
+sLac(tree, IDs::perlinLacunarity.toString()),
+sOct(tree, IDs::perlinOctaves.toString()),
 graph(state)
 {
-    freqAttach.reset(new sAttach(*state->getAPVTS(), IDs::perlinFreq.toString(), sFreq));
-    lacAttach.reset(new sAttach(*state->getAPVTS(), IDs::perlinLacunarity.toString(), sLac));
-    octAttach.reset(new sAttach(*state->getAPVTS(), IDs::perlinOctaves.toString(), sOct));
-
     addAndMakeVisible(&sFreq);
     addAndMakeVisible(&sLac);
     addAndMakeVisible(&sOct);
@@ -25,8 +21,9 @@ void PerlinPanel::resized()
     sLac.setBounds(paramArea.removeFromLeft(pWidth).toNearestInt());
     sOct.setBounds(paramArea.removeFromLeft(pWidth).toNearestInt());
 
-    graph.setBounds((int)lBounds.getX(), (int)lBounds.getY(), GRAPH_FRAME_RATE * GRAPH_LENGTH_S, GRAPH_HEIGHT);
+    graph.setBounds((int)lBounds.getX(), (int)lBounds.getY(), GRAPH_FRAME_RATE * GRAPH_LENGTH_S, GRAPH_DISPLAY_HEIGHT);
 }
-void PerlinPanel::paint(Graphics&) 
+void PerlinPanel::paint(Graphics& g) 
 {
+    g.fillAll(Color::gainsboro);
 }

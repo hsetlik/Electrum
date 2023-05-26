@@ -14,7 +14,7 @@ Slider &)
     //step 1: Draw the main arc
     Rectangle<int> iArea(x, y, width, height);
     auto fArea = iArea.toFloat();
-    g.setColour(Color::lightTeal);
+    g.setColour(Color::aquamarine);
     auto sliderArea = fArea.reduced(5.0f);
     GUIUtil::strokeArc(g, sliderArea, rotaryStartAngle, rotaryEndAngle, 2.0f);
     auto toAngle = Math::flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
@@ -23,7 +23,7 @@ Slider &)
     Point<float> thumbPoint (fArea.getCentreX() + radius * std::cos (toAngle - MathConstants<float>::halfPi),
                              fArea.getCentreY() + radius * std::sin (toAngle - MathConstants<float>::halfPi));
     const float thumbWidth = 9.0f;
-    g.setColour(Color::darkGray);
+    g.setColour(Color::darkSlateGray);
     g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
 }
 
