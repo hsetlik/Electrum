@@ -71,6 +71,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSliderStack.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSliderStack.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/WedgeButton.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/WedgeButton.cpp"
 #/GUI/ModulatorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PitchWheelSource.h"

@@ -117,6 +117,16 @@ void DepthSliderStack::paint(Graphics& g)
     auto lBounds = getLocalBounds().toFloat();
     g.setColour(Color::lightGray);
     g.fillEllipse(lBounds);
+    auto startAngle = MathConstants<float>::pi * 0.75f;
+    auto endAngle = MathConstants<float>::pi * 1.25f;
+    auto r2 = lBounds.getWidth() / 2.0f;
+    auto r1 = r2 - 10.0f;
+    auto path = WedgeButton::getWedgePath(lBounds.getCentreX(), lBounds.getCentreY(), startAngle, endAngle, r1, r2);
+    auto pathBounds = path.getBounds();
+    g.setColour(Color::black);
+    g.fillRect(pathBounds);
+    g.setColour(Color::lightTeal);
+    g.fillPath(path);
 }
 
 void DepthSliderStack::reindexSliders()

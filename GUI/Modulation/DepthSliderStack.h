@@ -1,16 +1,6 @@
 #pragma once
 #include "DepthSlider.h"
-#include "../Utility/WedgeButton.h"
-//Special buttons for the mod. parameters
-class ModSelectButton : public WedgeButton
-{
-private:
-    int* const selectedSrcIdx;
-    int index;
-public:
-    const String sourceID;
-    ModSelectButton(int& selected, int idx, const String& srcName);
-    void paintButton(Graphics& g, bool isOver, bool isHighlighted);
+#include "WedgeButton.h"
 
 };
 //==================================================================
