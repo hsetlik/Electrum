@@ -31,6 +31,7 @@ public:
         return true;
     }
     Slider paramSlider;
+    Label paramLabel;
 private:
     sAttachPtr attach;
 };

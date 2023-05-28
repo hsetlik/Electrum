@@ -10,9 +10,9 @@ sourceID(id)
 void ModulationSourceComponent::paint(Graphics& g) 
 {
     auto lBounds = getLocalBounds().toFloat();
-    g.setColour(Colour::fromRGB(18, 230, 212));
+    g.setColour(Color::getColorForModSource(sourceID));
     g.fillEllipse(lBounds);
-    g.setColour(Colour::fromRGB(117, 117, 117));
+    g.setColour(Color::darkSlateGray);
     g.fillEllipse(lBounds.reduced(3.0f));
 }
 

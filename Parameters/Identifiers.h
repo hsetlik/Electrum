@@ -72,6 +72,33 @@ const std::vector<Identifier> ElectrumIDs =
 
 #undef DECLARE_ID
 
+struct ParamInfoStrings
+{
+    String shortName;
+    String longName;
+    String desc;
+};
+
+const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = 
+{
+    {oscillatorPos.toString(), {"Osc. pos.", "Wavetable Oscillator Position", "Current position (range 0-1) in this oscillator's set of wavetables"}},
+    {oscillatorLevel.toString(), {"Osc. level", "Oscilator level", "The oscillator's output level"}},
+    {perlinFreq.toString(), {"Freq.", "Perlin Noise Frequency", "How quickly the Perlin noise engine advances"}},
+    {perlinOctaves.toString(), {"Octaves", "Perlin Noise Octaves", "The number of layers used by the Perlin noise algorithm"}},
+    {perlinLacunarity.toString(), {"Lac.", "Perlin Noise Lacunarity", "The relative increase in frequency for each octave of Perlin noise"}}
+};
+
+inline String getParamName(const String& paramID, bool longName=false)
+{
+    auto safeParamID = paramID.removeCharacters("1234567890");
+    auto it = paramDisplayNames.find(safeParamID);
+    if(it != paramDisplayNames.end())
+    {
+        return longName ? it->second.longName : it->second.shortName;
+    }
+    DLog::log("Warning! No name info found for parameter: " + paramID);
+    return "";
+}
 
 inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
 {

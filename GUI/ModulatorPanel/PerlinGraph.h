@@ -7,13 +7,18 @@
 #define GRAPH_DISPLAY_HEIGHT 170
 #define STROKE_WIDTH 3.0f
 #define STROKE_FEATHER 2.5f
+#define VECTOR_GRAPH 1
 class PerlinGraph : public Component, public Timer
 {
 private:
     EVT* const state;
     CircularBuffer<float> buf;
     Image img;
-    static void renderImage(Image& image, CircularBuffer<float>& buffer);
+    Path gPath;
+    // draws the buffer to an image bitmap
+    static void renderToImage(Image& image, CircularBuffer<float>& buffer);
+    // draws the buffer to a vector path (vector as in vector graphics, not like std::vector)
+    static void renderToPath(Path& path, Rectangle<float>& limits, CircularBuffer<float>& buffer);
 public:
     PerlinGraph(EVT* tree);
     void timerCallback() override;

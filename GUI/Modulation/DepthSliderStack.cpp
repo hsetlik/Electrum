@@ -17,11 +17,8 @@ void ModSelectButton::paintButton(Graphics& g, bool over , bool )
     auto path = getWedgePath(pBounds.getCentreX(), pBounds.getCentreY(), a1, a2, r1, r2, fX, fY);
     //fill
     auto col = Color::getColorForModSource(sourceID);
-    if (!over)
-    {
-        col = col.darker(1.8f);
-    }
-    g.setColour(col);
+    auto fillColor = (over || *selectedIdx == index) ? col : col.darker(0.3f);
+    g.setColour(fillColor);
     g.fillPath(path);
     //stroke
     PathStrokeType pst(1.5f);
@@ -98,14 +95,22 @@ void DepthSliderStack::removeModulationFrom(const String& srcID)
         if (s->sourceID == srcID)
         {
             sliders.removeObject(s, true);
+            break;
         }
     }
+    bool buttonFound = false;
     for(auto b : selectButtons)
     {
         if(b->sourceID == srcID)
         {
+            buttonFound = true;
             selectButtons.removeObject(b, true);
+            break;
         }
+    }
+    if(!buttonFound)
+    {
+        DLog::log("Error! No button for ID: " + srcID + " was found!");
     }
     reindexSliders();
     resized();
@@ -115,6 +120,7 @@ void DepthSliderStack::removeSelectedSource()
 {
     jassert(selectedSliderIndex >= 0);
     auto srcID = selectButtons[selectedSliderIndex]->sourceID;
+    jassert(srcID == sliders[selectedSliderIndex]->sourceID);
     removeModulationFrom(srcID);
 }
     
@@ -143,20 +149,21 @@ void DepthSliderStack::resized()
     closeButton.setVisible(true);
     //size all the sliders
     auto lBounds = getLocalBounds().toFloat();
-    DLog::log("DepthSliderStack is at: " + lBounds.toString());
     auto r2 = lBounds.getWidth() / 2.0f;
     auto r1 = r2 - 10.0f;
     float baseAngle = MathConstants<float>::pi * 0.675f;
+    float minButtonAngle = MathConstants<float>::pi / 8.0f;
     float buttonAngle = (MathConstants<float>::pi * 0.65f) / (float)(sliders.size() + 1);
     // place the close button 
     closeButton.setStartAngle(baseAngle);
-    closeButton.setEndAngle(baseAngle + buttonAngle);
+    closeButton.setEndAngle(baseAngle + minButtonAngle);
     closeButton.setInnerRadius(r1);
     closeButton.setOuterRadius(r2);
     auto closeBounds = closeButton.getWedgePathForCenter(lBounds.getCentreX(), lBounds.getCentreY()).getBounds();
     closeButton.setBounds(closeBounds.toNearestInt());
     closeButton.toFront(false);
     // place the slider and select buttons
+    baseAngle += minButtonAngle;
     for(int i = 0; i < sliders.size(); i++)
     {
         sliders[i]->setBounds(lBounds.toNearestInt());
@@ -174,7 +181,7 @@ void DepthSliderStack::resized()
             selectButtons[i]->setEnabled(true);
         }
         // place the select button
-        auto angle = baseAngle + (buttonAngle * (float)(i + 1));
+        auto angle = baseAngle + (buttonAngle * (float)i);
         selectButtons[i]->setStartAngle(angle);
         selectButtons[i]->setEndAngle(angle + buttonAngle);
         selectButtons[i]->setInnerRadius(r1);

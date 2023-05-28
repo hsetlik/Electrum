@@ -23,7 +23,7 @@ ElectrumEditor::~ElectrumEditor()
 
 }
 
-void ElectrumEditor::paint(Graphics& g) 
+void ElectrumEditor::paint(Graphics& ) 
 {
 
 }
@@ -36,7 +36,6 @@ void ElectrumEditor::resized()
     perlin.setBounds(modArea.removeFromTop(modArea.getWidth()).toNearestInt());
     auto oscArea = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
     auto oscWidth = oscArea.getWidth() / (NUM_OSCILLATORS + 1);
-    DLog::log("Oscillator width: " + String(oscWidth));
     for (int i = 0; i < NUM_OSCILLATORS; i++)
     {
         auto a = oscArea.removeFromLeft(oscWidth).toNearestInt();

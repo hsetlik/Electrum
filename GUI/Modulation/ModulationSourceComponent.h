@@ -10,5 +10,4 @@ public:
     ModulationSourceComponent(EVT* tree, const String& id);
     void paint(Graphics& g) override;
     void mouseDown(const juce::MouseEvent& e) override;
-
 };

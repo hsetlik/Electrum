@@ -3,8 +3,6 @@
 
 class DepthSliderLookAndFeel : public LookAndFeel_V4
 {
-private:
-    const String sliderThumbSVG = "m3.64.82L.04,13.5c-.2.72.34,1.44,1.09,1.44h7.2c.75,0,1.29-.72,1.09-1.44L5.81.82c-.31-1.09-1.86-1.09-2.17,0Z";
 public:
     void drawRotarySlider(Graphics & g, int x, int y, int width, int height, float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle, Slider &s) override;
 };

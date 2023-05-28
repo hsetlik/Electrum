@@ -60,7 +60,6 @@ void DepthSlider::sliderValueChanged(Slider* s)
         lastSliderValue = newVal;
         state->setModulation(sourceID, destID, lastSliderValue);
     }
-
 }
 
 void DepthSlider::resized()

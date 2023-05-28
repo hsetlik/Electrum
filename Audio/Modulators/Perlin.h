@@ -37,7 +37,7 @@ public:
     }
     float getNextValue()
     {
-        currentX += (currentFreq / (AudioSystem::getSampleRate() * 6.0f));
+        currentX += (currentFreq / ((float)AudioSystem::getSampleRate() * 6.0f));
         return Perlin::getFractal(currentX, currentOctaves, currentFreq, currentLacunarity);
     }
 
