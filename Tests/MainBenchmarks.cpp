@@ -103,7 +103,6 @@ TEST_CASE("ElectrumAudioData")
         ead.reset(new ElectrumAudioData());
     };
 
-    const int numSamples = 2000;
     
 }
 

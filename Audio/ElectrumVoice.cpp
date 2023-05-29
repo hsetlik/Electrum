@@ -41,9 +41,12 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     output = 0.0f;
     for (auto o : oscs)
     {
-        //TODO: need to calculate position mod and level mod here
-
-        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), 0.0f, 0.0f);
+        static float levelMod = 0.0f;
+        static float posMod = 0.0f;
+        levelMod = getCurrentModDestValue(o->getLevelParamName());
+        posMod = getCurrentModDestValue(o->getPosParamName());
+        jassert(posMod < 1.0f);
+        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
     output = output * env.getSample() * 0.25f;
     left += output;

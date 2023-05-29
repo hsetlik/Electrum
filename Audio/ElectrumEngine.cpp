@@ -150,7 +150,7 @@ void ElectrumEngine::handleMidiMessage(MidiMessage& message)
     }
     else if(message.isController() && message.getControllerNumber() == 1) // handle mod wheel
     {
-        float modVal = 127.0f / (float)message.getControllerValue();
+        float modVal = (float)message.getControllerValue() / 127.0f;
         state->setModWheel(modVal);
     }
     else if(message.isPitchWheel())

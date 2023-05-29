@@ -7,7 +7,7 @@
 #define GRAPH_DISPLAY_HEIGHT 170
 #define STROKE_WIDTH 3.0f
 #define STROKE_FEATHER 2.5f
-#define VECTOR_GRAPH 0
+#define VECTOR_GRAPH 1
 class PerlinGraph : public Component, public Timer
 {
 private:
