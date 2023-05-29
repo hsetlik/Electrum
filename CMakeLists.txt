@@ -39,6 +39,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/StringUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/CircularBuffer.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.h"
@@ -50,6 +51,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Oscillator.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.cpp"
 #/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioBasics.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"
