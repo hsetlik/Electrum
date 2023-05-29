@@ -66,13 +66,13 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
     loadMidiEvents(midi);
     //make sure we have stereo
     jassert(buffer.getNumChannels() >= 2);
+    int eventIdx = 0;
     for (int s = 0; s < buffer.getNumSamples(); s++)
     {
         //STEP 1: Check if we have a midi event on this sample
-        while(!midiQueue.empty() && midiQueue.front().timestamp == s)
+        while(eventIdx < midiEventsAdded && midiArray[eventIdx].timestamp == s)
         {
-            handleMidiMessage(midiQueue.front().message);
-            midiQueue.pop();
+            handleMidiMessage(midiArray[eventIdx].message);
         }
 
         //STEP 3: Render the actual samples
@@ -80,8 +80,6 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         buffer.setSample(0, s, left);
         buffer.setSample(1, s, right);
     }
-    //ensure that the midi queue is empty (i.e. no out of range timestamps)
-    jassert(midiQueue.empty());
 }
 
 
@@ -120,13 +118,13 @@ void ElectrumEngine::updateParamsForBlock()
 
 void ElectrumEngine::loadMidiEvents(MidiBuffer& midi)
 {
+    midiEventsAdded = 0;
     for(auto it = midi.begin(); it != midi.end(); ++it)
     {
         auto metadata = *it;
-        TimestampedMidiMessage m;
-        m.timestamp = metadata.samplePosition;
-        m.message = metadata.getMessage();
-        midiQueue.push(m);
+        midiArray[midiEventsAdded].message = metadata.getMessage();
+        midiArray[midiEventsAdded].timestamp = metadata.samplePosition;
+        ++midiEventsAdded; 
     }
 
 }

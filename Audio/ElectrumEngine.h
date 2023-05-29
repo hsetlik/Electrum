@@ -6,6 +6,7 @@
 #include "ElectrumVoice.h"
 #include <stack>
 #define NUM_VOICES 18
+#define MAX_MIDI_PER_BLOCK 100
 
 class ElectrumEngine
 {
@@ -15,11 +16,12 @@ private:
         int timestamp;
         MidiMessage message;
     };
-    std::queue<TimestampedMidiMessage> midiQueue;
+    std::array<TimestampedMidiMessage, MAX_MIDI_PER_BLOCK> midiArray;
     ModDestMap currentModulation;
 // state
     OwnedArray<ElectrumVoice> voices;
     float left, right;
+    int midiEventsAdded;
     
 // functions
     void noteOn(int note, float velocity);
