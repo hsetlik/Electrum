@@ -29,10 +29,6 @@ public:
     {
         gateIsOn = false;
     }
-    void setSampleRate (double val)
-    {
-        sampleRate = val;
-    }
     float getSample()
     {
         static float attackDelta = 0.0f;

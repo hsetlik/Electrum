@@ -54,6 +54,8 @@ public:
 
 
     }
+
+    ElectrumAudioData* getAudioData() { return audioData.get(); }
     //helper functions for accesing the underlying atomic values. unchecked!
     float getFloatParamValue(const String& id)
     {
@@ -113,6 +115,8 @@ public:
 
     //removes a modulation routing
     void removeModulation(const String& src, const String& dest);
+    //updates the AudioData with the current envelope parameters
+    void updateEnvelopesForBlock();
 
 
     void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }

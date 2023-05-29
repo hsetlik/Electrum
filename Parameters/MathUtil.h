@@ -48,6 +48,23 @@ namespace Math
         jassert(val < 16384);
         return jmap((float)val, 0.0f, 16383.0f, 0.0f, 1.0f);
     }
+    //the Y value of a basic quadratic bezier curve at point t
+    inline float bezierValueFor(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float t)
+    {
+        // find the first three points
+        float t1x = flerp(x1, x2, t);
+        float t1y = flerp(y1, y2, t);
+        float t2x = flerp(x2, x3, t);
+        float t2y = flerp(y2, y3, t);
+        float t3x = flerp(x3, x4, t);
+        float t3y = flerp(y3, y4, t);
+        // the next two
+        float t4x = flerp(t1x, t2x, t);
+        float t4y = flerp(t1y, t2y, t);
+        float t5x = flerp(t2x, t3x, t);
+        float t5y = flerp(t2y, t3y, t);
+
+    }
 }
 
 struct FFT

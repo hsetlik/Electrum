@@ -12,6 +12,10 @@ gate(false)
     {
         oscs.add(new WavetableOscillator(state, i));
     }
+    for (int i = 0; i < NUM_ENVELOPES; i++)
+    {
+        envs.add(new AHDSREnvelope(state, i));
+    }
 }
 
 bool ElectrumVoice::isBusy()

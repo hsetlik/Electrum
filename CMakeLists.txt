@@ -53,6 +53,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.cpp"
 #/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioBasics.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"

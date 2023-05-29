@@ -9,7 +9,7 @@
 #define OSC_POS_DEFAULT 0.1f
 #define OSC_LEVEL_DEFAULT 0.8f
 
-#define ATK_MS_DEFAULT 20.0f
+#define ATTACK_MS_DEFAULT 20.0f
 #define HOLD_MS_DEFAULT 0.0f
 #define DECAY_MS_DEFAULT 50.0f
 #define SUSTAIN_LEVEL_DEFAULT 0.65f
@@ -206,7 +206,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
         // attack MS
         auto iStr = String(i);
         String aMsID = attackMs.toString() + iStr;
-        layout.add(std::make_unique<AudioParameterFloat>(aMsID, getParamName(aMsID, true), atkRange, ATK_MS_DEFAULT));
+        layout.add(std::make_unique<AudioParameterFloat>(aMsID, getParamName(aMsID, true), atkRange, ATTACK_MS_DEFAULT));
         // attack control points
         String aC1LengthID = attackC1Length.toString() + iStr;
         layout.add(std::make_unique<AudioParameterFloat>(aC1LengthID, getParamName(aC1LengthID, true), cLengthRange, CONTROL_LENGTH_DEFAULT));

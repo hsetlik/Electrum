@@ -112,6 +112,7 @@ int ElectrumEngine::numBusyVoices()
 void ElectrumEngine::updateParamsForBlock()
 {
     state->updatePerlinForBlock();
+    state->updateEnvelopesForBlock();
     for (auto v : voices)
         v->updateForBlock();
 

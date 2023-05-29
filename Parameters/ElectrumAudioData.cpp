@@ -6,6 +6,10 @@ ElectrumAudioData::ElectrumAudioData()
     {
         oscillators.add(new WavetableSet(WaveUtil::getDefaultWaveSet()));
     }
+    for (int i = 0; i < NUM_ENVELOPES; i++)
+    {
+        envData.add(new AHDSRData());
+    }
 
 }
 

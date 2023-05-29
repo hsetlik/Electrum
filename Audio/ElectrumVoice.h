@@ -1,5 +1,6 @@
 #pragma once
 #include "Modulators/Envelope.h"
+#include "Modulators/AHDSREnvelope.h"
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
 #include "../Parameters/MathUtil.h"
@@ -18,6 +19,7 @@ private:
     PlaceholderEnvelope env;
     PlaceholderOsc osc;
     OwnedArray<WavetableOscillator> oscs;
+    OwnedArray<AHDSREnvelope> envs;
 
 public:
     ElectrumVoice(EVT* tree, ModDestMap* map, int idx);

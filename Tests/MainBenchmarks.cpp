@@ -1,6 +1,6 @@
-#include <catch2/catch_test_macros.hpp>
-#include "catch2/benchmark/catch_benchmark_all.hpp"
-#include "PluginEditor.h"
+#pragma once
+#include "TestUtil.h"
+
 
 //TEST_CASE ("Boot performance")
 //{
@@ -95,15 +95,18 @@ TEST_CASE("Perlin generation")
     };
 }
 
-TEST_CASE("ElectrumAudioData")
+TEST_CASE("ElectrumEngine tests")
 {
-    std::unique_ptr<ElectrumAudioData> ead = nullptr;
-    BENCHMARK("Default constructor")
-    {
-        ead.reset(new ElectrumAudioData());
-    };
-
+    auto gui = juce::ScopedJuceInitialiser_GUI {};
     
+    std::unique_ptr<ElectrumAudioProcessor> proc = std::make_unique<ElectrumAudioProcessor>();
+    AudioBuffer<float> testBuffer(2, 1000);
+    auto midiBuffer = TestUtil::getTestMidiBuffer(1000, 5, 50, 500);
+    proc->prepareToPlay(44100.0f, 1000);
+    BENCHMARK("Buffer with 5 notes 1000 samples")
+    {
+        proc->processBlock(testBuffer, midiBuffer);
+    };
 }
 
 
