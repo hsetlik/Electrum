@@ -7,7 +7,7 @@ state (tree)
 {
     for (int i = 0; i < NUM_VOICES; i++)
     {
-        voices.add (new ElectrumVoice(state, i));
+        voices.add (new ElectrumVoice(state, &currentModulation, i));
     }
 
 }
@@ -61,6 +61,7 @@ ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
     TRACE_DSP();
+    state->loadModulationData(currentModulation);
     updateParamsForBlock();
     loadMidiEvents(midi);
     //make sure we have stereo
@@ -73,8 +74,6 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
             handleMidiMessage(midiQueue.front().message);
             midiQueue.pop();
         }
-        //STEP 2: Tick the modulator outputs
-        state->tickPerlinForSample();
 
         //STEP 3: Render the actual samples
         renderNextSample(left, right);
@@ -88,6 +87,8 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 
 void ElectrumEngine::renderNextSample(float& l, float& r)
 {
+   
+    state->tickPerlinForSample();
     l = 0.0f;
     r = 0.0f;
     for (auto v : voices)
@@ -158,7 +159,7 @@ void ElectrumEngine::handleMidiMessage(MidiMessage& message)
     }
     else
     {
-        DLog::log("Unhandled MIDI message: " + message.getDescription());
+        DLog::log("Warning! Unhandled MIDI message: " + message.getDescription());
     }
 
 }

@@ -5,6 +5,9 @@
 #include "../GUI/Color.h"
 #include "../Audio/Modulators/Perlin.h"
 
+// this works like
+using ModDestMap = std::unordered_map<String, std::unordered_map<String, float>>;
+
 class EVT
 {
 private:
@@ -22,41 +25,9 @@ private:
         return tree;
     }
 //=================================================================================
-    ValueTree getModulationsTree()
-    {
-        auto modTree = coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
-        if (modTree.isValid())
-            return modTree;
-        else
-        {
-            coreTree.state.appendChild(createModulationsTree(), nullptr);
-            return coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
-        }
-    }
-    std::vector<ValueTree> getModulations()
-    {
-        std::vector<ValueTree> mods;
-        for(auto it = getModulationsTree().begin(); it != getModulationsTree().end(); ++it)
-        {
-            auto tree = *it;
-            if (tree.hasType(IDs::MODULATION))
-            {
-                mods.push_back(tree);
-            }
-        }
-        return mods;
-    }
-    ValueTree getModulation(const String& source, const String& dest)
-    {
-        for(auto& mod : getModulations())
-        {
-            String src = mod[IDs::modulationSource];
-            String dst = mod[IDs::modulationDest];
-            if (source == src && dest == dst)
-                return mod;
-        }
-        return ValueTree();
-    }
+    ValueTree getModulationsTree();
+    std::vector<ValueTree> getModulations();
+    ValueTree getModulation(const String& source, const String& dest);
 //========================================================================================
     //state
     std::unique_ptr<ElectrumAudioData> audioData;
@@ -135,49 +106,15 @@ public:
     APVTS* getAPVTS() { return &coreTree; }
     // Modulation info stuff
     //use this to add or update the value of a modulation
-    void setModulation(const String& source, const String& dest, float depth)
-    {
-        auto existing = getModulation(source, dest);
-        if (existing.isValid())
-        {
-            existing.setProperty(IDs::modulationDepth, depth, nullptr);
-        }
-        else
-        {
-            auto newMod = createModulationTree(source, dest, depth);
-            getModulationsTree().appendChild(newMod, nullptr);
-        }
-    }
+    void setModulation(const String& source, const String& dest, float depth);
+
     // check if a given modulation exists
-    bool modulationExists(const String& source, const String& dest)
-    {
-        auto mod = getModulation(source, dest);
-        return mod.isValid();
-    }
+    bool modulationExists(const String& source, const String& dest);
+
     //removes a modulation routing
-    void removeModulation(const String& src, const String& dest)
-    {
-        auto mod = getModulation(src, dest);
-        // make sure we're removing a modulation that actually exists
-        jassert(mod.isValid());
-        getModulationsTree().removeChild(mod, nullptr);
-    }
-    // get an unordered_map of all the sources and depths for a given source
-    std::unordered_map<String, float> getModulationsForDest(const String& dest)
-    {
-        std::unordered_map<String, float> out;
-        for(auto mod : getModulations())
-        {
-            String dst = mod[IDs::modulationDest];
-            if (dst == dest)
-            {
-                String src = mod[IDs::modulationSource];
-                float depth = mod[IDs::modulationDepth];
-                out[src] = depth;
-            }
-        }
-        return out;
-    }
+    void removeModulation(const String& src, const String& dest);
+
+
     void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }
     bool getSustainPedal() { return sustainPedalOn.load(); }
 
@@ -187,5 +124,7 @@ public:
     void setPitchBend(float val) { pitchBendValue = val; }
     float getPitchBend() { return pitchBendValue.load(); }
 
+    // load the modulations to a structure we can access in a thread-safe way
+    void loadModulationData(ModDestMap& modMap);
 
 };

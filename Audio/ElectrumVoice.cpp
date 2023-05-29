@@ -1,7 +1,8 @@
 #include "ElectrumVoice.h"
 
-ElectrumVoice::ElectrumVoice (EVT* tree, int idx) : 
+ElectrumVoice::ElectrumVoice (EVT* tree, ModDestMap* map, int idx) : 
 state (tree),
+modMap (map),
 index (idx),
 currentNote(-1),
 currentNoteVelocity(0.0f),
@@ -42,7 +43,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     {
         //TODO: need to calculate position mod and level mod here
 
-        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), 0.0f);
+        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), 0.0f, 0.0f);
     }
     output = output * env.getSample() * 0.25f;
     left += output;
@@ -65,8 +66,32 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
     {
         return state->getModWheel();
     }
+    else if (srcID == IDs::pitchWheelSource.toString())
+    {
+        return state->getPitchBend();
+    }
+    else if(srcID == IDs::perlinSource.toString())
+    {
+        return state->perlinValue();
+    }
     else
     {
         return 0.0f;
     }
+}
+
+
+
+float ElectrumVoice::getCurrentModDestValue(const String& destID)
+{
+    auto destIt = modMap->find(destID);
+    if (destIt == modMap->end())
+        return 0.0f;
+    auto& destMap = destIt->second;
+    float value = 0.0f;
+    for(auto it = destMap.begin(); it != destMap.end(); ++it)
+    {
+        value += getModValueForSample(it->first) * it->second;
+    }
+    return value;
 }

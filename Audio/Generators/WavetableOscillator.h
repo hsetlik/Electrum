@@ -10,7 +10,7 @@ private:
     float baseLevel;
 public:
     WavetableOscillator(EVT* t, int idx);
-    float getNextSample(double freq, double sampleRate, float position);
+    float getNextSample(double freq, double sampleRate, float positionMod, float levelMod);
     void setBasePosition(float value) { baseWavetablePos = value; }
     void setBaseLevel(float value) { baseLevel = value; }
     void updateBasePos();

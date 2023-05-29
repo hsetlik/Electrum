@@ -5,6 +5,7 @@ project("Electrum" VERSION 1.0.0)
 # Juce
 add_subdirectory(JUCE)
 add_subdirectory(JUCE/extras/AudioPluginHost)
+enable_testing()
 
 include(FetchContent)
 
@@ -14,8 +15,17 @@ FetchContent_Declare (
   GIT_REPOSITORY https://github.com/sudara/melatonin_perfetto.git
   GIT_TAG origin/main
 )
-
 FetchContent_MakeAvailable (melatonin_perfetto)
+
+#Catch2- C++ Unit testing framework
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_PROGRESS TRUE
+    GIT_SHALLOW TRUE
+    GIT_TAG v3.3.2)
+FetchContent_MakeAvailable(Catch2)
+
 
 set(SOURCES
 # /Core
@@ -27,6 +37,7 @@ set(SOURCES
 # /Parameters
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/DLog.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/CircularBuffer.h"
@@ -132,6 +143,23 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
-    PRIVATE
     Melatonin::Perfetto
   )
+
+# Setting up tests target and linking Catch2
+file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
+
+add_executable(Tests ${TestFiles})
+target_compile_features(Tests PRIVATE cxx_std_20)
+
+target_compile_definitions(Tests INTERFACE $<TARGET_PROPERTY:${PROJECT_NAME},INTERFACE_COMPILE_DEFINITIONS>)
+target_include_directories(Tests INTERFACE $<TARGET_PROPERTY:${PROJECT_NAME},INCLUDE_DIRECTORIES>)
+
+target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Core)
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}")
+
+include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
+catch_discover_tests(Tests)
+
+

@@ -16,6 +16,7 @@ private:
         MidiMessage message;
     };
     std::queue<TimestampedMidiMessage> midiQueue;
+    ModDestMap currentModulation;
 // state
     OwnedArray<ElectrumVoice> voices;
     float left, right;

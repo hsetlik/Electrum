@@ -10,12 +10,12 @@ baseLevel(1.0f)
     
 }
 
-float WavetableOscillator::getNextSample(double freq, double sampleRate, float position)
+float WavetableOscillator::getNextSample(double freq, double sampleRate, float position, float level)
 {
     if (baseLevel == 0.0f)
         return 0.0f;
     phase = std::fmod(phase + (float)(freq / sampleRate), 1.0f);
-    return state->getOscillatorValue(index, phase, std::fmod(baseWavetablePos + position, 1.0f), freq, sampleRate) * baseLevel;
+    return state->getOscillatorValue(index, phase, std::fmod(baseWavetablePos + position, 1.0f), freq, sampleRate) * std::fmod(baseLevel + level, 1.0f);
 }
 
 void WavetableOscillator::updateBasePos()
