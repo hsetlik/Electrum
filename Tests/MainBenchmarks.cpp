@@ -1,4 +1,3 @@
-#pragma once
 #include "TestUtil.h"
 
 
@@ -100,12 +99,20 @@ TEST_CASE("ElectrumEngine tests")
     auto gui = juce::ScopedJuceInitialiser_GUI {};
     
     std::unique_ptr<ElectrumAudioProcessor> proc = std::make_unique<ElectrumAudioProcessor>();
-    AudioBuffer<float> testBuffer(2, 1000);
-    auto midiBuffer = TestUtil::getTestMidiBuffer(1000, 5, 50, 500);
-    proc->prepareToPlay(44100.0f, 1000);
-    BENCHMARK("Buffer with 5 notes 1000 samples")
+    AudioBuffer<float> testBuffer1(2, 5000);
+    auto midiBuffer = TestUtil::getTestMidiBuffer(5000, 15, 50, 500);
+    proc->prepareToPlay(44100.0f, 5000);
+    BENCHMARK("Buffer with 15 notes 5000 samples")
     {
-        proc->processBlock(testBuffer, midiBuffer);
+        proc->processBlock(testBuffer1, midiBuffer);
+    };
+    proc.reset(new ElectrumAudioProcessor());
+    auto midiBuffer2 = TestUtil::getTestMidiBuffer(1000, 5, 50, 500); 
+    AudioBuffer<float> testBuffer2(2, 1000);
+    proc->prepareToPlay(44100.0f, 1000);
+    BENCHMARK("Buffer with 5 notes and 1000 samples")
+    {
+        proc->processBlock(testBuffer2, midiBuffer2);
     };
 }
 

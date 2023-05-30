@@ -96,6 +96,10 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinPanel.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinGraph.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PerlinGraph.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.cpp"
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"

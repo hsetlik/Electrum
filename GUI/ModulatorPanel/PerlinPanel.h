@@ -1,6 +1,5 @@
 #pragma once
 #include "../../Parameters/ElectrumValueTree.h"
-#include "../Modulation/ModulationSourceComponent.h"
 #include "../Modulation/SourceParamSlider.h"
 #include "../Modulation/ModulationSourceComponent.h"
 #include "PerlinGraph.h"
