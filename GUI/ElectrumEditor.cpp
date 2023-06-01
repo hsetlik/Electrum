@@ -4,7 +4,8 @@ ElectrumEditor::ElectrumEditor(EVT* tree) :
 state(tree), 
 modWhlSource(tree),
 pitchWhlSource(tree),
-perlin(tree)
+perlin(tree),
+envPanel(tree)
 {
     setLookAndFeel(&lnf);
     for (int i = 0; i < NUM_OSCILLATORS; ++i)
@@ -15,7 +16,7 @@ perlin(tree)
     addAndMakeVisible(modWhlSource);
     addAndMakeVisible(pitchWhlSource);
     addAndMakeVisible(perlin);
-
+    addAndMakeVisible(envPanel);
 }
 ElectrumEditor::~ElectrumEditor()
 {
@@ -41,5 +42,7 @@ void ElectrumEditor::resized()
         auto a = oscArea.removeFromLeft(oscWidth).toNearestInt();
         oscEditors[i]->setBounds(a);
     }
+    auto envArea = lBounds.removeFromTop(oscArea.getHeight() * 0.75f);
+    envPanel.setBounds(envArea.removeFromLeft(oscWidth * 2.0f).toNearestInt());
 
 }

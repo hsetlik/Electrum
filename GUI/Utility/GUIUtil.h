@@ -1,7 +1,7 @@
 #pragma once
 #ifndef GUIUTIL_H
 #define GUIUTIL_H
-#include "../../Core/CustomJuceHeader.h"
+#include "../../Parameters/MathUtil.h"
 namespace GUIUtil
 {
     inline void strokeArc(Graphics& g, float x, float y, float w, float h, float startRads, float endRads, float lineWeight)

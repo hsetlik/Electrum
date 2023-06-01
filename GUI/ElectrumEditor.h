@@ -4,6 +4,7 @@
 #include "ModulatorPanel/ModWheelSource.h"
 #include "ModulatorPanel/PitchWheelSource.h"
 #include "ModulatorPanel/PerlinPanel.h"
+#include "ModulatorPanel/EnvelopeTabbedComponent.h"
 #include "ElectrumLookAndFeel.h"
 
 class ElectrumEditor : 
@@ -17,6 +18,7 @@ private:
     PitchWheelSource pitchWhlSource;
     ElectrumLookAndFeel lnf;
     PerlinPanel perlin;
+    EnvelopeTabbedComponent envPanel;
 public:
     ElectrumEditor(EVT* tree);
     ~ElectrumEditor() override;

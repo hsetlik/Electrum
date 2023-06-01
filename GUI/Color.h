@@ -24,6 +24,11 @@ DECLARE_COLOR(aquamarine, 127, 255, 212)
 DECLARE_COLOR(oliveDrab, 107, 102, 35)
 DECLARE_COLOR(salmon, 250, 128, 114)
 DECLARE_COLOR(gainsboro, 220, 220, 220)
+DECLARE_COLOR(darkSeaGreen, 143, 188, 143)
+DECLARE_COLOR(darkOliveDrab, 85, 107, 47)
+DECLARE_COLOR(chocolate, 210, 105, 30)
+DECLARE_COLOR(sienna, 160, 82, 45)
+DECLARE_COLOR(dimGray, 105, 105, 105)
 #undef DECLARE_COLOR
 
 // assign and access the color assigned to eact modulation source
@@ -32,6 +37,9 @@ const std::unordered_map<String, Colour> modSourceColors =
     { IDs::modWheelSource.toString(), mediumSeaGreen},
     { IDs::pitchWheelSource.toString(), indigo},
     { IDs::perlinSource.toString(), chartreuse},
+    { IDs::envSource.toString() + "0", salmon},
+    { IDs::envSource.toString() + "1", lightSteelBlue},
+    { IDs::envSource.toString() + "2", darkSeaGreen},
 };
 
 inline Colour getColorForModSource(const String& srcID)
