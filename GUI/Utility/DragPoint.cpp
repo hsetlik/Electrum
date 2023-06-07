@@ -8,7 +8,6 @@ yRange(yR)
 
 }
 
-
 DragPoint::DragPoint(const DragPoint& other) :
 fX(other.fX),
 fY(other.fY),
@@ -18,13 +17,16 @@ yRange(other.yRange)
 
 }
 
-void DragPoint::setPoint(float x, float y)
+void DragPoint::setPoint(float x, float y, bool updateListeners)
 {
     fX = xRange.clipValue(x);
     fY = yRange.clipValue(y);
-    for(auto l : listeners)
+    if (updateListeners)
     {
-        l->pointMoved(this, fX, fY);
+        for(auto l : listeners)
+        {
+            l->pointMoved(this);
+        }
     }
 }
 
@@ -65,25 +67,66 @@ Point<int> DragPoint::getIPointWithin(Component* parent)
     return Point<int>(x, y);
 }
 
-Point<float> DragPoint::getFPointWithin(Component* parent)
+Point<float> DragPoint::getFPointWithin(Component* parent, float cushion)
 {
-    auto lBounds = parent->getLocalBounds().toFloat();
-    float x = fX * lBounds.getWidth();
-    float y = fY * lBounds.getHeight();
+    auto lBounds = parent->getLocalBounds().toFloat().reduced(cushion);
+    float x = lBounds.getX() + (fX * lBounds.getWidth());
+    float y = lBounds.getY() + (fY * lBounds.getHeight());
     return Point<float>(x, y);
 }
 
-bool DragPoint::isWithin(const MouseEvent& e, float radius)
+bool DragPoint::eventIsWithin(const MouseEvent& e, float radius)
 {
-    Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
-    bounds = bounds.withCentre(getFPointWithin(e.eventComponent));
-    return bounds.contains(e.position);
+    return (e.position.getDistanceFrom(getFPointWithin(e.eventComponent)) < radius);
+
 }
 
 void DragPoint::moveTo(const MouseEvent& e)
 {
     auto fBounds = e.eventComponent->getLocalBounds().toFloat();
-    float newX = fBounds.getWidth() / e.position.getX();
-    float newY = fBounds.getHeight() / e.position.getY();
+    float newX = e.position.x / fBounds.getWidth();
+    float newY = e.position.y / fBounds.getHeight();
     setPoint(newX, newY);
+}
+
+DragPointParameterAttachment::DragPointParameterAttachment(
+EVT* tree, 
+DragPoint* pt, const String& id, 
+std::function<void(float)> onParamChange, 
+std::function<float(float,float)> positionToValue) :
+state(tree),
+point(pt),
+paramID(id),
+changeCallback(onParamChange),
+posToValue(positionToValue)
+{
+    point->addListener(this);
+    auto& param = *state->getAPVTS()->getParameter(paramID);
+    paramRange = state->getAPVTS()->getParameterRange(paramID);
+    attach.reset(new ParameterAttachment(param, [this] (float f) { this->changeCallback(f); }));
+
+}
+
+void DragPointParameterAttachment::pointMoved(DragPoint* pt) 
+{
+    if (pt == point)
+    {
+        float value = posToValue(pt->getX(), pt->getY());
+        attach->setValueAsPartOfGesture(value); 
+    }
+}
+
+void DragPointParameterAttachment::moveStarted(DragPoint* pt) 
+{
+    if (pt == point)
+    {
+        attach->beginGesture();
+    }
+}
+void DragPointParameterAttachment::moveEnded(DragPoint* pt) 
+{
+    if(pt == point)
+    {
+        attach->endGesture();
+    }
 }

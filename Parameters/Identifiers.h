@@ -245,7 +245,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
         layout.add(std::make_unique<AudioParameterFloat>(decC2AngleID, getParamName(decC2AngleID, true), angleRange, CONTROL_ANGLE_DEFAULT));
         //sustain level
         String sustainID = sustainLevel.toString() + iStr;
-        layout.add(std::make_unique<AudioParameterFloat>(sustainID, getParamName(sustainID, true), 0.0f, 0.1f, SUSTAIN_LEVEL_DEFAULT));
+        layout.add(std::make_unique<AudioParameterFloat>(sustainID, getParamName(sustainID, true), 0.0f, 1.0f, SUSTAIN_LEVEL_DEFAULT));
         //release Ms
         String releaseID = releaseMs.toString() + iStr;
         layout.add(std::make_unique<AudioParameterFloat>(releaseID, getParamName(releaseID, true), releaseRange, RELEASE_MS_DEFAULT));

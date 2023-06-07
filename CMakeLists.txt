@@ -71,8 +71,6 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.h"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/EnvelopeEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Color.h"
 #/GUI/Utility
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GUIUtil.h"
