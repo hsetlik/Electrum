@@ -38,7 +38,8 @@ private:
     std::unique_ptr<DragPointParameterAttachment> attackMsAttach;
     std::unique_ptr<DragPointParameterAttachment> holdMsAttach;
     std::unique_ptr<DragPointParameterAttachment> decayMsAttach;
-    std::unique_ptr<DragPointParameterAttachment> sustainAttach;
+    std::unique_ptr<DragPointParameterAttachment> sustainAttach1;
+    std::unique_ptr<DragPointParameterAttachment> sustainAttach2;
     std::unique_ptr<DragPointParameterAttachment> releaseMsAttach;
 
     const std::vector<DragPoint*> points = { &attackEnd, &holdEnd, &decayEnd, &sustainEnd };

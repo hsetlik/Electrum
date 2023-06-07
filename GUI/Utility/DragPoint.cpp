@@ -88,6 +88,7 @@ void DragPoint::moveTo(const MouseEvent& e)
     float newY = e.position.y / fBounds.getHeight();
     setPoint(newX, newY);
 }
+//==========================================================================================
 
 DragPointParameterAttachment::DragPointParameterAttachment(
 EVT* tree, 
@@ -103,7 +104,7 @@ posToValue(positionToValue)
     point->addListener(this);
     auto& param = *state->getAPVTS()->getParameter(paramID);
     paramRange = state->getAPVTS()->getParameterRange(paramID);
-    attach.reset(new ParameterAttachment(param, [this] (float f) { this->changeCallback(f); }));
+    attach.reset(new ParameterAttachment(param, [this] (float f) { changeCallback(f); }));
 
 }
 

@@ -68,13 +68,19 @@ index(idx)
     {
         return this->parameterFromPoint(sustainID, x, y);
     };
-    sustainAttach.reset(new DragPointParameterAttachment(
+    sustainAttach1.reset(new DragPointParameterAttachment(
+    state, 
+    &decayEnd, 
+    sustainID,
+    sustainChangeFunc,
+    sustainConvert));
+     
+    sustainAttach2.reset(new DragPointParameterAttachment(
     state, 
     &sustainEnd, 
     sustainID,
     sustainChangeFunc,
-    sustainConvert));
-       
+    sustainConvert));      
 
     auto releaseID = IDs::releaseMs.toString() + iStr;
     std::function<void(float)> releaseChangeFunc = [this, releaseID](float value)
@@ -148,7 +154,7 @@ DragPointParameterAttachment* EnvelopePanel::getAttachmentFor(DragPoint* pt)
     else if(pt == &decayEnd)
         return decayMsAttach.get();
     else if(pt == &sustainEnd)
-        return sustainAttach.get();
+        return sustainAttach1.get();
     return nullptr;
 }
 void EnvelopePanel::mouseDown(const MouseEvent &event) 
@@ -316,7 +322,7 @@ float EnvelopePanel::parameterFromPoint(const String& id, float x, float y)
     else if(id == IDs::releaseMs.toString() + iStr)
     {
         float normalized = (1.0f - x) / (RELEASE_MS_MAX / ENV_MS_MAX);
-        range.convertFrom0to1(normalized);
+        return range.convertFrom0to1(normalized);
     }
     return 0.0f;
 }
