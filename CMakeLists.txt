@@ -105,6 +105,8 @@ set(SOURCES
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.cpp"
 )
 
 

@@ -220,6 +220,10 @@ public:
         auto& w = data[0].table;
         return WaveUtil::toString(w);
     }
+    Wave getBasicWave()
+    {
+        return data[0].table;
+    }
 };
 
 struct WavetableSet
@@ -237,6 +241,15 @@ public:
         for (auto& t : tables)
         {
             out += t.getWaveAsString();
+        }
+        return out;
+    }
+    std::vector<Wave> getBaseWaves()
+    {
+        std::vector<Wave> out;
+        for(auto t : tables)
+        {
+            out.push_back(t.getBasicWave());
         }
         return out;
     }

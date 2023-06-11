@@ -15,6 +15,11 @@ public:
     float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate);
     // get the data for a given envelope
     AHDSRData* getEnvelopeData(int index) { return envData[index]; }
+    std::vector<Wave> getBaseWaves(int idx)
+    {
+        return oscillators[idx]->getBaseWaves();
+    }
+
 
     
 
