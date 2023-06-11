@@ -88,7 +88,8 @@ public:
     }
     //========================================================
     Point<int> getIPointWithin(Component* parent);
-    Point<float> getFPointWithin(Component* parent, float cushion=0.0f);
+    Point<float> getFPointWithin(Component* parent);
+    Point<float> getFPointWithin(Rectangle<float> bounds);
     bool eventIsWithin(const MouseEvent& e, float radius);
     void moveTo(const MouseEvent& e);
 private:

@@ -119,6 +119,7 @@ void EnvelopeGraph::paint(Graphics& g)
     drawHandle(g, this, &holdEnd, true);
 
     p.lineTo(decayEnd.getFPointWithin(this));
+    //draw the decay handle
     drawHandle(g, this, &decayEnd, true);
 
     p.lineTo(sustainEnd.getFPointWithin(this));
@@ -184,9 +185,9 @@ void EnvelopeGraph::mouseUp(const MouseEvent &)
     if(selectedPoint != nullptr)
     {
         selectedPoint->endMovement();
+        selectedPoint = nullptr;
+        triggerAsyncUpdate();
     }
-    selectedPoint = nullptr;
-    triggerAsyncUpdate();
 }
 
 void EnvelopeGraph::handleAsyncUpdate()

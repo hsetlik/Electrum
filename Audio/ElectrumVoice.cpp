@@ -29,12 +29,20 @@ void ElectrumVoice::startNote(int note, float vel)
     currentNoteVelocity = vel;
     gate = true;
     env.gateStart();
+    for(auto e : envs)
+    {
+        e->gateStart();
+    }
 }
 
 void ElectrumVoice::stopNote()
 {
     env.gateEnd();
     gate = false;
+    for(auto e : envs)
+    {
+        e->gateEnd();
+    }
 }
 
 void ElectrumVoice::renderNextSample(float& left, float& right)
@@ -69,6 +77,7 @@ void ElectrumVoice::updateForBlock()
 
 float ElectrumVoice::getModValueForSample(const String& srcID)
 {
+    auto safeID = StringUtil::removeTrailingNumbers(srcID);
     if (srcID == IDs::modWheelSource.toString())
     {
         return state->getModWheel();
@@ -80,6 +89,12 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
     else if(srcID == IDs::perlinSource.toString())
     {
         return state->perlinValue();
+    }
+    else if(safeID == IDs::envSource.toString())
+    {
+        String numStr = srcID.trimCharactersAtStart(safeID);
+        int idx = std::stoi(numStr.toStdString());
+        return envs[idx]->getNextSample();
     }
     else
     {

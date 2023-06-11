@@ -8,6 +8,7 @@ paramID(id)
     label.setEditable(false, true);
     label.addListener(this);
     attach.reset(new ParameterAttachment(*state->getAPVTS()->getParameter(paramID), [this](float f){ setValue(f); }));
+    attach->sendInitialUpdate();
 }
 
 EnvelopeParamLabel::~EnvelopeParamLabel()
@@ -17,7 +18,7 @@ EnvelopeParamLabel::~EnvelopeParamLabel()
 
 void EnvelopeParamLabel::labelTextChanged(Label* l) 
 {
-    float value = std::stof(l->getText(true).toStdString());
+    float value = std::stof(l->getText().toStdString());
     auto pRange = state->getAPVTS()->getParameterRange(paramID);
     value = Math::fconstrain(pRange.start, pRange.end, value);
     attach->setValueAsCompleteGesture(value);
@@ -26,7 +27,26 @@ void EnvelopeParamLabel::labelTextChanged(Label* l)
 void EnvelopeParamLabel::setValue(float val)
 {
     String valStr(val);
-    valStr = valStr.substring(0, 5);
+    valStr = valStr.substring(0, 6);
+    if(valStr.length() < 6 && valStr.contains("."))
+    {
+        while(valStr.length() < 6)
+        {
+            valStr += '0';
+        }
+    }
+    else if(valStr.length() > 0)
+    {
+        valStr += ".";
+        while(valStr.length() < 6)
+        {
+            valStr += '0';
+        }
+    }
+    else
+    {
+        valStr = "0.0000";
+    }
     label.setText(valStr, dontSendNotification);
 }
 //========================================================================

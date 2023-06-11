@@ -1,6 +1,17 @@
 #pragma once
 #include "EnvelopePanel.h"
+#include "../Modulation/ModulationSourceComponent.h"
 
+class EnvelopeSourceComponent : public Component
+{
+public:
+    EnvelopeSourceComponent(EVT* tree);
+    void resized() override;
+private:
+    EVT* const state;
+    OwnedArray<ModulationSourceComponent> sources;
+};
+//==================================================
 class EnvelopeTabbedComponent : public Component
 {
 private:
@@ -16,4 +27,6 @@ public:
     EVT* const state;
     EnvelopeTabbedComponent(EVT* tree);
     void resized() override;
+private:
+    EnvelopeSourceComponent sources;
 };

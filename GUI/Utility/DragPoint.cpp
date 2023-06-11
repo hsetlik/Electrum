@@ -67,14 +67,17 @@ Point<int> DragPoint::getIPointWithin(Component* parent)
     return Point<int>(x, y);
 }
 
-Point<float> DragPoint::getFPointWithin(Component* parent, float cushion)
+Point<float> DragPoint::getFPointWithin(Component* parent)
 {
-    auto lBounds = parent->getLocalBounds().toFloat().reduced(cushion);
-    float x = lBounds.getX() + (fX * lBounds.getWidth());
-    float y = lBounds.getY() + (fY * lBounds.getHeight());
-    return Point<float>(x, y);
+    auto lBounds = parent->getLocalBounds().toFloat();
+    const float cushion = 2.0f;
+    return getFPointWithin(lBounds.reduced(cushion));
 }
 
+Point<float> DragPoint::getFPointWithin(Rectangle<float> bounds)
+{
+    return {bounds.getX() + (fX * bounds.getWidth()), bounds.getY() + (fY * bounds.getHeight())};
+}
 bool DragPoint::eventIsWithin(const MouseEvent& e, float radius)
 {
     return (e.position.getDistanceFrom(getFPointWithin(e.eventComponent)) < radius);
@@ -105,6 +108,7 @@ posToValue(positionToValue)
     auto& param = *state->getAPVTS()->getParameter(paramID);
     paramRange = state->getAPVTS()->getParameterRange(paramID);
     attach.reset(new ParameterAttachment(param, [this] (float f) { changeCallback(f); }));
+    attach->sendInitialUpdate();
 
 }
 

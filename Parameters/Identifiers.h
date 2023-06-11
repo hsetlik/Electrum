@@ -12,20 +12,24 @@
 #define ATTACK_MS_DEFAULT 20.0f
 #define ATTACK_MS_MIN 0.01f
 #define ATTACK_MS_MAX 2500.0f
+#define ATTACK_MS_CENTER 150.0f
 
 #define HOLD_MS_DEFAULT 0.0f
 #define HOLD_MS_MIN 0.0f
 #define HOLD_MS_MAX 1000.0f
+#define HOLD_MS_CENTER 100.0f
 
 #define DECAY_MS_DEFAULT 50.0f
 #define DECAY_MS_MIN 0.1f
 #define DECAY_MS_MAX 4000.0f
+#define DECAY_MS_CENTER 250.0f
 
 #define SUSTAIN_LEVEL_DEFAULT 0.65f
 
 #define RELEASE_MS_DEFAULT 85.0f
 #define RELEASE_MS_MIN 1.0f
 #define RELEASE_MS_MAX 10000.0f
+#define RELEASE_MS_CENTER 400.0f
 
 #define CONTROL_LENGTH_DEFAULT 0.5f
 #define CONTROL_ANGLE_DEFAULT MathConstants<float>::pi / 4.0f
@@ -208,9 +212,13 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     }
     //envelopes
     frange atkRange(ATTACK_MS_MIN, ATTACK_MS_MAX, 0.0001f);
+    atkRange.setSkewForCentre(ATTACK_MS_CENTER);
     frange holdRange(HOLD_MS_MIN, HOLD_MS_MAX, 0.0001f);
+    holdRange.setSkewForCentre(HOLD_MS_CENTER);
     frange decayRange(DECAY_MS_MIN, DECAY_MS_MAX, 0.0001f);
+    decayRange.setSkewForCentre(DECAY_MS_CENTER);
     frange releaseRange(RELEASE_MS_MIN, RELEASE_MS_MAX, 0.0001f);
+    releaseRange.setSkewForCentre(RELEASE_MS_CENTER);
     frange angleRange(0.0f, MathConstants<float>::pi / 2.0f, 0.0001f);
     frange cLengthRange(0.0f, 1.0f, 0.00001f);
     for(int i = 0; i < NUM_ENVELOPES; i++)
