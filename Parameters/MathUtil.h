@@ -46,24 +46,47 @@ namespace Math
     {
         //make sure we're getting a valid value
         jassert(val < 16384);
-        return jmap((float)val, 0.0f, 16383.0f, 0.0f, 1.0f);
+        return jmap((float)val, 0.0f, 16383.0f, -1.0f, 1.0f);
     }
     //the Y value of a basic quadratic bezier curve at point t
-    inline float bezierValueFor(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float t)
-    {
-        // find the first three points
-        float t1x = flerp(x1, x2, t);
-        float t1y = flerp(y1, y2, t);
-        float t2x = flerp(x2, x3, t);
-        float t2y = flerp(y2, y3, t);
-        float t3x = flerp(x3, x4, t);
-        float t3y = flerp(y3, y4, t);
-        // the next two
-        float t4x = flerp(t1x, t2x, t);
-        float t4y = flerp(t1y, t2y, t);
-        float t5x = flerp(t2x, t3x, t);
-        float t5y = flerp(t2y, t3y, t);
+    // inline float bezierValueFor(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float t)
+    // {
+    //     // find the first three points
+    //     float t1x = flerp(x1, x2, t);
+    //     float t1y = flerp(y1, y2, t);
+    //     float t2x = flerp(x2, x3, t);
+    //     float t2y = flerp(y2, y3, t);
+    //     float t3x = flerp(x3, x4, t);
+    //     float t3y = flerp(y3, y4, t);
+    //     // the next two
+    //     float t4x = flerp(t1x, t2x, t);
+    //     float t4y = flerp(t1y, t2y, t);
+    //     float t5x = flerp(t2x, t3x, t);
+    //     float t5y = flerp(t2y, t3y, t);
 
+    // }
+    /**
+     * @brief Find the minimum distance betwen a line (defined by two points) and some third point
+     * 
+     * @param x1 First line point X
+     * @param y1 First line point Y
+     * @param x2 Second line point X
+     * @param y2 Second line point Y
+     * @param pX Distance point X 
+     * @param pY Distance point Y
+     * @return the minimum distance
+     */
+    inline float perpindicularDistance(float x1, float y1, float x2, float y2, float pX, float pY)
+    {
+        float m = (y2 - y1) / (x2 - x1);
+        // the original line:
+        // point slope: y - y1 = m(x - x1)
+        // slope-intercept: y = mx - (mx1 + y1)
+        // yInt = -mx1 + y1
+        // y + yInt = mx
+        // mx - y = yInt
+        float yInt = -1.0f * ((m * x1) + y1);
+        return std::fabs((m * pX) + (-1.0f * pY) + yInt) / std::sqrt((m * m) + 1.0f);
     }
 }
 

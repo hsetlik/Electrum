@@ -158,7 +158,14 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_warning_flags
     Melatonin::Perfetto
   )
-
+# setting up benchamrks
+if(BUILD_BENCHMARKS)
+message("Building benchmarks")
+add_compile_definitions("BUILD_BENCHMARKS=1")
+else()
+message("Not building benchmarks")
+add_compile_definitions("BUILD_BENCHMARKS=0")
+endif()
 # Setting up tests target and linking Catch2
 file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})

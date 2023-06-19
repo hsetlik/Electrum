@@ -1,6 +1,7 @@
 #pragma once
 #include "../Modulation/ModulationDestSlider.h"
 #include "../../Parameters/Identifiers.h"
+#include "WavetableGraph.h"
 
 class OscillatorEditor : public Component
 {
@@ -11,6 +12,7 @@ private:
     Label label;
     ModulationDestSlider sLevel;
     ModulationDestSlider sPos;
+    //WavetableGraph graph;
 
 public:
     OscillatorEditor(EVT* tree, int idx);

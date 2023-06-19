@@ -1,8 +1,7 @@
 #include "TestUtil.h"
-
-
+#if BUILD_BENCHMARKS
 //TEST_CASE ("Boot performance")
-//{
+
 //     BENCHMARK_ADVANCED ("Processor constructor")
 //     (Catch::Benchmark::Chronometer meter)
 //     {
@@ -117,3 +116,5 @@ TEST_CASE("ElectrumEngine tests")
 }
 
 
+
+#endif //BUILD_BENCHMARKS
