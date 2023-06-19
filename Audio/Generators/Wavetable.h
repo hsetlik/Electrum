@@ -9,11 +9,17 @@ struct WaveUtil
 {
     static float valueAtPhase(float* wave, float phase)
     {
-        return Math::flerp(wave[(int)std::floor(phase * (float)TABLE_SIZE)], wave[(int)std::ceil(phase * (float)TABLE_SIZE)], (phase * (float)TABLE_SIZE) - std::floor(phase * (float)TABLE_SIZE));
+        auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
+        return Math::flerp(wave[fIdx], wave[(fIdx + 1) % TABLE_SIZE], (phase * (float)TABLE_SIZE) - (float)fIdx);
     }
     static float valueAtPhase(Wave& wave, float phase)
     {
-        return Math::flerp(wave[(int)std::floor(phase * (float)TABLE_SIZE)], wave[(int)std::ceil(phase * (float)TABLE_SIZE)], (phase * (float)TABLE_SIZE) - std::floor(phase * (float)TABLE_SIZE));
+        auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
+        return Math::flerp(wave[fIdx], wave[(fIdx + 1) % TABLE_SIZE], (phase * (float)TABLE_SIZE) - (float)fIdx);
+    }
+    static float nonLerpedValueAtPhase(Wave& wave, float phase)
+    {
+        return wave[Math::fastFloor(phase * TABLE_SIZE)];
     }
     static Wave getRisingRampWave()
     {

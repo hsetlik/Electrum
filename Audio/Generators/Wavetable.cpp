@@ -134,9 +134,10 @@ float WavetableSet::getSample(float phase, float tablePos, double freq, double s
 {
     static float lower;
     static float upper;
-    lower = tables[(size_t)std::floor(tablePos * tables.size())].getSample(phase, freq, sampleRate);
-    upper = tables[(size_t)std::ceil(tablePos * tables.size())].getSample(phase, freq, sampleRate);
-    return Math::flerp(lower, upper, ((float)tablePos * tables.size()) - (float)std::floor(tablePos * tables.size()));
+    auto fIdx = Math::fastFloor(tablePos * tables.size());
+    lower = tables[fIdx].getSample(phase, freq, sampleRate);
+    upper = tables[(fIdx + 1) % tables.size()].getSample(phase, freq, sampleRate);
+    return Math::flerp(lower, upper, ((float)tablePos * tables.size()) - (float)Math::fastFloor(tablePos * tables.size()));
 }
 
 

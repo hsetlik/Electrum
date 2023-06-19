@@ -20,6 +20,5 @@ ElectrumAudioData::ElectrumAudioData(ValueTree& state)
 
 float ElectrumAudioData::getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate)
 {
-    jassert(idx < oscillators.size());
     return oscillators[idx]->getSample(phase, tablePos, freq, sampleRate);
 }

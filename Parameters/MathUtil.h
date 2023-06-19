@@ -9,7 +9,6 @@ namespace Math
     {
         return a + ((b - a) * t);
     }
-
     inline double dlerp (double a, double b, double t)
     {
         return a + ((b - a) * t);
@@ -87,6 +86,11 @@ namespace Math
         // mx - y = yInt
         float yInt = -1.0f * ((m * x1) + y1);
         return std::fabs((m * pX) + (-1.0f * pY) + yInt) / std::sqrt((m * m) + 1.0f);
+    }
+    inline size_t fastFloor(float fp)
+    {
+        size_t i = static_cast<size_t>(fp);
+        return (fp < i) ? (i - 1) : (i);
     }
 }
 
