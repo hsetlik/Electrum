@@ -16,7 +16,6 @@ class EnvelopeTabbedComponent : public Component
 {
 private:
     OwnedArray<TextButton> buttons;
-    OwnedArray<EnvelopePanel> envPanels;
     int selectedEnvIndex;
     void setSelectedIndex(int idx)
     {

@@ -12,6 +12,4 @@ private:
 public:
     FundamentalFinder();
     void push(float value);
-
-
 };

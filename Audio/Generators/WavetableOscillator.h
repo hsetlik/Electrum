@@ -1,3 +1,4 @@
+#pragma once
 #include "../../Parameters/ElectrumValueTree.h"
 
 class WavetableOscillator

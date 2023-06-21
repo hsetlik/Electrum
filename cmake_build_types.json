@@ -1,0 +1,14 @@
+{
+  "debug": {
+    "build_type": "Debug",
+    "cmake_usr_args": {
+      "-DBUILD_BENCHMARKS": "ON"
+    }
+  },
+  "release": {
+    "build_type": "Release",
+    "cmake_usr_args": {
+      "-DBUILD_BENCHMARKS": "ON"
+    }
+  }
+}

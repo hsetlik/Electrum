@@ -39,6 +39,4 @@ public:
     ElectrumEngine(EVT* tree);
     // main callback
     void processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi);
-    
-
 };

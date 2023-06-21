@@ -30,18 +30,7 @@ float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSin
     float currentMs = (float)samplesSinceGateChange / (float)AudioSystem::getSampleRate();
     switch(phase)
     {
-        case AHDSRPhase::Attack:
-            return Math::flerp(0.0f, 1.0f, (currentMs / env->releaseMs));
-        case AHDSRPhase::Hold:
-            return 1.0f;
-        case AHDSRPhase::Decay:
-            return Math::flerp(1.0f, env->sustainLevel, (currentMs - (env->attackMs + env->holdMs)) / env->decayMs);
-        case AHDSRPhase::Sustain:
-            return env->sustainLevel;
-        case AHDSRPhase::Release:
-            return Math::flerp(env->sustainLevel, 0.0f, currentMs / env->releaseMs);
-        case AHDSRPhase::Idle:
-            return 0.0f;
+
         default:
             return 0.0f;
     }

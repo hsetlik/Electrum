@@ -23,7 +23,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     GIT_PROGRESS TRUE
     GIT_SHALLOW TRUE
-    GIT_TAG v3.3.2)
+    GIT_TAG v3.3.2) 
 FetchContent_MakeAvailable(Catch2)
 
 
@@ -55,8 +55,6 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/FundamentalFinder.h"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/FundamentalFinder.cpp"
 #/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"
@@ -183,5 +181,4 @@ target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}")
 
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(Tests)
-
 
