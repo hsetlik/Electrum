@@ -133,7 +133,7 @@ TEST_CASE("Oscillator benchmarks")
     };
 }
 
-TEST_CASE("MathUtil Benchmarks")
+TEST_CASE("flerp Benchmarks")
 {
     auto& rand = Random::getSystemRandom();
     std::vector<float> aVals;
@@ -152,12 +152,24 @@ TEST_CASE("MathUtil Benchmarks")
         std::vector<float> output;
         for(int i = 0; i < numLerps; i++)
         {
-            output.push_back(Math::flerp(aVals[i], bVals[i], tVals[i]));
+            output.push_back(Math::flerp(aVals[(size_t)i], bVals[(size_t)i], tVals[(size_t)i]));
         }
     };
 
 
 }
 
+TEST_CASE("easing curve benchmarks")
+{
+    BENCHMARK("Curve: 100")
+    {
+        std::vector<float> output;
+        for(int i = 0; i < 100; i++)
+        {
+            float x = (float)i / 100.0f;
+            output.push_back(Math::onEasingCurve(0.0f, x, 1.0f, x));
+        }
+    };
+}
 
 #endif //BUILD_BENCHMARKS

@@ -115,8 +115,58 @@ namespace Math
     */
 
 
+    // NOTE: both these findP functions were written by ChatGPT
+    inline float findPConcave(float x, float y, float epsilon = 1e-6, int max_iterations = 100) 
+    {
+        float p = 1.0;  // Initial guess for p
+        int n = 0;
+        while (n < max_iterations) 
+        {
+            float f = pow(1 - pow(1 - x, p), 1 / p) - y;
+            float df_dp = pow(1 - x, p) * (pow(1 - x, p) - 1) / (pow(p, 2) * (1 - pow(1 - x, p)));
+            p -= f / df_dp;
+            if (std::abs(f) < epsilon) 
+            {
+                return p;
+            }
+            n++;
+        }
+        return std::numeric_limits<float>::quiet_NaN();
+    }
 
-    inline float pointOnEaseCurve
+    inline float findPConvex(float x, float y, float epsilon = 1e-6f, int max_iterations = 100) 
+    {
+        float p = 1.0;  // Initial guess for p
+        int n = 0;
+        while (n < max_iterations) 
+        {
+            float f = pow(1 - pow(1 - x, p / 1), p) - y;
+            float df_dp = p * pow(1 - pow(1 - x, p / 1), p - 1) * (pow(1 - x, p / 1) * log(1 - x) - pow(1 - x, p / 1) + 1) / (1 - pow(1 - x, p / 1));
+            p -= f / df_dp;
+            if (std::abs(f) < epsilon) 
+            {
+                return p;
+            }
+            n++;
+        }
+        return std::numeric_limits<float>::quiet_NaN();
+    }
+
+    inline float onEasingCurve(float y0, float y1, float y2, float x)
+    {
+        if (y1 > 0.5f) // convex curve
+        {
+            float p = findPConvex(0.5f, y1);
+            float xNorm = pow(1.0f - pow(1.0f - x, 1.0f / p), p);
+            return flerp(y0, y2, xNorm);
+        }
+        else //concave curve
+        {
+            float p = findPConcave(0.5f, y1);
+            float xNorm = pow(1.0f - pow(1.0f - x, p), 1.0f / p);
+            return flerp(y0, y2, xNorm);
+        }
+    }
 }
 
 struct FFT
