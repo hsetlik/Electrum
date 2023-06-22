@@ -9,6 +9,7 @@ public:
     void resized() override;
 private:
     EVT* const state;
+    // OwnedArray<EnvelopePanel> envs;
     OwnedArray<ModulationSourceComponent> sources;
 };
 //==================================================

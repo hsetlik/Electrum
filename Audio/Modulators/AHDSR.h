@@ -23,11 +23,13 @@ struct AHDSRData
     float holdMs = 0.0f;
 // decay
     float decayMs = DECAY_MS_DEFAULT;
+    float decayCurve = 0.5f;
 
 // sustain
     float sustainLevel = SUSTAIN_LEVEL_DEFAULT;
 // release
     float releaseMs = RELEASE_MS_DEFAULT;
+    float releaseCurve = 0.5f;
 
 // static methods to hande the logic of turning these parameters into an envelope output
     static AHDSRPhase getCurrentPhase(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange);

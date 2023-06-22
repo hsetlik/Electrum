@@ -92,6 +92,31 @@ namespace Math
         size_t i = static_cast<size_t>(fp);
         return (fp < i) ? (i - 1) : (i);
     }
+    /*
+    this function should take 4 parameters, 
+    the starting y value, 
+    the ending y value, 
+    the y value when x = 0.5, and t where we return f(t)
+    f(0) = y1
+    f(1) = y3
+    f(0.5) = y2
+
+    we can make this easier by imagining that y1 is always 0 and y3 is always 1, then scaling the output between the values after we find the curve
+    
+    the base equation takes the form: y(x) = (1 - (1 - x)^p)^(1 / p) when y2 is < 0.5
+    and the form: y(x) = (1 - (1- x)^(p/1))^p when x2 is > 0.5
+    we need to find p for our value of y2
+    for the first equation:
+    x2 = (1 - (1- x)^p)^(1 / p)
+    log<1 - (1- x)^p>(x2) = 1 - (1- x)^p
+    
+    and then simply return lerp(x1, x3, f(t))
+    
+    */
+
+
+
+    inline float pointOnEaseCurve
 }
 
 struct FFT
