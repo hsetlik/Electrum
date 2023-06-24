@@ -2,7 +2,8 @@
   "debug": {
     "build_type": "Debug",
     "cmake_usr_args": {
-      "-DBUILD_BENCHMARKS": "ON"
+      "-DBUILD_BENCHMARKS": "ON",
+      "-G": "Xcode"
     }
   },
   "release": {

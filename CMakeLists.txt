@@ -107,6 +107,8 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeGraph.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeGraph.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.cpp"
 
 #/GUI/GeneratorPanel

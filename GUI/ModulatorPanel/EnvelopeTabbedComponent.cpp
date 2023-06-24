@@ -31,7 +31,8 @@ sources(tree)
     for(int i = 0; i < NUM_ENVELOPES; i++)
     {
         // add the envelope panels
-        //TODO
+        envs.add(new EnvelopePanel(state, i));
+        addAndMakeVisible(envs.getLast());
         // add the buttons and their callbacks
         buttons.add(new TextButton("Env " + String(i + 1)));
         auto button = buttons.getLast();
@@ -56,13 +57,13 @@ void EnvelopeTabbedComponent::resized()
         if (i == selectedEnvIndex)
         {
             buttons[i]->setEnabled(false);
-//            envPanels[i]->setVisible(true);
-//            envPanels[i]->setBounds(lBounds.toNearestInt());
+            envs[i]->setVisible(true);
+            envs[i]->setBounds(lBounds.toNearestInt());
         }
         else
         {
             buttons[i]->setEnabled(true);
-//            envPanels[i]->setVisible(false);
+            envs[i]->setVisible(false);
         }
     }
 

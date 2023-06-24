@@ -1,15 +1,15 @@
 #pragma once
 #include "EnvelopeGraph.h"
 #include "../../Parameters/ElectrumValueTree.h"
-
-class EnvelopePanel : Component
+#define ENV_LABEL_HEIGHT 15
+class EnvelopePanel : public Component
 {
 private:
     EVT* const state;
+    EnvelopeGraph graph;
 public:
     const int index;
     EnvelopePanel(EVT* tree, int idx);
     void resized() override;
-    void paint(Graphics& g) override;
 
 };
