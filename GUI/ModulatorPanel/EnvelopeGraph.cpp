@@ -67,6 +67,12 @@ void EnvelopeGraph::updateDragPointPositions()
   const float hMax = ((float)HOLD_MS_MAX / (float)ENV_MS_MAX) * bounds.getWidth();
   const float dMax = ((float)DECAY_MS_MAX / (float)ENV_MS_MAX) * bounds.getWidth();
   const float rMax = ((float)RELEASE_MS_MAX / (float)ENV_MS_MAX) * bounds.getWidth(); 
-  // find the attck point
+
+  
 
 }
+
+
+
+
+

@@ -20,9 +20,16 @@ public:
     void mouseUp(const MouseEvent& e) override;
 private:
     DragPoint attackEnd;
+    std::unique_ptr<DragPointAttachment> attackAttach;
     DragPoint holdEnd;
+    std::unique_ptr<DragPointAttachment> holdAttach;
     DragPoint decayEnd;
+    std::unique_ptr<DragPointAttachment> sustainAttach1;
+    std::unique_ptr<DragPointAttachment> decayAttach;
     DragPoint sustainEnd;
+    std::unique_ptr<DragPointAttachment> sustainAttach2;
+    std::unique_ptr<DragPointAttachment> releaseAttach;
+
     // this is responsible for gripping the data from the shared state and setting the points appropriately
     void updateDragPointPositions();
 };

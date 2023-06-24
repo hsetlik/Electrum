@@ -87,82 +87,24 @@ namespace Math
         float yInt = -1.0f * ((m * x1) + y1);
         return std::fabs((m * pX) + (-1.0f * pY) + yInt) / std::sqrt((m * m) + 1.0f);
     }
+
     inline size_t fastFloor(float fp)
     {
         size_t i = static_cast<size_t>(fp);
         return (fp < i) ? (i - 1) : (i);
     }
-    /*
-    this function should take 4 parameters, 
-    the starting y value, 
-    the ending y value, 
-    the y value when x = 0.5, and t where we return f(t)
-    f(0) = y1
-    f(1) = y3
-    f(0.5) = y2
-
-    we can make this easier by imagining that y1 is always 0 and y3 is always 1, then scaling the output between the values after we find the curve
-    
-    the base equation takes the form: y(x) = (1 - (1 - x)^p)^(1 / p) when y2 is < 0.5
-    and the form: y(x) = (1 - (1- x)^(p/1))^p when x2 is > 0.5
-    we need to find p for our value of y2
-    for the first equation:
-    x2 = (1 - (1- x)^p)^(1 / p)
-    log<1 - (1- x)^p>(x2) = 1 - (1- x)^p
-    
-    and then simply return lerp(x1, x3, f(t))
-    
-    */
-
-
-    // // NOTE: both these findP functions were written by ChatGPT
-    // inline float findPConcave(float x, float y, float epsilon = 1e-6, int max_iterations = 100) 
-    // {
-    //     float p = 1.0;  // Initial guess for p
-    //     int n = 0;
-    //     while (n < max_iterations) 
-    //     {
-    //         float f = pow(1 - pow(1 - x, p), 1 / p) - y;
-    //         float df_dp = pow(1 - x, p) * (pow(1 - x, p) - 1) / (pow(p, 2) * (1 - pow(1 - x, p)));
-    //         p -= f / df_dp;
-    //         if (std::abs(f) < epsilon) 
-    //         {
-    //             return p;
-    //         }
-    //         n++;
-    //     }
-    //     return std::numeric_limits<float>::quiet_NaN();
-    // }
-    //
-    // inline float findPConvex(float x, float y, float epsilon = 1e-6f, int max_iterations = 100) 
-    // {
-    //     float p = 1.0;  // Initial guess for p
-    //     int n = 0;
-    //     while (n < max_iterations) 
-    //     {
-    //         float f = pow(1 - pow(1 - x, p / 1), p) - y;
-    //         float df_dp = p * pow(1 - pow(1 - x, p / 1), p - 1) * (pow(1 - x, p / 1) * log(1 - x) - pow(1 - x, p / 1) + 1) / (1 - pow(1 - x, p / 1));
-    //         p -= f / df_dp;
-    //         if (std::abs(f) < epsilon) 
-    //         {
-    //             return p;
-    //         }
-    //         n++;
-    //     }
-    //     return std::numeric_limits<float>::quiet_NaN();
-    // }
 
     inline float onEasingCurve(float y0, float y1, float y2, float x)
     {
-      float yM = jmap(y1, y0, y2, 0.0f, 1.0f);
+      float yM = jmap(y1, y0, y2, 0.0f, 1.0f); // normalize y1 between 0 and 1 to use the exponential parent function
       // this is a basic exponential function where we know that:
-  //
   //     f(x) = x^t 
   //     f(0.5) = yM
   //     0.5^t = yM
   //     log<0.5>(yM) = t
       float t = std::log(yM) / std::log(0.5f);
-      return std::pow(x, t);
+      float val = std::pow(x, t);
+      return flerp(y0, y2, val); // de-normalize from 0-1 range back to full range (undo the jmap in other words)
     }
 }
 
