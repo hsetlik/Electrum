@@ -78,13 +78,20 @@ public:
           l->moved(this);
       }
     }
+    bool isWithin(const MouseEvent& e, float radius)
+    {
+      auto ePos = e.position;
+      return point.getDistanceFrom(ePos) <= radius;
+    }
 private: 
     std::vector<Listener*> listeners;
 };
+
 //====================================================================================
 // these are the two functions that each attachment will need to define
 using PosToParamFunc = std::function<float(Point<float>)>;
 using ParamToPosFunc = std::function<Point<float>(float)>;
+
 // This does the parameter handling
 class DragPointAttachment : public DragPoint::Listener
 {

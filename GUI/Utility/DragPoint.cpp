@@ -8,6 +8,13 @@ posToParam(func1),
 paramToPos(func2)
 {
   point->addListener(this);
+  auto callback = [this](float value)
+  {
+    auto pos = paramToPos(value);
+    point->movePoint(pos.x, pos.y, false);
+  };
+  auto treeParam = state->getAPVTS()->getParameter(paramID);
+  pAttach.reset(new ParameterAttachment(*treeParam, callback, nullptr));
 }
 
 DragPointAttachment::~DragPointAttachment()
@@ -15,17 +22,18 @@ DragPointAttachment::~DragPointAttachment()
   point->removeListener(this);
 }
 
-void DragPointAttachment::moveStarted(DragPoint* p)
+void DragPointAttachment::moveStarted(DragPoint* )
 {
-
+  pAttach->beginGesture();
 }
 
-void DragPointAttachment::moveEnded(DragPoint* p)
+void DragPointAttachment::moveEnded(DragPoint*)
 {
-
+  pAttach->endGesture();
 }
 
 void DragPointAttachment::moved(DragPoint* p)
 {
-
+  auto val = posToParam({p->getX(), p->getY()});
+  pAttach->setValueAsPartOfGesture(val);
 }
