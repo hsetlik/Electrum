@@ -52,8 +52,6 @@ public:
     float getY() { return point.y; }
     // these are the functions that (optionally) call the listeners
     // NOTE: the 'notify' parameter should be false when calling these methods from the atttachment class
-    void startMove(bool notify=true)
-    {
       if(notify)
       {
         for(auto l : listeners)

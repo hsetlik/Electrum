@@ -7,7 +7,7 @@ class EnvelopeGraph :
 public Component,
 public AsyncUpdater
 {
-    static void drawEnvelopeGraph(AHDSRData* env, Rectangle<float>& bounds, Graphics& g);
+    void drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g);
     EVT* const state;
 public:
     const int index;
@@ -29,7 +29,14 @@ private:
     DragPoint sustainEnd;
     std::unique_ptr<DragPointAttachment> sustainAttach2;
     std::unique_ptr<DragPointAttachment> releaseAttach;
-
+    DragPoint* selectedPoint;
+    // useful for quickly iterating through points
+    const std::vector<DragPoint*> points = { &attackEnd, &holdEnd, &decayEnd, &sustainEnd };
     // this is responsible for gripping the data from the shared state and setting the points appropriately
     void updateDragPointPositions();
+    // these get called from the attachment callback
+    Point<float> getPosFromParam(const String& paramID, DragPoint* point, float value);
+    float getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos);
+    Point<float> constrainPositionFor(DragPoint* point, Point<float> pos);
+
 };
