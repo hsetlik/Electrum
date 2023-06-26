@@ -7,20 +7,100 @@ attackEnd(this),
 holdEnd(this),
 decayEnd(this),
 sustainEnd(this),
-selectedPoint(nullptr)
+selectedPoint(nullptr),
+isMoving(false)
 {
+  String iStr(index);
+  String atkId = IDs::attackMs.toString() + iStr;
+
+  attackAttach.reset(new DragPointAttachment(
+    state,
+    atkId,
+    &attackEnd,
+    [this, atkId](Point<float> pt)
+    {
+      return getParamFromPos(atkId, &attackEnd, pt);
+    },
+    [this, atkId](float val)
+    {
+      return getPosFromParam(atkId, &attackEnd, val);
+    }
+  ));
   
-  // set up all the ParameterAttachments
-  std::function<Point<float>(float)> atkToPos = [this](float value)
-  {
-    auto fBounds = getLocalBounds().toFloat();
-    // needs to:
-      // 1. figure out the max attack distance wrt fBounds
-      // 2. figure out where the DragPoint should pbe placed per the attack range/skew
-      
-  };
+  String holdId = IDs::holdMs.toString() + iStr;
+  holdAttach.reset(new DragPointAttachment(
+    state,
+    holdId,
+    &holdEnd,
+    [this, holdId](Point<float> pt)
+    {
+      return getParamFromPos(holdId, &holdEnd, pt);
+    },
+    [this, holdId](float val)
+    {
+      return getPosFromParam(holdId, &holdEnd, val);
+    }
+  ));
+
+  String decayId = IDs::decayMs.toString() + iStr;
+  decayAttach.reset(new DragPointAttachment(
+    state,
+    decayId,
+    &decayEnd,
+    [this, decayId](Point<float> pt)
+    {
+      return getParamFromPos(decayId, &decayEnd, pt);
+    },
+    [this, decayId](float val)
+    {
+      return getPosFromParam(decayId, &decayEnd, val);
+    }
+  ));
+  
+  String sustainId = IDs::sustainLevel.toString() + iStr;
+  sustainAttach1.reset(new DragPointAttachment(
+    state,
+    sustainId,
+    &decayEnd,
+    [this, sustainId](Point<float> pt)
+    {
+      return getParamFromPos(sustainId, &decayEnd, pt);
+    },
+    [this, sustainId](float val)
+    {
+      return getPosFromParam(sustainId, &decayEnd, val);
+    }
+  ));
+  sustainAttach2.reset(new DragPointAttachment(
+    state,
+    sustainId,
+    &sustainEnd,
+    [this, sustainId](Point<float> pt)
+    {
+      return getParamFromPos(sustainId, &sustainEnd, pt);
+    },
+    [this, sustainId](float val)
+    {
+      return getPosFromParam(sustainId, &sustainEnd, val);
+    }
+  )); 
+  
+  String releaseId = IDs::releaseMs.toString() + iStr;
+  releaseAttach.reset(new DragPointAttachment(
+    state,
+    releaseId,
+    &sustainEnd,
+    [this, releaseId](Point<float> pt)
+    {
+      return getParamFromPos(releaseId, &sustainEnd, pt);
+    },
+    [this, releaseId](float val)
+    {
+      return getPosFromParam(releaseId, &sustainEnd, val);
+    }
+  )); 
+
   triggerAsyncUpdate();
-  
 }
 
 void EnvelopeGraph::paint(Graphics& g)
@@ -55,22 +135,36 @@ void EnvelopeGraph::mouseDown(const MouseEvent& e)
     if(p->isWithin(e, 3.0f))
     {
       selectedPoint = p;
-      break;
+      return;
     }
   }
+  selectedPoint = nullptr;
+  isMoving = false;
 }
 
 void EnvelopeGraph::mouseDrag(const MouseEvent& e) 
 {
   if(selectedPoint != nullptr)
   {
-
+    if(!isMoving)
+    {
+      isMoving = true;
+      selectedPoint->startMove();
+    }
+    auto destPos = constrainPositionFor(selectedPoint, e.position);
+    selectedPoint->movePoint(destPos.x, destPos.y);
   }
+  else
+    isMoving = false;
 }
 
 void EnvelopeGraph::mouseUp(const MouseEvent& e) 
 {
-
+  if (selectedPoint != nullptr)
+  {
+    selectedPoint->endMove();
+  }
+  selectedPoint  nullptr;
 }
 
 //============================================================
@@ -95,7 +189,7 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
 {
   if(paramID.contains(IDs::attackMs.toString()))
   {
-
+    
   }
   else if(paramID.contains(IDs::holdMs.toString()))
   {
@@ -157,5 +251,11 @@ Point<float> EnvelopeGraph::constrainPositionFor(DragPoint* point, Point<float> 
   }
 }
 
-
-
+DragPoint* EnvelopeGraph::getPointWithinRadius(const MouseEvent& e, float radius)
+{
+  for(auto p : points)
+  {
+    if(p->isWithin(e, radius))
+      return p;
+  }
+}

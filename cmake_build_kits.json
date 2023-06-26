@@ -1,0 +1,30 @@
+{
+    "xcode-clang": {
+        "compilers": {
+            "C": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc",
+            "CXX": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++"
+        },
+        "query_driver" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++",
+        "generator": "Xcode",
+        "build_type_aware": false
+    },
+    "clang": {
+        "compilers": {
+            "C": "/usr/bin/clang",
+            "CXX": "/usr/bin/clang++"
+        },
+        "query_driver" : "/usr/bin/clang++",
+        "generator": "Ninja"
+    },
+    "clang-xcode-13.4.1": {
+        "compilers": {
+            "C": "/usr/bin/clang",
+            "CXX": "/usr/bin/clang++"
+        },
+        "query_driver" : "/usr/bin/clang++",
+        "environment_variables": {
+            "DEVELOPER_DIR": "/Applications/xcode-versions/Xcode-13.4.1.app/Contents/Developer"
+        },
+        "generator": "Ninja"
+    }
+}
