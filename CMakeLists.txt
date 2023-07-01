@@ -55,8 +55,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSR.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/FundamentalFinder.h"
-"${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/FundamentalFinder.cpp"
+
 #/Audio
 "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"
