@@ -3,16 +3,19 @@ EnvelopeGraph::EnvelopeGraph(EVT* tree, int idx) :
 state(tree),
 index(idx),
 attackEnd(this),
+attackCurve(this),
 holdEnd(this),
+decayCurve(this),
 decayEnd(this),
 sustainEnd(this),
+releaseCurve(this),
 selectedPoint(nullptr),
 isMoving(false)
 {
   String iStr(index);
   String atkId = IDs::attackMs.toString() + iStr;
 
-  attackAttach.reset(new DragPointAttachment(
+  attackMsAttach.reset(new DragPointAttachment(
     state,
     atkId,
     &attackEnd,
@@ -27,7 +30,7 @@ isMoving(false)
   ));
   
   String holdId = IDs::holdMs.toString() + iStr;
-  holdAttach.reset(new DragPointAttachment(
+  holdMsAttach.reset(new DragPointAttachment(
     state,
     holdId,
     &holdEnd,
@@ -42,7 +45,7 @@ isMoving(false)
   ));
 
   String decayId = IDs::decayMs.toString() + iStr;
-  decayAttach.reset(new DragPointAttachment(
+  decayMsAttach.reset(new DragPointAttachment(
     state,
     decayId,
     &decayEnd,
@@ -85,7 +88,7 @@ isMoving(false)
   )); 
   
   String releaseId = IDs::releaseMs.toString() + iStr;
-  releaseAttach.reset(new DragPointAttachment(
+  releaseMsAttach.reset(new DragPointAttachment(
     state,
     releaseId,
     &sustainEnd,

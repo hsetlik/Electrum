@@ -2,7 +2,12 @@
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../Color.h"
 #include "../Utility/DragPoint.h"
-
+/*
+Current todo for this:
+1. fix the issue with out-of-range conversions between FATTACK etc. type scaling and the actual APVTS range skews
+2. wire up the three curve points to their parameters
+3. draw the appropriate exponential curves on the graph
+*/
 #define FATTACK 0.2f
 #define FHOLD 0.1f
 #define FDECAY 0.3f
@@ -56,15 +61,28 @@ public:
     void mouseUp(const MouseEvent& e) override;
 private:
     DragPoint attackEnd;
-    std::unique_ptr<DragPointAttachment> attackAttach;
+    std::unique_ptr<DragPointAttachment> attackMsAttach;
+
+    DragPoint attackCurve;
+    std::unique_ptr<DragPointAttachment> attackCurveAttach;
+
     DragPoint holdEnd;
-    std::unique_ptr<DragPointAttachment> holdAttach;
+    std::unique_ptr<DragPointAttachment> holdMsAttach;
+
+    DragPoint decayCurve;
+    std::unique_ptr<DragPointAttachment> decayCurveAttach;
+
     DragPoint decayEnd;
     std::unique_ptr<DragPointAttachment> sustainAttach1;
-    std::unique_ptr<DragPointAttachment> decayAttach;
+    std::unique_ptr<DragPointAttachment> decayMsAttach;
+
     DragPoint sustainEnd;
     std::unique_ptr<DragPointAttachment> sustainAttach2;
-    std::unique_ptr<DragPointAttachment> releaseAttach;
+    std::unique_ptr<DragPointAttachment> releaseMsAttach;
+
+    DragPoint releaseCurve;
+    std::unique_ptr<DragPointAttachment> releaseCurveAttach;
+
     DragPoint* selectedPoint;
     bool isMoving;
     DragPoint* getPointWithinRadius(const MouseEvent& e, float radius);
