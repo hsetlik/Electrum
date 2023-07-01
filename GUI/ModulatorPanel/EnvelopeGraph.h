@@ -8,22 +8,22 @@ public Component,
 public AsyncUpdater
 {
     // just some static helpers to figure things out. . .
-    static float maxAttackLength(Rectangle<float>& bounds)
+    static float getMaxAttackLength(Rectangle<float>& bounds)
     {
         float t = (float)ATTACK_MS_MAX / (float)ENV_MS_MAX;
         return t * bounds.getWidth();
     }
-    static float maxHoldLength(Rectangle<float>& bounds)
+    static float getMaxHoldLength(Rectangle<float>& bounds)
     {
         float t = (float)HOLD_MS_MAX / (float)ENV_MS_MAX;
         return t * bounds.getWidth();
     }
-    static float maxDecayLength(Rectangle<float>& bounds)
+    static float getMaxDecayLength(Rectangle<float>& bounds)
     {
         float t = (float)DECAY_MS_MAX / (float)ENV_MS_MAX;
         return t * bounds.getWidth();
     }
-    static float maxReleaseLength(Rectangle<float>& bounds)
+    static float getMaxReleaseLength(Rectangle<float>& bounds)
     {
         float t = (float)RELEASE_MS_MAX / (float)ENV_MS_MAX;
         return t * bounds.getWidth();
@@ -75,5 +75,7 @@ private:
     Point<float> constrainPositionFor(DragPoint* point, Point<float> pos);
     //helper function, get the max limits within this component of a given DragPoint
     Rectangle<float> getLimitsFor(DragPoint* pt);
+    //this grips values from the APVTS and makes sure the points match them
+    void syncWithState();
 
 };

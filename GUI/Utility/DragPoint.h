@@ -19,6 +19,11 @@ public:
       virtual void moveEnded(DragPoint* p)=0;
     };
 
+    Point<float> getPos() const
+    {
+      return point;
+    }
+
     void addListener(Listener* l)
     {
       listeners.push_back(l);
@@ -77,6 +82,10 @@ public:
         for(auto l : listeners)
           l->moved(this);
       }
+    }
+    void moveTo(Point<float> pt, bool notify=true)
+    {
+      movePoint(pt.x, pt.y, notify);
     }
     bool isWithin(const MouseEvent& e, float radius)
     {

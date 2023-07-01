@@ -109,12 +109,14 @@ void EnvelopeGraph::paint(Graphics& g)
 
 void EnvelopeGraph::handleAsyncUpdate()
 {
+  syncWithState();
   repaint();
 }
 
 //======================================================================================
 void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 { 
+  g.fillAll(Color::darkSeaGreen);
   Path p;
   p.startNewSubPath(bounds.getX(), bounds.getY());
   p.lineTo(attackEnd.getX(), attackEnd.getY());
@@ -122,7 +124,7 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   p.lineTo(decayEnd.getX(), decayEnd.getY());
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
   g.setColour(Color::brightYellow);
-  PathStrokeType pst(1.0f);
+  PathStrokeType pst(3.0f);
   g.strokePath(p, pst); }
 
 void EnvelopeGraph::mouseDown(const MouseEvent& e) 
@@ -150,16 +152,18 @@ void EnvelopeGraph::mouseDrag(const MouseEvent& e)
     }
     auto destPos = constrainPositionFor(selectedPoint, e.position);
     selectedPoint->movePoint(destPos.x, destPos.y);
+    triggerAsyncUpdate();
   }
   else
     isMoving = false;
 }
 
-void EnvelopeGraph::mouseUp(const MouseEvent& e) 
+void EnvelopeGraph::mouseUp(const MouseEvent&) 
 {
   if (selectedPoint != nullptr)
   {
     selectedPoint->endMove();
+    triggerAsyncUpdate();
   }
   selectedPoint = nullptr;
 }
@@ -188,7 +192,7 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   {
     // since sustain hasn't been passed to this function, the y positions for the last two points just keep their existing values
     auto range = state->getAPVTS()->getParameterRange(paramID);
-    auto xDecay = (range.covertTo0to1(value) * getMaxDecayLength(fBounds)) + attackEnd.getX() + holdEnd.getX();
+    auto xDecay = (range.convertTo0to1(value) * getMaxDecayLength(fBounds)) + attackEnd.getX() + holdEnd.getX();
     return {xDecay, point->getY()};
   }
   else if(paramID.contains(IDs::sustainLevel.toString()))
@@ -284,5 +288,51 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
   {
     auto width = getMaxReleaseLength(fBounds);
     return {fBounds.getRight() - width, yTop, width, yHeight};
+  }
+}
+
+void EnvelopeGraph::syncWithState()
+{
+  String iStr(index);
+  auto attackID = IDs::attackMs.toString() + iStr;
+  auto holdID = IDs::holdMs.toString() + iStr;
+  auto decayID = IDs::decayMs.toString() + iStr;
+  auto sustainID = IDs::sustainLevel.toString() + iStr;
+  auto releaseID = IDs::releaseMs.toString() + iStr;
+
+  const float attackMs = state->getFloatParamValue(attackID);
+  const float holdMs = state->getFloatParamValue(holdID);
+  const float decayMs = state->getFloatParamValue(decayID);
+  const float sustainLevel = state->getFloatParamValue(sustainID);
+  const float releaseMs = state->getFloatParamValue(releaseID);
+// check each parameter, update if it's changed
+  auto newAtkPos = getPosFromParam(attackID, &attackEnd, attackMs); 
+  if(newAtkPos != attackEnd.getPos())
+  {
+    DLog::log("Updating attack position");
+    attackEnd.moveTo(newAtkPos);
+  }
+
+  auto holdPos = getPosFromParam(holdID, &holdEnd, holdMs); 
+  if(holdPos != holdEnd.getPos())
+  {
+    DLog::log("Updating hold position");
+    holdEnd.moveTo(holdPos);
+  }
+  auto sustainPos = getPosFromParam(sustainID, &decayEnd, sustainLevel);
+  auto decayPos = getPosFromParam(decayID, &decayEnd, decayMs);
+  decayPos.y = sustainPos.y;
+  if(decayPos != decayEnd.getPos()) // decay time has changed
+  {
+    DLog::log("Updating decay position");
+    decayEnd.moveTo(decayPos);
+  }
+
+  auto releasePos = getPosFromParam(releaseID, &sustainEnd, releaseMs);
+  releasePos.y = sustainPos.y;
+  if(releasePos != sustainEnd.getPos())
+  {
+    DLog::log("Updating release position");
+    sustainEnd.moveTo(releasePos);
   }
 }
