@@ -7,6 +7,39 @@ class EnvelopeGraph :
 public Component,
 public AsyncUpdater
 {
+    // just some static helpers to figure things out. . .
+    static float maxAttackLength(Rectangle<float>& bounds)
+    {
+        float t = (float)ATTACK_MS_MAX / (float)ENV_MS_MAX;
+        return t * bounds.getWidth();
+    }
+    static float maxHoldLength(Rectangle<float>& bounds)
+    {
+        float t = (float)HOLD_MS_MAX / (float)ENV_MS_MAX;
+        return t * bounds.getWidth();
+    }
+    static float maxDecayLength(Rectangle<float>& bounds)
+    {
+        float t = (float)DECAY_MS_MAX / (float)ENV_MS_MAX;
+        return t * bounds.getWidth();
+    }
+    static float maxReleaseLength(Rectangle<float>& bounds)
+    {
+        float t = (float)RELEASE_MS_MAX / (float)ENV_MS_MAX;
+        return t * bounds.getWidth();
+    }
+    static float sustainLevelY(Rectangle<float>& bounds, float val)
+    {
+        float min = bounds.getY() + 5.0f;
+        float max = bounds.getBottom() - 5.0f;
+        return jmap((1.0f - val), 0.0f, 1.0f, min, max);
+    }
+    static float sustainFromY(Rectangle<float>& bounds, float y)
+    {
+       float min = bounds.getY() + 5.0f;
+       float max = bounds.getBottom() - 5.0f;
+       return 1.0f - jmap(y, min, max, 0.0f, 1.0f);
+    }
     void drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g);
     EVT* const state;
 public:
@@ -40,5 +73,7 @@ private:
     Point<float> getPosFromParam(const String& paramID, DragPoint* point, float value);
     float getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos);
     Point<float> constrainPositionFor(DragPoint* point, Point<float> pos);
+    //helper function, get the max limits within this component of a given DragPoint
+    Rectangle<float> getLimitsFor(DragPoint* pt);
 
 };
