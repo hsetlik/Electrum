@@ -3,6 +3,12 @@
 #include "../Color.h"
 #include "../Utility/DragPoint.h"
 
+#define FATTACK 0.2f
+#define FHOLD 0.1f
+#define FDECAY 0.3f
+#define FRELEASE 0.4f
+
+#define HANDLE_STROKE 0.75f
 class EnvelopeGraph : 
 public Component,
 public AsyncUpdater
@@ -10,29 +16,26 @@ public AsyncUpdater
     // just some static helpers to figure things out. . .
     static float getMaxAttackLength(Rectangle<float>& bounds)
     {
-        float t = (float)ATTACK_MS_MAX / (float)ENV_MS_MAX;
-        return t * bounds.getWidth();
+        return FATTACK * bounds.getWidth();
     }
+
     static float getMaxHoldLength(Rectangle<float>& bounds)
     {
-        float t = (float)HOLD_MS_MAX / (float)ENV_MS_MAX;
-        return t * bounds.getWidth();
+        return FHOLD * bounds.getWidth();
     }
     static float getMaxDecayLength(Rectangle<float>& bounds)
     {
-        float t = (float)DECAY_MS_MAX / (float)ENV_MS_MAX;
-        return t * bounds.getWidth();
+        return FDECAY * bounds.getWidth();
     }
     static float getMaxReleaseLength(Rectangle<float>& bounds)
     {
-        float t = (float)RELEASE_MS_MAX / (float)ENV_MS_MAX;
-        return t * bounds.getWidth();
+        return FRELEASE * bounds.getWidth();
     }
     static float sustainLevelY(Rectangle<float>& bounds, float val)
     {
         float min = bounds.getY() + 5.0f;
         float max = bounds.getBottom() - 5.0f;
-        return jmap((1.0f - val), 0.0f, 1.0f, min, max);
+        return jmap(1.0f - val, 0.0f, 1.0f, min, max);
     }
     static float sustainFromY(Rectangle<float>& bounds, float y)
     {
@@ -77,5 +80,7 @@ private:
     Rectangle<float> getLimitsFor(DragPoint* pt);
     //this grips values from the APVTS and makes sure the points match them
     void syncWithState();
+    // helper for drawing handles
+    static void drawHandle(Graphics& g, Point<float> center, float radius, bool fill);
 
 };

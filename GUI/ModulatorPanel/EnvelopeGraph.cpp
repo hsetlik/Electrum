@@ -104,6 +104,14 @@ isMoving(false)
 void EnvelopeGraph::paint(Graphics& g)
 {
    auto fBounds = getLocalBounds().toFloat();
+  //  g.setColour(Color::aquamarine);
+  //  g.fillRect(getLimitsFor(&attackEnd));
+  //  g.setColour(Color::lightSteelBlue);
+  //  g.fillRect(getLimitsFor(&holdEnd));
+  //  g.setColour(Color::chocolate);
+  //  g.fillRect(getLimitsFor(&decayEnd));
+  //  g.setColour(Color::chartreuse);
+  //  g.fillRect(getLimitsFor(&sustainEnd));
    drawEnvelopeGraph(fBounds, g);
 }
 
@@ -116,16 +124,24 @@ void EnvelopeGraph::handleAsyncUpdate()
 //======================================================================================
 void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 { 
-  g.fillAll(Color::darkSeaGreen);
+  //draw the path
   Path p;
-  p.startNewSubPath(bounds.getX(), bounds.getY());
+  p.startNewSubPath(bounds.getX(), bounds.getBottom());
   p.lineTo(attackEnd.getX(), attackEnd.getY());
   p.lineTo(holdEnd.getX(), holdEnd.getY());
   p.lineTo(decayEnd.getX(), decayEnd.getY());
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
+  p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::brightYellow);
-  PathStrokeType pst(3.0f);
-  g.strokePath(p, pst); }
+  PathStrokeType pst(1.2f);
+  g.strokePath(p, pst);
+
+  // draw the handles
+  drawHandle(g, attackEnd.getPos(), 3.0f, selectedPoint != &attackEnd);
+  drawHandle(g, holdEnd.getPos(), 3.0f, selectedPoint != &holdEnd);
+  drawHandle(g, decayEnd.getPos(), 3.0f, selectedPoint != &decayEnd);
+  drawHandle(g, sustainEnd.getPos(), 3.0f, selectedPoint != &sustainEnd);
+}
 
 void EnvelopeGraph::mouseDown(const MouseEvent& e) 
 {
@@ -178,12 +194,20 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   if(paramID.contains(IDs::attackMs.toString()))
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
+    if(!range.getRange().contains(value))
+    {
+      DLog::log("Out of range attack value: " + String(value));
+    }
     auto xAtk = range.convertTo0to1(value) * getMaxAttackLength(fBounds);
     return {xAtk, yTop};
   }
   else if(paramID.contains(IDs::holdMs.toString()))
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
+    if(!range.getRange().contains(value))
+    {
+      DLog::log("Out of range hold value: " + String(value));
+    }
     // we need to offset this by the attack x value
     auto xHold = (range.convertTo0to1(value) * getMaxHoldLength(fBounds)) + attackEnd.getX();
     return {xHold, yTop};
@@ -192,7 +216,11 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   {
     // since sustain hasn't been passed to this function, the y positions for the last two points just keep their existing values
     auto range = state->getAPVTS()->getParameterRange(paramID);
-    auto xDecay = (range.convertTo0to1(value) * getMaxDecayLength(fBounds)) + attackEnd.getX() + holdEnd.getX();
+    if(!range.getRange().contains(value))
+    {
+      DLog::log("Out of range decay value: " + String(value));
+    }
+    auto xDecay = (range.convertTo0to1(value) * getMaxDecayLength(fBounds)) + holdEnd.getX();
     return {xDecay, point->getY()};
   }
   else if(paramID.contains(IDs::sustainLevel.toString()))
@@ -204,6 +232,10 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   else // releaseMs
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
+    if(!range.getRange().contains(value))
+    {
+      DLog::log("Out of range release value: " + String(value));
+    }
     auto xRelease = fBounds.getRight() - (range.convertTo0to1(value) * getMaxReleaseLength(fBounds));
     return {xRelease, point->getY()};
   }
@@ -216,11 +248,20 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
   if(point == &attackEnd)
   {
     auto fAttack = (pos.x / getMaxAttackLength(fBounds));
+    if(fAttack < 0.0f || fAttack > 1.0f)
+    {
+      DLog::log("FAttack is out of range in EnvelopeGraph.cpp!");
+    }
     return range.convertFrom0to1(fAttack);
+    
   }
   else if (point == &holdEnd)
   {
     auto fHold = (pos.x - attackEnd.getX()) / getMaxHoldLength(fBounds);
+    if(fHold < 0.0f || fHold > 1.0f)
+    {
+      DLog::log("fHold is out of range in EnvelopeGraph.cpp!");
+    }
     return range.convertFrom0to1(fHold);
   }
   else if(point == &decayEnd) //careful: what looks like two cases is actually four cases because the last two points can control 1 of 2 parameters
@@ -231,7 +272,11 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
     }
     else // decay time
     {
-      auto fDecay = (pos.x - attackEnd.getX() - holdEnd.getX()) / getMaxDecayLength(fBounds);
+      auto fDecay = (pos.x - holdEnd.getX()) / getMaxDecayLength(fBounds);
+      if(fDecay < 0.0f || fDecay > 1.0f)
+      {
+        DLog::log("fDecay is out of range in EnvelopeGraph.cpp!");
+      }
       return range.convertFrom0to1(fDecay);
     }
   }
@@ -244,6 +289,10 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
     else // release time
     {
       auto fRelease = (fBounds.getRight() - pos.x) / getMaxReleaseLength(fBounds);
+      if(fRelease < 0.0f || fRelease > 1.0f)
+      {
+        DLog::log("fRelease is out of range in EnvelopeGraph.cpp!");
+      }
       return range.convertFrom0to1(fRelease);
     }
   }
@@ -262,6 +311,7 @@ DragPoint* EnvelopeGraph::getPointWithinRadius(const MouseEvent& e, float radius
     if(p->isWithin(e, radius))
       return p;
   }
+  return nullptr;
 }
 
 Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
@@ -281,7 +331,7 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
   }
   else if(pt == &decayEnd)
   {
-    auto xMin = attackEnd.getX() + holdEnd.getX();
+    auto xMin = holdEnd.getX();
     return {xMin, yTop, getMaxDecayLength(fBounds), yHeight};
   }
   else //sustainEnd
@@ -309,14 +359,14 @@ void EnvelopeGraph::syncWithState()
   auto newAtkPos = getPosFromParam(attackID, &attackEnd, attackMs); 
   if(newAtkPos != attackEnd.getPos())
   {
-    DLog::log("Updating attack position");
+    //DLog::log("Updating attack position");
     attackEnd.moveTo(newAtkPos);
   }
 
   auto holdPos = getPosFromParam(holdID, &holdEnd, holdMs); 
   if(holdPos != holdEnd.getPos())
   {
-    DLog::log("Updating hold position");
+    //DLog::log("Updating hold position");
     holdEnd.moveTo(holdPos);
   }
   auto sustainPos = getPosFromParam(sustainID, &decayEnd, sustainLevel);
@@ -324,7 +374,7 @@ void EnvelopeGraph::syncWithState()
   decayPos.y = sustainPos.y;
   if(decayPos != decayEnd.getPos()) // decay time has changed
   {
-    DLog::log("Updating decay position");
+    //DLog::log("Updating decay position");
     decayEnd.moveTo(decayPos);
   }
 
@@ -332,7 +382,22 @@ void EnvelopeGraph::syncWithState()
   releasePos.y = sustainPos.y;
   if(releasePos != sustainEnd.getPos())
   {
-    DLog::log("Updating release position");
+    //DLog::log("Updating release position");
     sustainEnd.moveTo(releasePos);
+  }
+}
+
+void EnvelopeGraph::drawHandle(Graphics& g, Point<float> center, float radius, bool fill)
+{
+  Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
+  bounds = bounds.withCentre(center);
+  g.setColour(Color::brightYellow);
+  if(fill)
+  {
+    g.fillEllipse(bounds);
+  }
+  else
+  {
+    g.drawEllipse(bounds, HANDLE_STROKE);
   }
 }

@@ -5,7 +5,8 @@ state(tree),
 paramID(param),
 point(p),
 posToParam(func1),
-paramToPos(func2)
+paramToPos(func2),
+isMoving(false)
 {
   point->addListener(this);
   auto callback = [this](float value)
@@ -15,6 +16,7 @@ paramToPos(func2)
   };
   auto treeParam = state->getAPVTS()->getParameter(paramID);
   pAttach.reset(new ParameterAttachment(*treeParam, callback, nullptr));
+  pAttach->sendInitialUpdate();
 }
 
 DragPointAttachment::~DragPointAttachment()
@@ -25,11 +27,16 @@ DragPointAttachment::~DragPointAttachment()
 void DragPointAttachment::moveStarted(DragPoint* )
 {
   pAttach->beginGesture();
+  isMoving = true;
 }
 
 void DragPointAttachment::moveEnded(DragPoint*)
 {
-  pAttach->endGesture();
+  if(isMoving.load())
+  {
+    pAttach->endGesture();
+    isMoving = false;
+  }
 }
 
 void DragPointAttachment::moved(DragPoint* p)

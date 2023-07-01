@@ -111,6 +111,7 @@ class DragPointAttachment : public DragPoint::Listener
     PosToParamFunc posToParam;
     ParamToPosFunc paramToPos;
     std::unique_ptr<ParameterAttachment> pAttach;
+    std::atomic<bool> isMoving;
   public:
     DragPointAttachment(EVT* tree, const String& param, DragPoint* p, PosToParamFunc func1, ParamToPosFunc func2);
     ~DragPointAttachment() override;
