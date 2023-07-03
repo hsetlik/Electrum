@@ -13,21 +13,38 @@ selectedPoint(nullptr),
 isMoving(false)
 {
   String iStr(index);
-  String atkId = IDs::attackMs.toString() + iStr;
+  String atkMsID = IDs::attackMs.toString() + iStr;
 
   attackMsAttach.reset(new DragPointAttachment(
     state,
-    atkId,
+    atkMsID,
     &attackEnd,
-    [this, atkId](Point<float> pt)
+    [this, atkMsID](Point<float> pt)
     {
-      return getParamFromPos(atkId, &attackEnd, pt);
+      return getParamFromPos(atkMsID, &attackEnd, pt);
     },
-    [this, atkId](float val)
+    [this, atkMsID](float val)
     {
-      return getPosFromParam(atkId, &attackEnd, val);
+      return getPosFromParam(atkMsID, &attackEnd, val);
     }
   ));
+
+  String atkCurveID = IDs::attackCurve.toString() + iStr;
+  attackCurveAttach.reset(new DragPointAttachment(
+    state,
+    atkCurveID,
+    &attackCurve,
+    [this, atkCurveID](Point<float> pt)
+    {
+      return getParamFromPos(atkCurveID, &attackCurve, pt);
+    },
+    [this, atkCurveID](float val)
+    {
+      return getPosFromParam(atkCurveID, &attackCurve, val);
+    }
+  ));
+
+
   
   String holdId = IDs::holdMs.toString() + iStr;
   holdMsAttach.reset(new DragPointAttachment(
@@ -127,10 +144,22 @@ void EnvelopeGraph::handleAsyncUpdate()
 //======================================================================================
 void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 { 
+  const int curvePoints = 60;
   //draw the path
   Path p;
   p.startNewSubPath(bounds.getX(), bounds.getBottom());
-  p.lineTo(attackEnd.getX(), attackEnd.getY());
+  // draw the attack curve
+  Path p2;
+  p2.startNewSubPath(bounds.getX(), bounds.getBottom());
+  const float yMax = bounds.getHeight() - 5.0f;
+  for(int i = 0; i < curvePoints; i++)
+  {
+    float t = ((float)i / (float)curvePoints);
+    float fX = t * attackEnd.getX();
+    float fY = bounds.getBottom() - 5.0f - Math::onEasingCurve(0.0f, yMax - attackCurve.getY(), yMax, t);
+    fY = std::max({fY, 5.0f});
+    p.lineTo(fX, fY);
+  }
   p.lineTo(holdEnd.getX(), holdEnd.getY());
   p.lineTo(decayEnd.getX(), decayEnd.getY());
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
@@ -141,6 +170,7 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 
   // draw the handles
   drawHandle(g, attackEnd.getPos(), 3.0f, selectedPoint != &attackEnd);
+  drawHandle(g, attackCurve.getPos(), 3.0f, selectedPoint != &attackCurve);
   drawHandle(g, holdEnd.getPos(), 3.0f, selectedPoint != &holdEnd);
   drawHandle(g, decayEnd.getPos(), 3.0f, selectedPoint != &decayEnd);
   drawHandle(g, sustainEnd.getPos(), 3.0f, selectedPoint != &sustainEnd);
@@ -204,12 +234,22 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
     auto xAtk = range.convertTo0to1(value) * getMaxAttackLength(fBounds);
     return {xAtk, yTop};
   }
+  else if(paramID.contains(IDs::attackCurve.toString()))
+  {
+    float x0 = 0.0f;
+    float y0 = yTop;
+    float x1 = attackEnd.getX();
+    float y1 = fBounds.getBottom() - 5.0f;
+    float xPos = Math::flerp(x0, x1, 0.5f);
+    float yPos = Math::flerp(y1, y0, value);
+    return {xPos, yPos};
+  }
   else if(paramID.contains(IDs::holdMs.toString()))
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
     if(!range.getRange().contains(value))
     {
-      DLog::log("Out of range hold value: " + String(value));
+      //DLog::log("Out of range hold value: " + String(value));
     }
     // we need to offset this by the attack x value
     auto xHold = (range.convertTo0to1(value) * getMaxHoldLength(fBounds)) + attackEnd.getX();
@@ -248,6 +288,7 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
 {
   auto range = state->getAPVTS()->getParameterRange(paramID);
   auto fBounds = getLocalBounds().toFloat();
+  const float yTop = fBounds.getY() + 5.0f;
   if(point == &attackEnd)
   {
     auto fAttack = (pos.x / getMaxAttackLength(fBounds));
@@ -257,6 +298,12 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
     }
     return range.convertFrom0to1(fAttack);
     
+  }
+  else if (point == &attackCurve)
+  {
+    float y0 = yTop;
+    float y1 = fBounds.getBottom() - 5.0f;
+    return (pos.y - y1) / (y0 - y1);
   }
   else if (point == &holdEnd)
   {
@@ -327,6 +374,11 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
   {
     return {0.0f, yTop, getMaxAttackLength(fBounds), 0.0f};
   }
+  else if(pt == &attackCurve)
+  {
+    auto cX = attackEnd.getX() / 2.0f;
+    return {cX, yTop, 0.0f, yHeight};
+  }
   else if (pt == &holdEnd)
   {
     auto xMin = attackEnd.getX();
@@ -347,23 +399,31 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
 void EnvelopeGraph::syncWithState()
 {
   String iStr(index);
-  auto attackID = IDs::attackMs.toString() + iStr;
+  auto attackMsID = IDs::attackMs.toString() + iStr;
+  auto attackCurveID = IDs::attackCurve.toString() + iStr;
   auto holdID = IDs::holdMs.toString() + iStr;
   auto decayID = IDs::decayMs.toString() + iStr;
   auto sustainID = IDs::sustainLevel.toString() + iStr;
   auto releaseID = IDs::releaseMs.toString() + iStr;
 
-  const float attackMs = state->getFloatParamValue(attackID);
+  const float attackMs = state->getFloatParamValue(attackMsID);
+  const float attackCurveValue = state->getFloatParamValue(attackCurveID);
   const float holdMs = state->getFloatParamValue(holdID);
   const float decayMs = state->getFloatParamValue(decayID);
   const float sustainLevel = state->getFloatParamValue(sustainID);
   const float releaseMs = state->getFloatParamValue(releaseID);
 // check each parameter, update if it's changed
-  auto newAtkPos = getPosFromParam(attackID, &attackEnd, attackMs); 
+  auto newAtkPos = getPosFromParam(attackMsID, &attackEnd, attackMs); 
   if(newAtkPos != attackEnd.getPos())
   {
     //DLog::log("Updating attack position");
     attackEnd.moveTo(newAtkPos);
+  }
+
+  auto aCurvePos = getPosFromParam(attackCurveID, &attackCurve, attackCurveValue);
+  if(aCurvePos != attackCurve.getPos())
+  {
+    attackCurve.moveTo(aCurvePos);
   }
 
   auto holdPos = getPosFromParam(holdID, &holdEnd, holdMs); 

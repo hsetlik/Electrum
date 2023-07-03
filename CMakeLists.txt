@@ -26,7 +26,6 @@ FetchContent_Declare(
     GIT_TAG v3.3.2) 
 FetchContent_MakeAvailable(Catch2)
 
-
 set(SOURCES
 # /Core
 "${CMAKE_CURRENT_LIST_DIR}/Core/PluginEditor.h"
@@ -37,6 +36,7 @@ set(SOURCES
 
 # /Parameters
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ParameterWatcher.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/MathUtil.h"
@@ -190,4 +190,11 @@ target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}")
 
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(Tests)
+
+# create the compile_commands.json file for xcode
+if(${CMAKE_GENERATOR} STREQUAL "Xcode" AND ${CMAKE_EXPORT_COMPILE_COMMANDS})
+ set(XC_PROJ_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.xcodeproj")
+ set(CC_OUTPUT_PATH "${CMAKE_BINARY_DIR}/compile_commands.json")
+ execute_process(COMMAND "xcodebuild -project ${XC_PROJ_PATH} | xcpretty -r json-compilation-database --output ${CC_OUTPUT_PATH}")
+endif()
 

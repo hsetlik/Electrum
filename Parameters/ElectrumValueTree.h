@@ -1,5 +1,5 @@
 #pragma once
-#include "Identifiers.h"
+#include "ParameterWatcher.h"
 #include "ElectrumAudioData.h"
 #include "AudioSystem.h"
 #include "../GUI/Color.h"
@@ -32,6 +32,7 @@ private:
     //state
     std::unique_ptr<ElectrumAudioData> audioData;
     APVTS coreTree;
+    ParameterWatcher paramWatcher;
     std::atomic<bool> sustainPedalOn;
     std::atomic<float> modWheelValue;
     std::atomic<float> pitchBendValue;
@@ -51,8 +52,11 @@ public:
          pitchBendValue(0.0f),
          lastPerlinVal(0.0f)
     {
-
-
+        coreTree.state.addListener(&paramWatcher);
+    }
+    ~EVT()
+    {
+        coreTree.state.removeListener(&paramWatcher);
     }
 
     ElectrumAudioData* getAudioData() { return audioData.get(); }

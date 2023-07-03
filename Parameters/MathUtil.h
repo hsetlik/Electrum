@@ -21,20 +21,18 @@ namespace Math
         flerp(a.getBrightness(), b.getBrightness(), t),
         flerp(a.getFloatAlpha(), b.getFloatAlpha(), t));
     }
-    // get the fundamenta frequency in hertz for a midi note
+    // get the fundamental frequency in hertz for a midi note
     inline double midiToHz(int midiNum)
     {
         return 440.0f * std::pow (SEMITONE_RATIO, (float)midiNum - 69);
     }
-    inline double midiToHzTunedUp(int midiNum, int cents)
+    inline double midiToHzTunedUp(int midiNum, float amt)
     {
-        double dCents = (double)cents / 100.0f;
-        return dlerp(midiToHz(midiNum), midiToHz(midiNum + 1), dCents);
+        return dlerp(midiToHz(midiNum), midiToHz(midiNum + 1), (double)amt);
     }
-    inline double midiToHzTunedDown(int midiNum, int cents)
+    inline double midiToHzTunedDown(int midiNum, float amt)
     {
-        double dCents = (double)cents / 100.0f;
-        return dlerp(midiToHz(midiNum - 1), midiToHz(midiNum), 1.0f - dCents);
+        return dlerp(midiToHz(midiNum), midiToHz(midiNum - 1), (double)amt);
     }
     inline float fconstrain(float min, float max, float value)
     {

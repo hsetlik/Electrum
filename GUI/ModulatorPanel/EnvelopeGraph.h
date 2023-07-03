@@ -87,7 +87,7 @@ private:
     bool isMoving;
     DragPoint* getPointWithinRadius(const MouseEvent& e, float radius);
     // useful for quickly iterating through points
-    const std::vector<DragPoint*> points = { &attackEnd, &holdEnd, &decayEnd, &sustainEnd };
+    const std::vector<DragPoint*> points = { &attackEnd, &attackCurve, &holdEnd, &decayEnd, &sustainEnd };
     // this is responsible for gripping the data from the shared state and setting the points appropriately
     void updateDragPointPositions();
     // these get called from the attachment callback

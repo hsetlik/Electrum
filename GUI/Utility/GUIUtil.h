@@ -37,6 +37,11 @@ namespace GUIUtil
         
         return out;
     }
+
+    inline void addExpCurveToPath(Path& path, Point<float> p0, Point<float> p1, Point<float> p2, int numSegments=50)
+    {
+        path.lineTo(p0);
+    }
 }
 
 
