@@ -140,14 +140,6 @@ isMoving(false)
 void EnvelopeGraph::paint(Graphics& g)
 {
    auto fBounds = getLocalBounds().toFloat();
-  //  g.setColour(Color::aquamarine);
-  //  g.fillRect(getLimitsFor(&attackEnd));
-  //  g.setColour(Color::lightSteelBlue);
-  //  g.fillRect(getLimitsFor(&holdEnd));
-  //  g.setColour(Color::chocolate);
-  //  g.fillRect(getLimitsFor(&decayEnd));
-  //  g.setColour(Color::chartreuse);
-  //  g.fillRect(getLimitsFor(&sustainEnd));
    drawEnvelopeGraph(fBounds, g);
 }
 
@@ -180,7 +172,9 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   for(int i = 0; i < curvePoints; i++)
   {
     float t = ((float)i / (float)curvePoints);
-    float fX = t * attackEnd.getX();
+    float fX = Math::flerp(holdEnd.getX(), decayEnd.getX(), t);
+    float dY = Math::onEasingCurve(0.0f, decayEnd.getY() - decayCurve.getY(), decayEnd.getY(), 1.0f - t);
+    p.lineTo(fX, decayEnd.getY() - dY);
   }
   p.lineTo(decayEnd.getX(), decayEnd.getY());
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
@@ -283,7 +277,12 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
     float y0 = yTop;
     float x1 = decayEnd.getX();
     float y1 = decayEnd.getY();
-    return {Math::flerp(x0, x1, 0.5f), Math::flerp(y1, y0, value)};
+    float yPos = Math::flerp(y1, y0, value);
+    if(std::isnan(yPos))
+    {
+      DLog::log("Y position not valid from: " + String(y1) + ", " + String(y0) + ", " + String(value));
+    }
+    return {Math::flerp(x0, x1, 0.5f),yPos};
   }
   else if(paramID.contains(IDs::decayMs.toString()))
   {
@@ -347,10 +346,14 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
   else if(point == &decayCurve)
   {
     float y1 = decayEnd.getY();
-    float output = (pos.y - y1) / (yTop - y1); 
-    if(output < 0.0f || output > 1.0f)
+    float output; 
+    if(y1 != yTop)
     {
-      DLog::log("DecayCurve value " + String(output) + " is out of range!");
+      output = (pos.y - y1) / (yTop - y1); 
+    }
+    else
+    {
+      output = state->getFloatParamValue(paramID);
     }
     return output;
   }
