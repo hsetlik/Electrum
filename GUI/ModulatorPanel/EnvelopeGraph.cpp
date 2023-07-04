@@ -61,21 +61,36 @@ isMoving(false)
     }
   ));
 
-  String decayId = IDs::decayMs.toString() + iStr;
+  String decayMsID = IDs::decayMs.toString() + iStr;
   decayMsAttach.reset(new DragPointAttachment(
     state,
-    decayId,
+    decayMsID,
     &decayEnd,
-    [this, decayId](Point<float> pt)
+    [this, decayMsID](Point<float> pt)
     {
-      return getParamFromPos(decayId, &decayEnd, pt);
+      return getParamFromPos(decayMsID, &decayEnd, pt);
     },
-    [this, decayId](float val)
+    [this, decayMsID](float val)
     {
-      return getPosFromParam(decayId, &decayEnd, val);
+      return getPosFromParam(decayMsID, &decayEnd, val);
     }
   ));
-  
+
+  String decayCurveID = IDs::decayCurve.toString() + iStr;
+  decayCurveAttach.reset(new DragPointAttachment(
+    state,
+    decayCurveID,
+    &decayCurve,
+    [this, decayCurveID](Point<float> pt)
+    {
+      return getParamFromPos(decayCurveID, &decayCurve, pt);
+    },
+    [this, decayCurveID](float val)
+    {
+      return getPosFromParam(decayCurveID, &decayCurve, val);
+    }
+  )); 
+
   String sustainId = IDs::sustainLevel.toString() + iStr;
   sustainAttach1.reset(new DragPointAttachment(
     state,
@@ -90,6 +105,7 @@ isMoving(false)
       return getPosFromParam(sustainId, &decayEnd, val);
     }
   ));
+
   sustainAttach2.reset(new DragPointAttachment(
     state,
     sustainId,
@@ -161,6 +177,11 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
     p.lineTo(fX, fY);
   }
   p.lineTo(holdEnd.getX(), holdEnd.getY());
+  for(int i = 0; i < curvePoints; i++)
+  {
+    float t = ((float)i / (float)curvePoints);
+    float fX = t * attackEnd.getX();
+  }
   p.lineTo(decayEnd.getX(), decayEnd.getY());
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
   p.lineTo(bounds.getRight(), bounds.getBottom());
@@ -172,6 +193,7 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   drawHandle(g, attackEnd.getPos(), 3.0f, selectedPoint != &attackEnd);
   drawHandle(g, attackCurve.getPos(), 3.0f, selectedPoint != &attackCurve);
   drawHandle(g, holdEnd.getPos(), 3.0f, selectedPoint != &holdEnd);
+  drawHandle(g, decayCurve.getPos(), 3.0f, selectedPoint != & decayCurve);
   drawHandle(g, decayEnd.getPos(), 3.0f, selectedPoint != &decayEnd);
   drawHandle(g, sustainEnd.getPos(), 3.0f, selectedPoint != &sustainEnd);
 }
@@ -255,6 +277,14 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
     auto xHold = (range.convertTo0to1(value) * getMaxHoldLength(fBounds)) + attackEnd.getX();
     return {xHold, yTop};
   }
+  else if(paramID.contains(IDs::decayCurve.toString()))
+  {
+    float x0 = holdEnd.getX();
+    float y0 = yTop;
+    float x1 = decayEnd.getX();
+    float y1 = decayEnd.getY();
+    return {Math::flerp(x0, x1, 0.5f), Math::flerp(y1, y0, value)};
+  }
   else if(paramID.contains(IDs::decayMs.toString()))
   {
     // since sustain hasn't been passed to this function, the y positions for the last two points just keep their existing values
@@ -313,6 +343,16 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
       DLog::log("fHold is out of range in EnvelopeGraph.cpp!");
     }
     return range.convertFrom0to1(fHold);
+  }
+  else if(point == &decayCurve)
+  {
+    float y1 = decayEnd.getY();
+    float output = (pos.y - y1) / (yTop - y1); 
+    if(output < 0.0f || output > 1.0f)
+    {
+      DLog::log("DecayCurve value " + String(output) + " is out of range!");
+    }
+    return output;
   }
   else if(point == &decayEnd) //careful: what looks like two cases is actually four cases because the last two points can control 1 of 2 parameters
   {
@@ -384,6 +424,12 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
     auto xMin = attackEnd.getX();
     return {xMin, yTop, getMaxHoldLength(fBounds), 0.0f};
   }
+  else if(pt == &decayCurve)
+  {
+    auto xMin = Math::flerp(holdEnd.getX(), decayEnd.getX(), 0.5f);
+    auto range = decayEnd.getY() - yTop;
+    return {xMin, yTop, 0.0f, range};
+  }
   else if(pt == &decayEnd)
   {
     auto xMin = holdEnd.getX();
@@ -402,6 +448,7 @@ void EnvelopeGraph::syncWithState()
   auto attackMsID = IDs::attackMs.toString() + iStr;
   auto attackCurveID = IDs::attackCurve.toString() + iStr;
   auto holdID = IDs::holdMs.toString() + iStr;
+  auto decayCurveID = IDs::decayCurve.toString() + iStr;
   auto decayID = IDs::decayMs.toString() + iStr;
   auto sustainID = IDs::sustainLevel.toString() + iStr;
   auto releaseID = IDs::releaseMs.toString() + iStr;
@@ -409,6 +456,7 @@ void EnvelopeGraph::syncWithState()
   const float attackMs = state->getFloatParamValue(attackMsID);
   const float attackCurveValue = state->getFloatParamValue(attackCurveID);
   const float holdMs = state->getFloatParamValue(holdID);
+  const float decayCurveValue = state->getFloatParamValue(decayCurveID);
   const float decayMs = state->getFloatParamValue(decayID);
   const float sustainLevel = state->getFloatParamValue(sustainID);
   const float releaseMs = state->getFloatParamValue(releaseID);
@@ -429,23 +477,31 @@ void EnvelopeGraph::syncWithState()
   auto holdPos = getPosFromParam(holdID, &holdEnd, holdMs); 
   if(holdPos != holdEnd.getPos())
   {
-    //DLog::log("Updating hold position");
+    DLog::log("Updating hold position");
     holdEnd.moveTo(holdPos);
   }
+
   auto sustainPos = getPosFromParam(sustainID, &decayEnd, sustainLevel);
   auto decayPos = getPosFromParam(decayID, &decayEnd, decayMs);
   decayPos.y = sustainPos.y;
   if(decayPos != decayEnd.getPos()) // decay time has changed
   {
-    //DLog::log("Updating decay position");
+    DLog::log("Updating decay position");
     decayEnd.moveTo(decayPos);
+  }
+
+  auto dCurvePos = getPosFromParam(decayCurveID, &decayCurve, decayCurveValue);
+  if(dCurvePos != decayCurve.getPos())
+  {
+    DLog::log("Moving decay curve to: " + dCurvePos.toString());
+    decayCurve.moveTo(dCurvePos);
   }
 
   auto releasePos = getPosFromParam(releaseID, &sustainEnd, releaseMs);
   releasePos.y = sustainPos.y;
   if(releasePos != sustainEnd.getPos())
   {
-    //DLog::log("Updating release position");
+    DLog::log("Updating release position");
     sustainEnd.moveTo(releasePos);
   }
 }
