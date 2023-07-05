@@ -28,10 +28,31 @@ float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSin
 {
     auto phase = getCurrentPhase(env, gateOn, samplesSinceGateChange);
     float currentMs = (float)samplesSinceGateChange / (float)AudioSystem::getSampleRate();
-    switch(phase)
+    if(phase = AHDSRPhase::Attack)
     {
-
-        default:
-            return 0.0f;
+        float t = currentMs / env->attackMs;
+        return Math::onEasingCurve(0.0f, env->attackCurve, 1.0f, t);
     }
+    else if(phase = AHDSRPhase::Hold)
+    {
+        return 1.0f;
+    }
+    else if(phase = AHDSRPhase::Decay)
+    {
+        float t = (currentMs - env->attackMs - env->holdMs) / env->decayMs;
+        float dY = 1.0f - env->sustainLevel;
+        return 1.0f - Math::onEasingCurve(0.0f, env->attackCurve, dY, 1.0f - t);
+    }
+    else if(phase = AHDSRPhase::Sustain)
+    {
+        return env->sustainLevel;
+    }
+    else if(phase = AHDSRPhase::Release)
+    {
+       float t = currentMs / env->releaseMs;
+       float dY = 1.0f - env->sustainLevel;
+       return env->sustainLevel - Math::onEasingCurve(0.0f, env->releaseCurve, dY, 1.0f - t); 
+    }
+    else //idle
+        return 0.0f;
 }
