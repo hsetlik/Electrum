@@ -14,6 +14,7 @@ Current todo for this:
 #define FRELEASE 0.4f
 
 #define HANDLE_STROKE 0.75f
+#define HOLD_BUF 4.0f
 class EnvelopeGraph : 
 public Component,
 public AsyncUpdater
@@ -59,6 +60,11 @@ public:
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    // make sure things are synced with the state when the component is brought into focus
+    void broughtToFront() override
+    {
+        triggerAsyncUpdate();
+    }
 private:
     DragPoint attackEnd;
     std::unique_ptr<DragPointAttachment> attackMsAttach;
@@ -87,7 +93,7 @@ private:
     bool isMoving;
     DragPoint* getPointWithinRadius(const MouseEvent& e, float radius);
     // useful for quickly iterating through points
-    const std::vector<DragPoint*> points = { &attackEnd, &attackCurve, &holdEnd, &decayEnd, &decayCurve, &sustainEnd };
+    const std::vector<DragPoint*> points = { &attackEnd, &attackCurve, &holdEnd, &decayEnd, &decayCurve, &sustainEnd, &releaseCurve };
     // these get called from the attachment callback
     Point<float> getPosFromParam(const String& paramID, DragPoint* point, float value);
     float getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos);

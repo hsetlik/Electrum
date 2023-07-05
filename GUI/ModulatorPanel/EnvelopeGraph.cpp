@@ -12,6 +12,8 @@ releaseCurve(this),
 selectedPoint(nullptr),
 isMoving(false)
 {
+  // sync with state up here so that the DragPoints are at the correct positions when the attachments are instantiated
+  syncWithState();
   String iStr(index);
   String atkMsID = IDs::attackMs.toString() + iStr;
 
@@ -44,8 +46,6 @@ isMoving(false)
     }
   ));
 
-
-  
   String holdId = IDs::holdMs.toString() + iStr;
   holdMsAttach.reset(new DragPointAttachment(
     state,
@@ -134,6 +134,22 @@ isMoving(false)
       return getPosFromParam(releaseId, &sustainEnd, val);
     }
   )); 
+  
+  String releaseCurveID = IDs::releaseCurve.toString() + iStr;
+  releaseCurveAttach.reset(new DragPointAttachment(
+    state,
+    releaseCurveID,
+    &releaseCurve,
+    [this, releaseCurveID](Point<float> pt)
+    {
+      return getParamFromPos(releaseCurveID, &releaseCurve, pt);
+    },
+    [this, releaseCurveID](float val)
+    {
+      return getPosFromParam(releaseCurveID, &releaseCurve, val);
+    }
+  )); 
+
   triggerAsyncUpdate();
 }
 
@@ -162,22 +178,30 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   const float yMax = bounds.getHeight() - 5.0f;
   for(int i = 0; i < curvePoints; i++)
   {
+    //DLog::log("Drawing attack curve point #" + String(i));
     float t = ((float)i / (float)curvePoints);
     float fX = t * attackEnd.getX();
     float fY = bounds.getBottom() - 5.0f - Math::onEasingCurve(0.0f, yMax - attackCurve.getY(), yMax, t);
     fY = std::max({fY, 5.0f});
     p.lineTo(fX, fY);
   }
+  p.lineTo(attackEnd.getX(), attackEnd.getY());
   p.lineTo(holdEnd.getX(), holdEnd.getY());
   for(int i = 0; i < curvePoints; i++)
   {
     float t = ((float)i / (float)curvePoints);
     float fX = Math::flerp(holdEnd.getX(), decayEnd.getX(), t);
-    float dY = Math::onEasingCurve(0.0f, decayEnd.getY() - decayCurve.getY(), decayEnd.getY(), 1.0f - t);
-    p.lineTo(fX, decayEnd.getY() - dY);
+    float fY = decayEnd.getY() - Math::onEasingCurve(0.0f, decayEnd.getY() - decayCurve.getY(), decayEnd.getY(), 1.0f - t);
+    fY = std::max(fY, holdEnd.getY());
+    //DLog::log("Drawing decay curve point #" + String(i));
+    //DLog::log("Point is at: " + String(fX) + ", " + String(fY));
+    p.lineTo(fX, fY);
   }
+  //DLog::log("Drawing line to decay end");
   p.lineTo(decayEnd.getX(), decayEnd.getY());
+  //DLog::log("Drawing line to sustain end");
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
+  //DLog::log("Drawing line to bottom corner");
   p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::brightYellow);
   PathStrokeType pst(1.2f);
@@ -190,6 +214,7 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   drawHandle(g, decayCurve.getPos(), 3.0f, selectedPoint != & decayCurve);
   drawHandle(g, decayEnd.getPos(), 3.0f, selectedPoint != &decayEnd);
   drawHandle(g, sustainEnd.getPos(), 3.0f, selectedPoint != &sustainEnd);
+  drawHandle(g, releaseCurve.getPos(), 3.0f, selectedPoint != &releaseCurve);
 }
 
 void EnvelopeGraph::mouseDown(const MouseEvent& e) 
@@ -263,12 +288,8 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   else if(paramID.contains(IDs::holdMs.toString()))
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
-    if(!range.getRange().contains(value))
-    {
-      //DLog::log("Out of range hold value: " + String(value));
-    }
     // we need to offset this by the attack x value
-    auto xHold = (range.convertTo0to1(value) * getMaxHoldLength(fBounds)) + attackEnd.getX();
+    auto xHold = (range.convertTo0to1(value) * getMaxHoldLength(fBounds)) + (attackEnd.getX() + HOLD_BUF);
     return {xHold, yTop};
   }
   else if(paramID.contains(IDs::decayCurve.toString()))
@@ -301,7 +322,7 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
     auto susY = sustainLevelY(fBounds, value);
     return {point->getX(), susY};
   }
-  else // releaseMs
+  else if(paramID.contains(IDs::releaseMs.toString()))
   {
     auto range = state->getAPVTS()->getParameterRange(paramID);
     if(!range.getRange().contains(value))
@@ -311,6 +332,15 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
     auto xRelease = fBounds.getRight() - (range.convertTo0to1(value) * getMaxReleaseLength(fBounds));
     return {xRelease, point->getY()};
   }
+  else if(paramID.contains(IDs::releaseCurve.toString()))
+  {
+    DLog::log("Getting position from release curve value: " + String(value));
+    float xPos = Math::flerp(sustainEnd.getX(), fBounds.getRight(), 0.5f);
+    float yPos = Math::flerp(sustainEnd.getY(), fBounds.getBottom(), 1.0f - value);
+    return {xPos, yPos};
+  }
+  DLog::log("Warning: requested position for invalid param ID: \"" + paramID + "\"");
+  return {0.0f, 0.0f};
 }
 
 float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos)
@@ -336,7 +366,7 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
   }
   else if (point == &holdEnd)
   {
-    auto fHold = (pos.x - attackEnd.getX()) / getMaxHoldLength(fBounds);
+    auto fHold = (pos.x - (attackEnd.getX() + HOLD_BUF)) / getMaxHoldLength(fBounds);
     if(fHold < 0.0f || fHold > 1.0f)
     {
       DLog::log("fHold is out of range in EnvelopeGraph.cpp!");
@@ -373,7 +403,7 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
       return range.convertFrom0to1(fDecay);
     }
   }
-  else //sustainEnd
+  else if(point == &sustainEnd)
   {
     if(paramID.contains(IDs::sustainLevel.toString())) // sustain
     {
@@ -389,6 +419,16 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
       return range.convertFrom0to1(fRelease);
     }
   }
+  else if(point == &releaseCurve)
+  {
+    DLog::log("Calculating release value from Y position: " + String(pos.y));
+    float yMax = fBounds.getBottom(); 
+    float yMin = sustainEnd.getY();
+    DLog::log("Y range is between " + String(yMin) + " and " + String(yMax));
+    return 1.0f - ((pos.y - yMin) / (yMax - yMin));
+  }
+  DLog::log("Warning- no point matching " + String(reinterpret_cast<const char *>(point)) + " was found!");
+  return 0.0f;
 }
 
 Point<float> EnvelopeGraph::constrainPositionFor(DragPoint* point, Point<float> pos)
@@ -424,7 +464,7 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
   }
   else if (pt == &holdEnd)
   {
-    auto xMin = attackEnd.getX();
+    auto xMin = attackEnd.getX() + HOLD_BUF;
     return {xMin, yTop, getMaxHoldLength(fBounds), 0.0f};
   }
   else if(pt == &decayCurve)
@@ -438,13 +478,20 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
     auto xMin = holdEnd.getX();
     return {xMin, yTop, getMaxDecayLength(fBounds), yHeight};
   }
-  else //sustainEnd
+  else if(pt == &sustainEnd)
   {
     auto width = getMaxReleaseLength(fBounds);
     return {fBounds.getRight() - width, yTop, width, yHeight};
   }
+  else //release curve
+  {
+    float xMin = Math::flerp(sustainEnd.getX(), fBounds.getRight(), 0.5f);
+    float range = fBounds.getHeight() - sustainEnd.getY();
+    return {xMin, sustainEnd.getY(), 0.0f, range};
+  }
 }
 
+// this forces all the drag points to the positions determined by the values from shared state
 void EnvelopeGraph::syncWithState()
 {
   String iStr(index);
@@ -455,6 +502,7 @@ void EnvelopeGraph::syncWithState()
   auto decayID = IDs::decayMs.toString() + iStr;
   auto sustainID = IDs::sustainLevel.toString() + iStr;
   auto releaseID = IDs::releaseMs.toString() + iStr;
+  auto releaseCurveID = IDs::releaseCurve.toString() + iStr;
 
   const float attackMs = state->getFloatParamValue(attackMsID);
   const float attackCurveValue = state->getFloatParamValue(attackCurveID);
@@ -463,6 +511,7 @@ void EnvelopeGraph::syncWithState()
   const float decayMs = state->getFloatParamValue(decayID);
   const float sustainLevel = state->getFloatParamValue(sustainID);
   const float releaseMs = state->getFloatParamValue(releaseID);
+  const float releaseCurveValue = state->getFloatParamValue(releaseCurveID);
 // check each parameter, update if it's changed
   auto newAtkPos = getPosFromParam(attackMsID, &attackEnd, attackMs); 
   if(newAtkPos != attackEnd.getPos())
@@ -480,32 +529,36 @@ void EnvelopeGraph::syncWithState()
   auto holdPos = getPosFromParam(holdID, &holdEnd, holdMs); 
   if(holdPos != holdEnd.getPos())
   {
-    DLog::log("Updating hold position");
+    //DLog::log("Updating hold position");
     holdEnd.moveTo(holdPos);
   }
-
   auto sustainPos = getPosFromParam(sustainID, &decayEnd, sustainLevel);
   auto decayPos = getPosFromParam(decayID, &decayEnd, decayMs);
   decayPos.y = sustainPos.y;
   if(decayPos != decayEnd.getPos()) // decay time has changed
   {
-    DLog::log("Updating decay position");
+    //DLog::log("Updating decay position");
     decayEnd.moveTo(decayPos);
   }
 
   auto dCurvePos = getPosFromParam(decayCurveID, &decayCurve, decayCurveValue);
   if(dCurvePos != decayCurve.getPos())
   {
-    DLog::log("Moving decay curve to: " + dCurvePos.toString());
+    //DLog::log("Moving decay curve to: " + dCurvePos.toString());
     decayCurve.moveTo(dCurvePos);
   }
-
   auto releasePos = getPosFromParam(releaseID, &sustainEnd, releaseMs);
   releasePos.y = sustainPos.y;
   if(releasePos != sustainEnd.getPos())
   {
-    DLog::log("Updating release position");
+    //DLog::log("Updating release position");
     sustainEnd.moveTo(releasePos);
+  }
+  auto releaseCurvePos = getPosFromParam(releaseCurveID, &releaseCurve, releaseCurveValue);
+  if(releaseCurvePos != releaseCurve.getPos())
+  {
+    DLog::log("Updating release curve position: " + String(releaseCurvePos.toString()));
+    releaseCurve.moveTo(releaseCurvePos);
   }
 }
 

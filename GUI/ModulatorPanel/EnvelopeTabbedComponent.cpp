@@ -54,11 +54,11 @@ void EnvelopeTabbedComponent::resized()
     for(int i  = 0; i < NUM_ENVELOPES; i++)
     {
         buttons[i]->setBounds(buttonWidth * i, (int)buttonsArea.getY(), buttonWidth, (int)buttonsArea.getHeight());
+        envs[i]->setBounds(lBounds.toNearestInt());
         if (i == selectedEnvIndex)
         {
             buttons[i]->setEnabled(false);
             envs[i]->setVisible(true);
-            envs[i]->setBounds(lBounds.toNearestInt());
         }
         else
         {
