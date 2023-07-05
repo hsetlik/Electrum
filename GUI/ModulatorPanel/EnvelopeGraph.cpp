@@ -169,6 +169,10 @@ void EnvelopeGraph::handleAsyncUpdate()
 void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 { 
   const int curvePoints = 60;
+  if(bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f)
+  {
+    return;
+  }
   //draw the path
   Path p;
   p.startNewSubPath(bounds.getX(), bounds.getBottom());
@@ -202,6 +206,19 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   //DLog::log("Drawing line to sustain end");
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
   //DLog::log("Drawing line to bottom corner");
+  for(int i = 0; i < curvePoints; i++)
+  {
+    float t = ((float)i / (float)curvePoints);
+    float fX = Math::flerp(sustainEnd.getX(), bounds.getRight(), t);
+    float bottom = bounds.getBottom();
+    float height = bottom - sustainEnd.getY();
+    float yCurve = bottom - releaseCurve.getY();
+    float fY = bottom - Math::onEasingCurve(0.0f, yCurve, height, 1.0f - t);
+    if(!std::isnan(fY))
+    {
+      p.lineTo(fX, fY);
+    }
+  }
   p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::brightYellow);
   PathStrokeType pst(1.2f);
@@ -334,7 +351,7 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   }
   else if(paramID.contains(IDs::releaseCurve.toString()))
   {
-    DLog::log("Getting position from release curve value: " + String(value));
+    //DLog::log("Getting position from release curve value: " + String(value));
     float xPos = Math::flerp(sustainEnd.getX(), fBounds.getRight(), 0.5f);
     float yPos = Math::flerp(sustainEnd.getY(), fBounds.getBottom(), 1.0f - value);
     return {xPos, yPos};
@@ -421,10 +438,10 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
   }
   else if(point == &releaseCurve)
   {
-    DLog::log("Calculating release value from Y position: " + String(pos.y));
+    //DLog::log("Calculating release value from Y position: " + String(pos.y));
     float yMax = fBounds.getBottom(); 
     float yMin = sustainEnd.getY();
-    DLog::log("Y range is between " + String(yMin) + " and " + String(yMax));
+    //DLog::log("Y range is between " + String(yMin) + " and " + String(yMax));
     return 1.0f - ((pos.y - yMin) / (yMax - yMin));
   }
   DLog::log("Warning- no point matching " + String(reinterpret_cast<const char *>(point)) + " was found!");
@@ -557,7 +574,7 @@ void EnvelopeGraph::syncWithState()
   auto releaseCurvePos = getPosFromParam(releaseCurveID, &releaseCurve, releaseCurveValue);
   if(releaseCurvePos != releaseCurve.getPos())
   {
-    DLog::log("Updating release curve position: " + String(releaseCurvePos.toString()));
+    //DLog::log("Updating release curve position: " + String(releaseCurvePos.toString()));
     releaseCurve.moveTo(releaseCurvePos);
   }
 }
