@@ -14,7 +14,7 @@ WavetableGraph::~WavetableGraph()
     glContext.detach();
 }
 // component overrides
-void WavetableGraph::paint(Graphics& g) 
+void WavetableGraph::paint(Graphics& ) 
 {
 
 }
@@ -108,13 +108,17 @@ void WavetableGraph::renderOpenGL()
 //===========Vertex generation======================
 void WavetableGraph::updateVertices()
 {
-    const float xMax = 10.0f;
-    const float yMax = 10.0f;
-    const float zMax = 10.0f;
+    DLog::log("Updating vertices for graph #" + String(index + 1));
+    const float xMax = 1.0f;
+    const float xMin = -1.0f;
+    const float yMax = 1.0f;
+    const float yMin = 0.0f;
+    const float zMax = 1.0f;
+    const float zMin = 0.0f;
     vertices.clear();
     auto baseWaves = state->getAudioData()->getBaseWaves(index);
     //now add the vertices for each wave
-    for(int w = 0; w < vertices.size(); w++)
+    for(size_t w = 0; w < baseWaves.size(); w++)
     {
         auto& wave = baseWaves[w];
         auto zPhase = (float)w / (float)vertices.size();
@@ -122,11 +126,20 @@ void WavetableGraph::updateVertices()
         {
             float xPhase = (float)s / (float)WAVE_GRAPH_POINTS;
             float sample = WaveUtil::valueAtPhase(wave, xPhase);
-            float yPhase = jmap(sample, -1.0f, 1.0f, 0.0f, 1.0f);
-            vertices.push_back({xPhase * xMax, yPhase * yMax, zPhase * zMax});
+            float xPos = Math::flerp(xMin, xMax, xPhase);
+            float yPos = Math::flerp(yMin, yMax, sample);
+            float zPos = Math::flerp(zMin, zMax, zPhase);
+            if(index == 0)
+            {
+              DLog::log("Point #" + String(s) + " is at: " + String(xPos) + ", " + String(yPos) + ", " + String(zPos));
+            }
+            vertices.push_back({xPos, yPos, zPos});
         }
     }
-
+  // vertices = {};
+  // vertices.push_back({-1.0f, -1.0f, 0.0f});
+  // vertices.push_back({1.0f, -1.0f, 0.0f});
+  // vertices.push_back({0.0f, 1.0f, 0.0f});
 }
 
 //===========Matrix generation======================
@@ -141,14 +154,14 @@ Matrix3D<GLfloat> WavetableGraph::calculateProjectionMatrix()
 Matrix3D<GLfloat> WavetableGraph::calculateViewMatrix()
 {
     float scaleFactor = 2.0f;
-    auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor * 3.0f, scaleFactor));
+    auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor * 3.0f, scaleFactor * 2.0f));
     auto angleX = MathConstants<float>::pi * 0.0f;
     auto angleY = MathConstants<float>::pi * 0.0f;
     auto angleZ = MathConstants<float>::pi * 0.0f;
     auto rotation = Matrix3D<GLfloat>::rotation(Vector3D<GLfloat>(angleX / scaleFactor,
                                                                               angleY / scaleFactor,
                                                                               angleZ / scaleFactor));
-    auto translate = Matrix3D<GLfloat>::fromTranslation(Vector3D<GLfloat> (0.0f, 0.0f, -10.0f));
+    auto translate = Matrix3D<GLfloat>::fromTranslation(Vector3D<GLfloat> (0.0f, -0.5f, -20.0f));
     auto out = scale * rotation * translate;
     return out;
 }

@@ -24,24 +24,20 @@ struct WaveUtil
     static Wave getRisingRampWave()
     {
         Wave wave;
-        float value = -1.0f;
         float delta = 2.0f / (float)TABLE_SIZE;
         for (size_t i = 0; i < TABLE_SIZE; i++)
         {
-            wave[i] = value;
-            value += delta;
+            wave[i] = -1.0f + (delta * (float)i);
         }
         return wave;
     }
     static Wave getFallingRampWave()
     {
         Wave wave;
-        float value = 1.0f;
         float delta = 2.0f / (float)TABLE_SIZE;
         for (size_t i = 0; i < TABLE_SIZE; i++)
         {
-            wave[i] = value;
-            value -= delta;
+            wave[i] = 1.0f - (delta * (float)i);
         }
         return wave;
     }
