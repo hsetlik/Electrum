@@ -80,6 +80,7 @@ set(SOURCES
 
 #/GUI/Utility
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GUIUtil.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GLUtil.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/DragPoint.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/DragPoint.cpp"
 
@@ -160,6 +161,7 @@ target_link_libraries("${PROJECT_NAME}"
     PUBLIC
     juce::juce_audio_utils
     juce::juce_dsp
+    juce::juce_opengl
     juce::juce_cryptography
     juce::juce_audio_processors
     juce::juce_recommended_config_flags

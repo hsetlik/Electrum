@@ -21,8 +21,8 @@ void OscillatorEditor::resized()
     auto labelRegion = lBounds.removeFromTop(18.0f);
     label.setBounds(labelRegion.reduced(2.0f).toNearestInt());
     auto knobsRegion = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
-    sLevel.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).toNearestInt());
-    sPos.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).toNearestInt());
+    sLevel.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).reduced(10.0f).toNearestInt());
+    sPos.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).reduced(10.0f).toNearestInt());
     //auto graphRegion = lBounds.removeFromLeft(lBounds.getWidth() * 0.75f);
     //graph.setBounds(graphRegion.toNearestInt());
 }
