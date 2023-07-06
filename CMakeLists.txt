@@ -119,6 +119,15 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.cpp"
 )
 
+# make a binary target to grip the shader files
+juce_add_binary_data(shaderLib
+  HEADER_NAME "Shaders.h"
+  NAMESPACE "Shaders"
+  SOURCES
+  "${CMAKE_CURRENT_LIST_DIR}/Shaders/WavetableGraphFragment.glsl"
+  "${CMAKE_CURRENT_LIST_DIR}/Shaders/WavetableGraphVertex.glsl"
+
+)
 
 set(FORMATS AU VST3)
 # By default we don't want Xcode schemes to be made for modules, etc
@@ -168,6 +177,7 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
     Melatonin::Perfetto
+    shaderLib
   )
 # setting up benchamrks
 if(BUILD_BENCHMARKS)

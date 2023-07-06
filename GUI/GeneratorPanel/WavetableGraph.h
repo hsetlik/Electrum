@@ -34,7 +34,4 @@ private:
 
     GLUtil::UniformWrapper projectionMatrix { "projectionMatrix" };
     GLUtil::UniformWrapper viewMatrix { "viewMatrix" };
-    
-    
-
 };
