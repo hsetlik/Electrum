@@ -12,7 +12,7 @@ private:
     Label label;
     ModulationDestSlider sLevel;
     ModulationDestSlider sPos;
-    //WavetableGraph graph;
+    WavetableGraph graph;
 
 public:
     OscillatorEditor(EVT* tree, int idx);

@@ -15,7 +15,7 @@
 #include <juce_opengl/juce_opengl.h>
 #include <juce_cryptography/juce_cryptography.h>
 #include <melatonin_perfetto/melatonin_perfetto.h>
-
+#include <Shaders.h>
 
 #if JUCE_TARGET_HAS_BINARY_DATA
  #include "BinaryData.h"

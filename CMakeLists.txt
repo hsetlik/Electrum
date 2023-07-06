@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.4)
 
 project("Electrum" VERSION 1.0.0)
 
+message("Using Generator: ${CMAKE_GENERATOR}")
 # Juce
 add_subdirectory(JUCE)
 add_subdirectory(JUCE/extras/AudioPluginHost)

@@ -5,14 +5,14 @@ state(tree),
 index(idx),
 label("oscLabel" + String(idx), "Oscillator " + String(idx)),
 sLevel(tree, IDs::oscillatorLevel.toString() + String(idx)),
-sPos(tree, IDs::oscillatorPos.toString() + String(idx))
-//graph(tree, idx)
+sPos(tree, IDs::oscillatorPos.toString() + String(idx)),
+graph(tree, idx)
 {
 
     addAndMakeVisible(&label);
     addAndMakeVisible(&sLevel);
     addAndMakeVisible(&sPos);
-    //addAndMakeVisible(&graph);
+    addAndMakeVisible(&graph);
 }
 
 void OscillatorEditor::resized()
@@ -23,8 +23,8 @@ void OscillatorEditor::resized()
     auto knobsRegion = lBounds.removeFromTop(lBounds.getHeight() * 0.35f);
     sLevel.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).reduced(10.0f).toNearestInt());
     sPos.setBounds(knobsRegion.removeFromLeft(knobsRegion.getHeight()).reduced(10.0f).toNearestInt());
-    //auto graphRegion = lBounds.removeFromLeft(lBounds.getWidth() * 0.75f);
-    //graph.setBounds(graphRegion.toNearestInt());
+    auto graphRegion = lBounds.removeFromLeft(lBounds.getWidth() * 0.75f);
+    graph.setBounds(graphRegion.toNearestInt());
 }
     
 void OscillatorEditor::paint(Graphics& g) 

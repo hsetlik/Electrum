@@ -5,9 +5,8 @@
 #include "../Utility/GLUtil.h"
 #define WAVE_GRAPH_WIDTH 256
 #define WAVE_GRAPH_HEIGHT 256
-#define WAVE_REFRESH_HZ 24
 #define WAVE_GRAPH_POINTS 128
-
+using namespace juce::gl;
 class WavetableGraph : 
 public Component,
 public OpenGLRenderer,
@@ -31,7 +30,16 @@ private:
     // Grip the shader code, figure shit out
     void compileShaders();
     OpenGLContext glContext;
+    std::unique_ptr<juce::OpenGLShaderProgram> shaderProgram;
 
     GLUtil::UniformWrapper projectionMatrix { "projectionMatrix" };
     GLUtil::UniformWrapper viewMatrix { "viewMatrix" };
+
+    GLuint VAO, VBO;
+    std::vector<Vector3D<GLfloat>> vertices;
+    //this checks the state for the current data to be graphed and converts it to a 3D mesh. Does the heavy lifting of the 3D logic.
+    void updateVertices();
+    // projection matrix stuff
+    Matrix3D<GLfloat> calculateProjectionMatrix();
+    Matrix3D<GLfloat> calculateViewMatrix();
 };

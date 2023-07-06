@@ -101,25 +101,32 @@ void EVT::updateEnvelopesForBlock()
         // step 1: grip atomic values from the tree;
         String iStr(i);
         const float atkMs = getFloatParamValue(IDs::attackMs.toString() + iStr);
+        const float atkCrv = getFloatParamValue(IDs::attackCurve.toString() + iStr);
 
         const float holdMs = getFloatParamValue(IDs::holdMs.toString() + iStr);
         
         const float dcyMs = getFloatParamValue(IDs::decayMs.toString() + iStr);
 
+        const float decayCrv = getFloatParamValue(IDs::decayCurve.toString() + iStr);
 
         const float sustainLvl = getFloatParamValue(IDs::sustainLevel.toString() + iStr);
 
         const float relMs = getFloatParamValue(IDs::releaseMs.toString() + iStr);
+        const float releaseCrv = getFloatParamValue(IDs::releaseCurve.toString() + iStr);
 
         // step 2- save the values in the ElectrumAudioData instance used by the audio thread
         auto envData = audioData->getEnvelopeData(i);
         envData->attackMs = atkMs;
+        envData->attackCurve = atkCrv;
 
         envData->holdMs = holdMs;
 
         envData->decayMs = dcyMs;
+        envData->decayCurve = decayCrv;
+
         envData->sustainLevel = sustainLvl;
 
         envData->releaseMs = relMs;
+        envData->releaseCurve = releaseCrv;
     }
 }
