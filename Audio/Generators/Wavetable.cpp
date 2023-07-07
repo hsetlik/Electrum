@@ -1,8 +1,5 @@
 #include "Wavetable.h"
 
-
-
-
 //================================================================================
 Wavetable::Wavetable (Wave& firstWave)
 {
@@ -17,7 +14,6 @@ Wavetable::Wavetable (Wave& firstWave)
     createTables(fReal, fImag);
 }
 
-
 void Wavetable::createTables(Wave& real, Wave& imag)
 {
     size_t size = (int)TABLE_SIZE;
@@ -25,10 +21,12 @@ void Wavetable::createTables(Wave& real, Wave& imag)
     // zero DC offset and Nyquist (set first and last samples of each array to zero, in other words)
     real[0] = imag[0] = 0.0f;
     real[size >> 1] = imag[size >> 1] = 0.0f;
-    int maxHarmonic = size >> 1;
+    int maxHarmonic = (int)(size >> 1);
     const double minVal = 0.000001f;
     while((fabs(real[(size_t)maxHarmonic]) + fabs(imag[(size_t)maxHarmonic]) < minVal) && maxHarmonic)
-        --maxHarmonic;
+    {
+      --maxHarmonic;
+    }
     float topFreq = (float)(2.0f / 3.0f / maxHarmonic); //note:: topFreq is in units of phase fraction per sample, not Hz
     Wave ai;
     Wave ar;

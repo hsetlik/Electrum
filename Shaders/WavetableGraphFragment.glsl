@@ -1,5 +1,6 @@
 // this shader just makes stuff purple
 #version 330 core
+//TODO: perhaps other inputs here hmmm?
 out vec4 fragColor;
 
 void main()

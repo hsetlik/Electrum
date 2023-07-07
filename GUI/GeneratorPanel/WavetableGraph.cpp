@@ -109,8 +109,8 @@ void WavetableGraph::renderOpenGL()
 void WavetableGraph::updateVertices()
 {
     DLog::log("Updating vertices for graph #" + String(index + 1));
-    const float xMax = 1.0f;
-    const float xMin = -1.0f;
+    const float xMax = 1.5f;
+    const float xMin = -1.5f;
     const float yMax = 1.0f;
     const float yMin = 0.0f;
     const float zMax = 1.0f;
@@ -129,10 +129,10 @@ void WavetableGraph::updateVertices()
             float xPos = Math::flerp(xMin, xMax, xPhase);
             float yPos = Math::flerp(yMin, yMax, sample);
             float zPos = Math::flerp(zMin, zMax, zPhase);
-            if(index == 0)
-            {
-              DLog::log("Point #" + String(s) + " is at: " + String(xPos) + ", " + String(yPos) + ", " + String(zPos));
-            }
+            // if(index == 0)
+            // {
+            //   DLog::log("Point #" + String(s) + " is at: " + String(xPos) + ", " + String(yPos) + ", " + String(zPos));
+            // }
             vertices.push_back({xPos, yPos, zPos});
         }
     }
@@ -153,11 +153,11 @@ Matrix3D<GLfloat> WavetableGraph::calculateProjectionMatrix()
 
 Matrix3D<GLfloat> WavetableGraph::calculateViewMatrix()
 {
-    float scaleFactor = 2.0f;
-    auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor * 3.0f, scaleFactor * 2.0f));
+    float scaleFactor = 4.0f;
+    auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor, scaleFactor));
     auto angleX = MathConstants<float>::pi * 0.0f;
     auto angleY = MathConstants<float>::pi * 0.0f;
-    auto angleZ = MathConstants<float>::pi * 0.0f;
+    auto angleZ = MathConstants<float>::pi * 0.05f;
     auto rotation = Matrix3D<GLfloat>::rotation(Vector3D<GLfloat>(angleX / scaleFactor,
                                                                               angleY / scaleFactor,
                                                                               angleZ / scaleFactor));

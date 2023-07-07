@@ -85,6 +85,18 @@ public:
             return -1;
         }
     }
+    AudioParameterFloat* getFloatParamPtr(const String& id)
+    {
+        if(auto param = dynamic_cast<AudioParameterFloat*>(coreTree.getParameter(id)))
+        {
+            return param;
+        }
+        else
+        {
+            DLog::log("Could not get float parameter with ID: " + id);
+            return nullptr;
+        }        
+    }
     // Since the perlin noise generator is shared by all voices, we handle it here
     // updates the perlin noise generator with any UI changes
     void updatePerlinForBlock()
