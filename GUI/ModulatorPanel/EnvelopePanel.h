@@ -4,21 +4,21 @@
 #define ENV_LABEL_HEIGHT 15
 struct EnvelopeLabel : 
 public Component,
-public ValueTree::Listener,
-public Label::Listener
+public Label::Listener,
+public APVTS::Listener
 {
   private:
     Label label;
     // this doo helps coonvert the parameter value to real text
-    static String labelTextForParam(EVT* evt, const String& param);
+    static String labelTextForParam(float value, const String& param);
   public:
     EVT* const state;
     const String paramID;
     EnvelopeLabel(EVT* tree, const String& param, AsyncUpdater* ud);
     ~EnvelopeLabel() override;
     void resized() override;
-    void valueTreePropertyChanged(ValueTree& tree, const Identifier& id) override;
     void labelTextChanged(Label* l) override;
+    void parameterChanged(const String& id, float value) override;
 private:
     AsyncUpdater* const updater;
 };

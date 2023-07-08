@@ -5,16 +5,17 @@ state(tree),
 paramID(param),
 updater(ud)
 {
-  state->getAPVTS()->state.addListener(this);
+  state->getAPVTS()->addParameterListener(param, this);
   label.addListener(this);
   label.setEditable(true);
-  label.setText(labelTextForParam(state, paramID), juce::dontSendNotification);
+  auto value = state->getFloatParamValue(paramID);
+  label.setText(labelTextForParam(value, paramID), juce::dontSendNotification);
   addAndMakeVisible(&label);
 }
 
 EnvelopeLabel::~EnvelopeLabel()
 {
-  state->getAPVTS()->state.removeListener(this);
+  state->getAPVTS()->removeParameterListener(paramID, this);
   label.removeListener(this);
 }
 
@@ -23,17 +24,17 @@ void EnvelopeLabel::resized()
   label.setBounds(getLocalBounds());
 }
 
-void EnvelopeLabel::valueTreePropertyChanged(ValueTree&, const Identifier& id) 
+void EnvelopeLabel::parameterChanged(const String& id, float value) 
 {
-  if(id.toString() == paramID)
+  if(id == paramID)
   {
-    label.setText(labelTextForParam(state, paramID), juce::dontSendNotification);
+    label.setText(labelTextForParam(value, id), juce::dontSendNotification);
   }
 }
 
-String EnvelopeLabel::labelTextForParam(EVT* evt, const String& param)
+String EnvelopeLabel::labelTextForParam(float value, const String& param)
 {
-  auto value = evt->getFloatParamValue(param);
+  DLog::log("Computing string for value: " + String(value));
   if(param.contains(IDs::attackMs.toString()))
   {
     String str(value);
@@ -94,6 +95,7 @@ void EnvelopeLabel::labelTextChanged(Label* l)
       if(param != nullptr)
       {
         *param = value;
+        updater->triggerAsyncUpdate();
       }
     }
   }
