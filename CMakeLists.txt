@@ -72,6 +72,9 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Generators/WavetableOscillator.cpp"
 
+#/Audio/Processors
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/ProcessorBase.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/ProcessorBase.cpp"
 #/GUI
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
