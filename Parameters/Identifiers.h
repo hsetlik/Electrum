@@ -37,6 +37,11 @@
 
 #define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
 
+#define CUTOFF_HZ_MIN 20.0f
+#define CUTOFF_HZ_MAX 20000.0f
+#define CUTOFF_HZ_CENTER 1000.0f
+#define CUTOFF_HZ_DEFAULT 1200.0f
+
 #define CONTROL_LENGTH_DEFAULT 0.5f
 #define CONTROL_ANGLE_DEFAULT MathConstants<float>::pi / 4.0f
 
@@ -50,24 +55,27 @@ namespace IDs
 {
 #define DECLARE_ID(name) const juce::Identifier name (#name);
 DECLARE_ID(ELECTRUM_STATE)
+
 // oscillator
 DECLARE_ID(oscillatorPos)
 DECLARE_ID(oscillatorLevel)
-// envelope
 
+// envelope
 DECLARE_ID(attackMs)
 DECLARE_ID(attackCurve)
-
-
 DECLARE_ID(holdMs)
-
 DECLARE_ID(decayMs)
 DECLARE_ID(decayCurve)
-
 DECLARE_ID(sustainLevel)
-
 DECLARE_ID(releaseMs)
 DECLARE_ID(releaseCurve)
+
+// filter
+DECLARE_ID(filterType)
+DECLARE_ID(filterCutoff)
+DECLARE_ID(filterResonance)
+DECLARE_ID(filterMix)
+DECLARE_ID(filterTracking)
 
 //perlin noise generaion
 DECLARE_ID(perlinFreq)
@@ -106,6 +114,13 @@ const std::vector<Identifier> ElectrumIDs =
     
     releaseMs,
     releaseCurve,
+
+    filterType,
+    filterCutoff,
+    filterResonance,
+    filterMix,
+    filterTracking,
+
     wavetableName,
     wavetableSize,
     wavetableStringData,
@@ -126,6 +141,7 @@ const std::vector<Identifier> ElectrumIDs =
 
 #undef DECLARE_ID
 
+const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 struct ParamInfoStrings
 {
     String shortName;
@@ -155,6 +171,13 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames =
 
     {releaseMs.toString(), {"Release", "Envelope release time", "Release: the time from the gate ending to the envelope output reaching 0"}},
     {releaseCurve.toString(), {"RlsCrv", "Envelope release curve", "Release curve: this value corresponds to the level of the curve's midpoint"}},
+    // Filter
+    {filterType.toString(), {"Type", "Filter type", "Filter type: the type of filter for the main synth voices"}},
+    {filterCutoff.toString(), {"Cutoff", "Filter cutoff frequency", "Filter cutoff: the main filter's cutoff frequency"}},
+    {filterResonance.toString(), {"Resonance", "Filter resonance", "Filter resonance: percentage of this filter type's max resonance to use"}},
+    {filterMix.toString(), {"Mix", "Filter wet/dry mix", "Filter mix: the proportion of filtered signal to original signal for the output"}},
+    {filterTracking.toString(), {"Tracking", "Filter key tracking", "Filter key tracking: how much the note's fundamental pitch should change the filter offset"}},
+
 };
 
 inline String getParamName(const String& paramID, bool longName=false)
@@ -201,6 +224,13 @@ inline frange getReleaseRange()
     frange range(RELEASE_MS_MIN, RELEASE_MS_MAX, 0.0001f);
     range.setSkewForCentre(RELEASE_MS_CENTER);
     return range;
+}
+
+inline frange getCutoffRange()
+{
+  frange range(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, 0.00001f);
+  range.setSkewForCentre(CUTOFF_HZ_CENTER);
+  return range;
 }
 
 inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
@@ -251,6 +281,17 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
         layout.add(std::make_unique<AudioParameterFloat>(rCurveID, getParamName(rCurveID, true), curveRange, ENV_CURVE_DEFAULT));
 
     }
+    // filter params
+    String fTypeID = filterType.toString();
+    layout.add(std::make_unique<AudioParameterChoice>(fTypeID, getParamName(fTypeID, true), filterTypes, 0));
+    String cutoffID = filterCutoff.toString();
+    layout.add(std::make_unique<AudioParameterFloat>(cutoffID, getParamName(cutoffID, true), getCutoffRange(), CUTOFF_HZ_DEFAULT));
+    String resID = filterResonance.toString();
+    layout.add(std::make_unique<AudioParameterFloat>(resID, getParamName(resID, true), 0.0f, 1.0f, 0.0f));
+    String filterMixID = filterMix.toString();
+    layout.add(std::make_unique<AudioParameterFloat>(filterMixID, getParamName(filterMixID, true), 0.0f, 1.0f, 1.0f));
+    String trackingID = filterTracking.toString();
+    layout.add(std::make_unique<AudioParameterFloat>(trackingID, getParamName(trackingID, true), 0.0f, 1.0f, 1.0f));
     // perlin noise params
     frange pFreqRange(0.25f, 30.0f, 0.0001f);
     pFreqRange.setSkewForCentre(5.0f);

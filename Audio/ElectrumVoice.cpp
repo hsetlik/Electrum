@@ -6,7 +6,8 @@ modMap (map),
 index (idx),
 currentNote(-1),
 currentNoteVelocity(0.0f),
-gate(false)
+gate(false),
+filter(tree, idx)
 {
     for (int i = 0; i < NUM_OSCILLATORS; i++)
     {
@@ -61,6 +62,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
     output = output * env.getSample() * 0.25f;
+    //TODO: run the filters and stuff here
     left += output;
     right += output;
 }

@@ -5,6 +5,7 @@
 #include "../Parameters/ElectrumValueTree.h"
 #include "../Parameters/MathUtil.h"
 #include "Generators/WavetableOscillator.h"
+#include "Processors/FilterProcessor.h"
 
 
 class ElectrumVoice
@@ -20,6 +21,7 @@ private:
     PlaceholderOsc osc;
     OwnedArray<WavetableOscillator> oscs;
     OwnedArray<AHDSREnvelope> envs;
+    SynthFilter filter;
 
 public:
     ElectrumVoice(EVT* tree, ModDestMap* map, int idx);

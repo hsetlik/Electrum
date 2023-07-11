@@ -75,6 +75,8 @@ set(SOURCES
 #/Audio/Processors
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/ProcessorBase.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/ProcessorBase.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/FilterProcessor.h"
+"${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/FilterProcessor.cpp"
 #/GUI
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"
@@ -121,6 +123,12 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.cpp"
+
+
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.cpp"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.cpp"
 )
 
 # make a binary target to grip the shader files

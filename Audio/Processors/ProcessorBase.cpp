@@ -4,3 +4,8 @@ ProcessorBase::ProcessorBase(const String& name, int idx) : processorName(name),
 {
 
 }
+
+ProcessorBase::~ProcessorBase()
+{
+
+}
