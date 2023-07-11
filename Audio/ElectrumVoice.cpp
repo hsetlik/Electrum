@@ -46,6 +46,20 @@ void ElectrumVoice::stopNote()
     }
 }
 
+float ElectrumVoice::filterSample(float input)
+{
+  float currentCutoff = baseFilterCutoff + 
+    ((float)Math::midiToHz(currentNote) * (baseFilterTracking + 
+    getCurrentModDestValue(IDs::filterCutoff.toString()))) + 
+    getCurrentModDestValue(IDs::filterCutoff.toString());
+
+  float currentRes = baseFilterRes + getCurrentModDestValue(IDs::filterResonance.toString());
+  float currentMix = baseFilterMix + getCurrentModDestValue(IDs::filterMix.toString());
+  
+  float filtered = filter.process(input, baseFilterType, currentCutoff, currentRes);
+  return Math::flerp(input, filtered, currentMix);
+}
+
 void ElectrumVoice::renderNextSample(float& left, float& right)
 {
     if (!isBusy())
@@ -62,7 +76,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
     output = output * env.getSample() * 0.25f;
-    //TODO: run the filters and stuff here
+    output = filterSample(output);
     left += output;
     right += output;
 }
@@ -74,6 +88,11 @@ void ElectrumVoice::updateForBlock()
         o->updateBasePos();
         o->updateBaseLevel();
     }
+    baseFilterCutoff = state->getFloatParamValue(IDs::filterCutoff.toString());
+    baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString());
+    baseFilterMix = state->getFloatParamValue(IDs::filterMix.toString());
+    baseFilterTracking = state->getFloatParamValue(IDs::filterTracking.toString());
+    
 }
 
 
@@ -103,8 +122,6 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
         return 0.0f;
     }
 }
-
-
 
 float ElectrumVoice::getCurrentModDestValue(const String& destID)
 {

@@ -39,4 +39,10 @@ public:
     ElectrumEngine(EVT* tree);
     // main callback
     void processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi);
+    //setup for audio stuff
+    void prepareToPlay(double sampleRate, size_t blockSize)
+    {
+      for(auto v : voices)
+        v->prepareToPlay(sampleRate, blockSize);
+    }
 };

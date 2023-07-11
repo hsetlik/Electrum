@@ -42,6 +42,11 @@
 #define CUTOFF_HZ_CENTER 1000.0f
 #define CUTOFF_HZ_DEFAULT 1200.0f
 
+#define RESONANCE_MIN 0.1f
+#define RESONANCE_MAX 10.0f
+#define RESONANCE_CENTER 1.0f
+#define RESONANCE_DEFAULT 0.5f
+
 #define CONTROL_LENGTH_DEFAULT 0.5f
 #define CONTROL_ANGLE_DEFAULT MathConstants<float>::pi / 4.0f
 
@@ -180,6 +185,8 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames =
 
 };
 
+
+
 inline String getParamName(const String& paramID, bool longName=false)
 {   
     String safeParamID = StringUtil::removeTrailingNumbers(paramID);
@@ -232,6 +239,13 @@ inline frange getCutoffRange()
   range.setSkewForCentre(CUTOFF_HZ_CENTER);
   return range;
 }
+inline frange getResonanceRange()
+{
+  frange range(RESONANCE_MIN, RESONANCE_MAX, 0.00001f);
+  range.setSkewForCentre(RESONANCE_CENTER);
+  return range;
+}
+
 
 inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
 {
@@ -283,11 +297,11 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     }
     // filter params
     String fTypeID = filterType.toString();
-    layout.add(std::make_unique<AudioParameterChoice>(fTypeID, getParamName(fTypeID, true), filterTypes, 0));
+    layout.add(std::make_unique<AudioParameterChoice>(fTypeID, getParamName(fTypeID, true), filterTypes, 1));
     String cutoffID = filterCutoff.toString();
     layout.add(std::make_unique<AudioParameterFloat>(cutoffID, getParamName(cutoffID, true), getCutoffRange(), CUTOFF_HZ_DEFAULT));
     String resID = filterResonance.toString();
-    layout.add(std::make_unique<AudioParameterFloat>(resID, getParamName(resID, true), 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<AudioParameterFloat>(resID, getParamName(resID, true), getResonanceRange(), RESONANCE_DEFAULT));
     String filterMixID = filterMix.toString();
     layout.add(std::make_unique<AudioParameterFloat>(filterMixID, getParamName(filterMixID, true), 0.0f, 1.0f, 1.0f));
     String trackingID = filterTracking.toString();

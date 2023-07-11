@@ -95,7 +95,9 @@ void ElectrumAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 {
   AudioSystem::setSampleRate(sampleRate);
   AudioSystem::setBlockSize(samplesPerBlock);
+  engine.prepareToPlay(sampleRate, (size_t)samplesPerBlock);
   DLog::log("Prepared to play with sample rate: " + String(sampleRate) + " and block size: " + String(samplesPerBlock));
+  
 }
 
 void ElectrumAudioProcessor::releaseResources() 

@@ -8,6 +8,7 @@ using SVFFilter = dsp::StateVariableTPTFilter<float>;
 class SynthFilter : public ProcessorBase
 {
 private:
+    static String getFilterType(APVTS& state, float value);
     static SVFType typeFor(const String& id)
     {
       if(id == IDs::filterTypes[0])
@@ -28,5 +29,4 @@ private:
     float lastRes;
     String lastFilterType;
     std::unique_ptr<SVFFilter> filter;
-
 };

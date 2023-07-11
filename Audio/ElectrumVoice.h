@@ -22,10 +22,19 @@ private:
     OwnedArray<WavetableOscillator> oscs;
     OwnedArray<AHDSREnvelope> envs;
     SynthFilter filter;
-
+    float baseFilterCutoff;
+    float baseFilterRes;
+    float baseFilterMix;
+    float baseFilterTracking;
+    String baseFilterType;
+    // helper function for renderNextSample, deals with the filtering
+    float filterSample(float input);
 public:
     ElectrumVoice(EVT* tree, ModDestMap* map, int idx);
-
+    void prepareToPlay(double sampleRate, size_t blockSize)
+    {
+      filter.prepare(sampleRate, blockSize, 1);
+    }
     // returns whether the voice can start a new note
     bool gateIsOn() { return gate; }
     bool isBusy();
