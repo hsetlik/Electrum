@@ -37,6 +37,8 @@ set(SOURCES
 
 # /Parameters
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/Identifiers.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumVoicesState.h"
+"${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumVoicesState.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ParameterWatcher.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.h"
 "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumValueTree.cpp"
@@ -114,10 +116,11 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopePanel.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeGraph.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeGraph.cpp"
-"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeTabbedComponent.cpp"
-
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeLevelComponent.h"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeLevelComponent.cpp"
 #/GUI/GeneratorPanel
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
@@ -196,7 +199,7 @@ message("Building benchmarks")
 add_compile_definitions("BUILD_BENCHMARKS=1")
 else()
 message("Not building benchmarks")
-add_compile_definitions("BUILD_BENCHMARKS=0")
+add_compile_definitions("BUILD_BENCHMARKS=1")
 endif()
 # Setting up tests target and linking Catch2
 file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")

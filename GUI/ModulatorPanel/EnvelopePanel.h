@@ -2,6 +2,7 @@
 #include "EnvelopeGraph.h"
 #include "../../Parameters/ElectrumValueTree.h"
 #define ENV_LABEL_HEIGHT 15
+#define LEVEL_LABEL_WIDTH 20
 struct EnvelopeLabel : 
 public Component,
 public Label::Listener,

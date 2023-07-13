@@ -34,6 +34,7 @@ void ElectrumVoice::startNote(int note, float vel)
     {
         e->gateStart();
     }
+    state->startVoice(index);
 }
 
 void ElectrumVoice::stopNote()
@@ -44,6 +45,7 @@ void ElectrumVoice::stopNote()
     {
         e->gateEnd();
     }
+    state->endVoice(index);
 }
 
 float ElectrumVoice::filterSample(float input)
@@ -64,14 +66,14 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
 {
     if (!isBusy())
         return;
-    static float output = 0.0f;
-    output = 0.0f;
+    //tick the modulation sources before we calculate any mod values
+    for(auto e : envs)
+        e->tickSample();
+    float output = 0.0f;
     for (auto o : oscs)
     {
-        static float levelMod = 0.0f;
-        static float posMod = 0.0f;
-        levelMod = getCurrentModDestValue(o->getLevelParamName());
-        posMod = getCurrentModDestValue(o->getPosParamName());
+        float levelMod = getCurrentModDestValue(o->getLevelParamName());
+        float posMod = getCurrentModDestValue(o->getPosParamName());
         jassert(posMod < 1.0f);
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
@@ -92,7 +94,15 @@ void ElectrumVoice::updateForBlock()
     baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString());
     baseFilterMix = state->getFloatParamValue(IDs::filterMix.toString());
     baseFilterTracking = state->getFloatParamValue(IDs::filterTracking.toString());
-    
+    baseFilterType = state->getCurrentFilterType();
+    // if this is currently the newest voice, update levels for the graphics side
+    if(state->currentNewestVoice() == index && state->isEditorOpen())
+    {
+     for(int i = 0; i < NUM_ENVELOPES; i++)
+     {
+      state->setLeadingVoiceEnvLevel(i, envs[i]->getCurrentSample());
+     }
+    }
 }
 
 
@@ -115,7 +125,7 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
     {
         String numStr = srcID.trimCharactersAtStart(safeID);
         int idx = std::stoi(numStr.toStdString());
-        return envs[idx]->getNextSample();
+        return envs[idx]->getCurrentSample();
     }
     else
     {

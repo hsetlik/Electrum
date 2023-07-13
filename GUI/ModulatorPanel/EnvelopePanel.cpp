@@ -34,7 +34,7 @@ void EnvelopeLabel::parameterChanged(const String& id, float value)
 
 String EnvelopeLabel::labelTextForParam(float value, const String& param)
 {
-  DLog::log("Computing string for value: " + String(value));
+//  DLog::log("Computing string for value: " + String(value));
   if(param.contains(IDs::attackMs.toString()))
   {
     String str(value);
@@ -115,11 +115,11 @@ index(idx)
   String sID = IDs::sustainLevel.toString() + iStr;
   String rID = IDs::releaseMs.toString() + iStr;
 
-  aLabel.reset(new EnvelopeLabel(tree, aID, &graph));
-  hLabel.reset(new EnvelopeLabel(tree, hID, &graph));
-  dLabel.reset(new EnvelopeLabel(tree, dID, &graph));
-  sLabel.reset(new EnvelopeLabel(tree, sID, &graph));
-  rLabel.reset(new EnvelopeLabel(tree, rID, &graph));
+  aLabel.reset(new EnvelopeLabel(tree, aID, graph.getCore()));
+  hLabel.reset(new EnvelopeLabel(tree, hID, graph.getCore()));
+  dLabel.reset(new EnvelopeLabel(tree, dID, graph.getCore()));
+  sLabel.reset(new EnvelopeLabel(tree, sID, graph.getCore()));
+  rLabel.reset(new EnvelopeLabel(tree, rID, graph.getCore()));
 
   addAndMakeVisible(aLabel.get());
   addAndMakeVisible(hLabel.get());
@@ -133,13 +133,15 @@ void EnvelopePanel::resized()
     auto lBounds = getLocalBounds();
     auto labelArea = lBounds.removeFromBottom(ENV_LABEL_HEIGHT);
     auto labelWidth = labelArea.getWidth() / 5;
+    
+    // auto levelArea = lBounds.removeFromRight(LEVEL_LABEL_WIDTH);
+    // level.setBounds(levelArea);
     aLabel->setBounds(labelArea.removeFromLeft(labelWidth));
     hLabel->setBounds(labelArea.removeFromLeft(labelWidth));
     dLabel->setBounds(labelArea.removeFromLeft(labelWidth));
     sLabel->setBounds(labelArea.removeFromLeft(labelWidth));
     rLabel->setBounds(labelArea);
     graph.setBounds(lBounds);
-
 }
 
 

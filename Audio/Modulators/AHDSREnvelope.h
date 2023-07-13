@@ -26,5 +26,6 @@ public:
         gateIsOn = false;
         samplesSinceGateChange = 0;
     }
-    float getNextSample();
+    void tickSample();
+    float getCurrentSample();
 };

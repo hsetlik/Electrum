@@ -10,10 +10,13 @@ index(idx)
 
 }
 
+float AHDSREnvelope::getCurrentSample()
+{
+    return lastOutput;
+}
 
-float AHDSREnvelope::getNextSample()
+void AHDSREnvelope::tickSample()
 {
     lastOutput = AHDSRData::getEnvelopeValue(state->getAudioData()->getEnvelopeData(index), gateIsOn, samplesSinceGateChange);
     ++samplesSinceGateChange;
-    return lastOutput;
 }

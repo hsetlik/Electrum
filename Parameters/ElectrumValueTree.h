@@ -1,14 +1,17 @@
 #pragma once
+#include <stack>
+#include "Identifiers.h"
 #include "ParameterWatcher.h"
 #include "ElectrumAudioData.h"
 #include "AudioSystem.h"
 #include "../GUI/Color.h"
 #include "../Audio/Modulators/Perlin.h"
+#include "ElectrumVoicesState.h"
 
 // this works like
 using ModDestMap = std::unordered_map<String, std::unordered_map<String, float>>;
 
-class EVT
+class EVT : public APVTS::Listener
 {
 private:
     static ValueTree createModulationsTree()
@@ -36,11 +39,19 @@ private:
     std::atomic<bool> sustainPedalOn;
     std::atomic<float> modWheelValue;
     std::atomic<float> pitchBendValue;
+    String currentFilterType = IDs::filterTypes[0];
 
 //========================================================================================
     // perlin stuff
     PerlinGenerator perlin;
     std::atomic<float> lastPerlinVal;
+//========================================================================================
+    //graphical feedback stuff
+    std::atomic<bool> editorOpen;
+    std::atomic<int> voicesState;
+    std::atomic<int> newestVoice;
+    std::array<std::atomic<float>, NUM_ENVELOPES> newestEnvLevels;
+    std::stack<int> voiceIndeces;
 public:
     EVT(AudioProcessor &proc,
          UndoManager *undo,
@@ -50,14 +61,25 @@ public:
          sustainPedalOn(false),
          modWheelValue(0.0f),
          pitchBendValue(0.0f),
-         lastPerlinVal(0.0f)
+         lastPerlinVal(0.0f),
+         editorOpen(false),
+         voicesState(0),
+         newestVoice(-1)
     {
-        coreTree.state.addListener(&paramWatcher);
+      coreTree.addParameterListener(IDs::filterType.toString(), this);
+      coreTree.state.addListener(&paramWatcher);
+      for(int i = 0; i < NUM_ENVELOPES; i++)
+      {
+        newestEnvLevels[(size_t)i] = 0.0f;
+      }
     }
-    ~EVT()
+    ~EVT() override
     {
-        coreTree.state.removeListener(&paramWatcher);
+      coreTree.removeParameterListener(IDs::filterType.toString(), this);
+      coreTree.state.removeListener(&paramWatcher);
     }
+    
+    String getCurrentFilterType() { return currentFilterType; }
 
     ElectrumAudioData* getAudioData() { return audioData.get(); }
     //helper functions for accesing the underlying atomic values. unchecked!
@@ -134,17 +156,68 @@ public:
     //updates the AudioData with the current envelope parameters
     void updateEnvelopesForBlock();
 
-
     void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }
+
     bool getSustainPedal() { return sustainPedalOn.load(); }
 
     void setModWheel(float val) { modWheelValue = val; }
+
     float getModWheel() { return modWheelValue.load(); }
 
     void setPitchBend(float val) { pitchBendValue = val; }
-    float getPitchBend() { return pitchBendValue.load(); }
 
+    float getPitchBend() { return pitchBendValue.load(); }
     // load the modulations to a structure we can access in a thread-safe way
     void loadModulationData(ModDestMap& modMap);
+    //APVTS::Listener override
+    void parameterChanged(const String& paramID, float value) override;
+    // -- Graphics/readout stuff===============================================================================
 
+    void editorOpened() { editorOpen = true; }
+    void editorClosed() { editorOpen = false; }
+    bool isEditorOpen() const { return editorOpen.load(); }
+
+    void startVoice(int idx) 
+    {
+      int result = ElectrumVoicesState::startVoice(voicesState.load(), idx);
+      voicesState = result;
+      newestVoice = idx;
+      voiceIndeces.push(idx);
+    }
+    void endVoice(int idx) 
+    {
+      if (idx == newestVoice.load())
+      {
+        voiceIndeces.pop();
+        if(!voiceIndeces.empty())
+          newestVoice = voiceIndeces.top();
+      }
+      int result = ElectrumVoicesState::endVoice(voicesState.load(), idx);
+      voicesState = result;
+    }
+    bool anyVoicesActive()
+    {
+      int data = voicesState.load();
+      return data != 0;
+    }
+    bool isVoiceActive(int idx)
+    {
+      return ElectrumVoicesState::isVoiceActive(voicesState.load(), idx);
+    }
+    int currentNewestVoice()
+    {
+      return newestVoice.load();
+    }
+
+    void setLeadingVoiceEnvLevel(int idx, float value)
+    {
+      newestEnvLevels[(size_t)idx] = value; 
+    }
+
+    float getLeadingVoiceEnvLevel(int idx)
+    {
+      if(anyVoicesActive())
+        return newestEnvLevels[(size_t)idx].load();
+      return 0.0f;
+    }
 };

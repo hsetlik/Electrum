@@ -2,6 +2,7 @@
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../Color.h"
 #include "../Utility/DragPoint.h"
+#include "EnvelopeLevelComponent.h"
 /*
 Current todo for this:
 1. fix the issue with out-of-range conversions between FATTACK etc. type scaling and the actual APVTS range skews
@@ -15,7 +16,7 @@ Current todo for this:
 
 #define HANDLE_STROKE 0.75f
 #define HOLD_BUF 4.0f
-class EnvelopeGraph : 
+class EnvelopeGraphCore : 
 public Component,
 public AsyncUpdater
 {
@@ -53,8 +54,9 @@ public AsyncUpdater
     EVT* const state;
 public:
     const int index;
-    EnvelopeGraph(EVT* tree, int idx);
+    EnvelopeGraphCore(EVT* tree, int idx);
     void paint(Graphics& g) override;
+
     void handleAsyncUpdate() override;
     // mouse callbacks
     void mouseDown(const MouseEvent& e) override;
@@ -104,5 +106,17 @@ private:
     void syncWithState();
     // helper for drawing handles
     static void drawHandle(Graphics& g, Point<float> center, float radius, bool fill);
+};
 
+//==================================================================================================
+
+class EnvelopeGraph : public Component
+{
+  public:
+    EnvelopeGraph(EVT* tree, int idx);
+    void resized() override;
+    EnvelopeGraphCore* getCore() { return &core; }
+  private:
+    EnvelopeGraphCore core;
+    EnvelopeLevelComponent level;
 };

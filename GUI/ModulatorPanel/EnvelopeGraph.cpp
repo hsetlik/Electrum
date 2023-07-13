@@ -1,5 +1,5 @@
 #include "EnvelopeGraph.h"
-EnvelopeGraph::EnvelopeGraph(EVT* tree, int idx) :
+EnvelopeGraphCore::EnvelopeGraphCore(EVT* tree, int idx) :
 state(tree),
 index(idx),
 attackEnd(this),
@@ -153,20 +153,20 @@ isMoving(false)
   triggerAsyncUpdate();
 }
 
-void EnvelopeGraph::paint(Graphics& g)
+void EnvelopeGraphCore::paint(Graphics& g)
 {
    auto fBounds = getLocalBounds().toFloat();
    drawEnvelopeGraph(fBounds, g);
 }
 
-void EnvelopeGraph::handleAsyncUpdate()
+void EnvelopeGraphCore::handleAsyncUpdate()
 {
   syncWithState();
   repaint();
 }
 
 //======================================================================================
-void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
+void EnvelopeGraphCore::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
 { 
   const int curvePoints = 60;
   if(bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f)
@@ -234,7 +234,7 @@ void EnvelopeGraph::drawEnvelopeGraph(Rectangle<float>& bounds, Graphics& g)
   drawHandle(g, releaseCurve.getPos(), 3.0f, selectedPoint != &releaseCurve);
 }
 
-void EnvelopeGraph::mouseDown(const MouseEvent& e) 
+void EnvelopeGraphCore::mouseDown(const MouseEvent& e) 
 {
   for(auto* p : points)
   {
@@ -248,7 +248,7 @@ void EnvelopeGraph::mouseDown(const MouseEvent& e)
   isMoving = false;
 }
 
-void EnvelopeGraph::mouseDrag(const MouseEvent& e) 
+void EnvelopeGraphCore::mouseDrag(const MouseEvent& e) 
 {
   if(selectedPoint != nullptr)
   {
@@ -265,7 +265,7 @@ void EnvelopeGraph::mouseDrag(const MouseEvent& e)
     isMoving = false;
 }
 
-void EnvelopeGraph::mouseUp(const MouseEvent&) 
+void EnvelopeGraphCore::mouseUp(const MouseEvent&) 
 {
   if (selectedPoint != nullptr)
   {
@@ -277,7 +277,7 @@ void EnvelopeGraph::mouseUp(const MouseEvent&)
 
 //============================================================
 
-Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* point, float value)
+Point<float> EnvelopeGraphCore::getPosFromParam(const String& paramID, DragPoint* point, float value)
 {
   auto fBounds = getLocalBounds().toFloat();
   const float yTop = fBounds.getY() + 5.0f;
@@ -360,7 +360,7 @@ Point<float> EnvelopeGraph::getPosFromParam(const String& paramID, DragPoint* po
   return {0.0f, 0.0f};
 }
 
-float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos)
+float EnvelopeGraphCore::getParamFromPos(const String& paramID, DragPoint* point, Point<float> pos)
 {
   auto range = state->getAPVTS()->getParameterRange(paramID);
   auto fBounds = getLocalBounds().toFloat();
@@ -448,13 +448,13 @@ float EnvelopeGraph::getParamFromPos(const String& paramID, DragPoint* point, Po
   return 0.0f;
 }
 
-Point<float> EnvelopeGraph::constrainPositionFor(DragPoint* point, Point<float> pos)
+Point<float> EnvelopeGraphCore::constrainPositionFor(DragPoint* point, Point<float> pos)
 {
   auto bounds = getLimitsFor(point);
   return bounds.getConstrainedPoint(pos);
 }
 
-DragPoint* EnvelopeGraph::getPointWithinRadius(const MouseEvent& e, float radius)
+DragPoint* EnvelopeGraphCore::getPointWithinRadius(const MouseEvent& e, float radius)
 {
   for(auto p : points)
   {
@@ -464,7 +464,7 @@ DragPoint* EnvelopeGraph::getPointWithinRadius(const MouseEvent& e, float radius
   return nullptr;
 }
 
-Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
+Rectangle<float> EnvelopeGraphCore::getLimitsFor(DragPoint* pt)
 {
   auto fBounds = getLocalBounds().toFloat();
   auto yTop = fBounds.getY() + 5.0f;
@@ -509,7 +509,7 @@ Rectangle<float> EnvelopeGraph::getLimitsFor(DragPoint* pt)
 }
 
 // this forces all the drag points to the positions determined by the values from shared state
-void EnvelopeGraph::syncWithState()
+void EnvelopeGraphCore::syncWithState()
 {
   String iStr(index);
   auto attackMsID = IDs::attackMs.toString() + iStr;
@@ -579,7 +579,7 @@ void EnvelopeGraph::syncWithState()
   }
 }
 
-void EnvelopeGraph::drawHandle(Graphics& g, Point<float> center, float radius, bool fill)
+void EnvelopeGraphCore::drawHandle(Graphics& g, Point<float> center, float radius, bool fill)
 {
   Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
   bounds = bounds.withCentre(center);
@@ -592,4 +592,19 @@ void EnvelopeGraph::drawHandle(Graphics& g, Point<float> center, float radius, b
   {
     g.drawEllipse(bounds, HANDLE_STROKE);
   }
+}
+//=============================================================================================
+
+EnvelopeGraph::EnvelopeGraph(EVT* tree, int idx) : core(tree, idx), level(tree, idx)
+{
+  addAndMakeVisible(&core);
+  addAndMakeVisible(&level);
+}
+
+void EnvelopeGraph::resized()
+{
+  auto bounds = getLocalBounds();
+  level.setBounds(bounds);
+  core.setBounds(bounds);
+  level.toBack();
 }

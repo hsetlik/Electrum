@@ -15,6 +15,7 @@ state(tree)
   //
   bFilterType.addItemList(IDs::filterTypes, 1);
   addAndMakeVisible(&bFilterType);
+  bFilterType.setSelectedItemIndex(0);
   typeAttach.reset(new APVTS::ComboBoxAttachment(*state->getAPVTS(), IDs::filterType.toString(), bFilterType));
 }
 

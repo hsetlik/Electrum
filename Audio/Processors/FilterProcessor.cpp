@@ -52,10 +52,3 @@ void SynthFilter::setFilterFor(const String& type, float cutoff, float resonance
 
 
 
-String SynthFilter::getFilterType(APVTS& state, float value)
-{
-  auto range = state.getParameterRange(IDs::filterType.toString()).getRange();
-  auto fIndex = jmap(value, range.getStart(), range.getEnd(), 0.0f, (float)IDs::filterTypes.size());
-  return IDs::filterTypes[(int)fIndex];
-
-}

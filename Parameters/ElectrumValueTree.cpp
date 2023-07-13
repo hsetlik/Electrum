@@ -130,3 +130,17 @@ void EVT::updateEnvelopesForBlock()
         envData->releaseCurve = releaseCrv;
     }
 }
+
+
+void EVT::parameterChanged(const String& paramID, float value) 
+{
+  if(paramID == IDs::filterType.toString())
+  {
+    DLog::log("New filter type has value: " + String(value));
+    auto fMax = (float)(IDs::filterTypes.size() - 1);
+    float fIndex = jmap(value, 0.0f, 1.0f, 0.0f, fMax);
+    int index = (int)fIndex;
+    DLog::log("Selected index: " + String(index));
+    currentFilterType = IDs::filterTypes[index];
+  }
+}

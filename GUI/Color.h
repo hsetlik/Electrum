@@ -8,6 +8,7 @@ namespace Color
 {
 // a little macro to make globally defining and accessing colors easier
 #define DECLARE_COLOR(name, r, g, b) const Colour name = Colour::fromRGB(r, g, b);
+
 DECLARE_COLOR(darkSlateGray, 47, 79, 79)
 DECLARE_COLOR(closeRedBright, 209, 67, 67)
 DECLARE_COLOR(closeRedDark, 147, 49, 49)
@@ -29,6 +30,11 @@ DECLARE_COLOR(darkOliveDrab, 85, 107, 47)
 DECLARE_COLOR(chocolate, 210, 105, 30)
 DECLARE_COLOR(sienna, 160, 82, 45)
 DECLARE_COLOR(dimGray, 105, 105, 105)
+DECLARE_COLOR(cornFlowerBlue, 100, 149, 237)
+DECLARE_COLOR(darkCyan, 0, 139, 139)
+DECLARE_COLOR(maroon, 128, 0, 0)
+DECLARE_COLOR(crimson, 220, 20, 60)
+
 #undef DECLARE_COLOR
 
 // assign and access the color assigned to eact modulation source
