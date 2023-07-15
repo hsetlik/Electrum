@@ -17,6 +17,6 @@ float AHDSREnvelope::getCurrentSample()
 
 void AHDSREnvelope::tick()
 {
-    ++samplesSinceGateChange;
     lastOutput = AHDSRData::getEnvelopeValue(state->getAudioData()->getEnvelopeData(index), gateIsOn, samplesSinceGateChange);
+    ++samplesSinceGateChange;
 }

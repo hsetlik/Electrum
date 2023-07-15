@@ -20,19 +20,15 @@ AHDSRPhase AHDSRData::getCurrentPhase(AHDSRData* env, bool gateOn, size_t sample
         size_t releaseSamples = (size_t)((env->releaseMs / 1000.0f) * (float)AudioSystem::getSampleRate());
         if (samplesSinceGateChange < releaseSamples)
             return AHDSRPhase::Release;
-        return AHDSRPhase::Idle;
     }
+    return AHDSRPhase::Idle;
 }
 
 float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange)
 {
-//    static AHDSRPhase prevPhase = AHDSRPhase::Idle;
     auto phase = getCurrentPhase(env, gateOn, samplesSinceGateChange);
-    // if(prevPhase != phase)
-    // {
-    //   DLog::log("From: " + String(prevPhase) + " To: " + String(phase));
-    //   prevPhase = phase;
-    // }
+    if(phase == AHDSRPhase::Idle)
+      return 0.0f;
     float currentMs = (float)samplesSinceGateChange * (float)(1000.0f / AudioSystem::getSampleRate());
     if(phase == AHDSRPhase::Attack)
     {
@@ -46,13 +42,8 @@ float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSin
     else if(phase == AHDSRPhase::Decay)
     {
         float t = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
-    // thought: the linear version looks like this, just do the exponential curve version
-    //  
-    //    return Math::flerp(1.0f, env->sustainLevel, t);
         float dY = 1.0f - env->sustainLevel;
         return env->sustainLevel + Math::onEasingCurve(0.0f, env->decayCurve * dY, dY, 1.0f - t);
-
-
     }
     else if(phase == AHDSRPhase::Sustain)
     {
@@ -61,9 +52,8 @@ float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSin
     else if(phase == AHDSRPhase::Release)
     {
        float t = currentMs / env->releaseMs;
-       float dY = 1.0f - env->sustainLevel;
-       return env->sustainLevel - Math::onEasingCurve(0.0f, env->releaseCurve, dY, 1.0f - t); 
+       return Math::onEasingCurve(0.0f, env->releaseCurve * env->sustainLevel, env->sustainLevel, 1.0f - t); 
     }
-    else //idle
+    else 
         return 0.0f;
 }

@@ -111,11 +111,14 @@ int ElectrumEngine::numBusyVoices()
 
 void ElectrumEngine::updateParamsForBlock()
 {
-    state->updatePerlinForBlock();
-    state->updateEnvelopesForBlock();
-    for (auto v : voices)
-        v->updateForBlock();
-
+  state->updatePerlinForBlock();
+  state->updateEnvelopesForBlock();
+  for(int i = 0; i < NUM_VOICES; i++)
+  {
+    voices[i]->updateForBlock();
+    if(state->isVoiceActive(i) && !voices[i]->isBusy())
+      state->endVoice(i);
+  }
 }
 
 void ElectrumEngine::loadMidiEvents(MidiBuffer& midi)

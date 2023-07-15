@@ -9,4 +9,5 @@ namespace ElectrumVoicesState
   int endVoice(int data, int idx);
   bool isVoiceActive(int data, int idx);
   int numActiveVoices(int data);
+  int setVoice(int data, int idx, bool val);
 }

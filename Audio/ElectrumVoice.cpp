@@ -21,6 +21,11 @@ filter(tree, idx)
 
 bool ElectrumVoice::isBusy()
 {
+    for(auto e : envs)
+    {
+      if(!e->isFinished())
+        return true;
+    }
     return gate || (!env.isFinished());
 }
 
@@ -45,7 +50,6 @@ void ElectrumVoice::stopNote()
     {
         e->gateEnd();
     }
-    state->endVoice(index);
 }
 
 float ElectrumVoice::filterSample(float input)
