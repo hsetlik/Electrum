@@ -79,6 +79,7 @@ set(SOURCES
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/ProcessorBase.cpp"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/FilterProcessor.h"
 "${CMAKE_CURRENT_LIST_DIR}/Audio/Processors/FilterProcessor.cpp"
+
 #/GUI
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.h"
 "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumEditor.cpp"

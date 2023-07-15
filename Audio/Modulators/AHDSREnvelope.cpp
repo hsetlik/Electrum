@@ -15,8 +15,8 @@ float AHDSREnvelope::getCurrentSample()
     return lastOutput;
 }
 
-void AHDSREnvelope::tickSample()
+void AHDSREnvelope::tick()
 {
-    lastOutput = AHDSRData::getEnvelopeValue(state->getAudioData()->getEnvelopeData(index), gateIsOn, samplesSinceGateChange);
     ++samplesSinceGateChange;
+    lastOutput = AHDSRData::getEnvelopeValue(state->getAudioData()->getEnvelopeData(index), gateIsOn, samplesSinceGateChange);
 }

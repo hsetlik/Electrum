@@ -68,7 +68,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
         return;
     //tick the modulation sources before we calculate any mod values
     for(auto e : envs)
-        e->tickSample();
+        e->tick();
     float output = 0.0f;
     for (auto o : oscs)
     {
