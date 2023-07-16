@@ -35,5 +35,7 @@ struct AHDSRData
     static AHDSRPhase getCurrentPhase(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange);
 // this does the heavy lifting
     static float getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange);
+// this is helpful for the voice stealing logic
+    static size_t getSamplesForAttackValue(AHDSRData* env, float value);
 };
 

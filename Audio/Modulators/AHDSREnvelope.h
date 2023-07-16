@@ -2,6 +2,8 @@
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../../Parameters/AudioSystem.h"
 
+#define KILL_QUICK_MS 3.0f
+
 class AHDSREnvelope
 {
 private:
@@ -9,6 +11,8 @@ private:
     float lastOutput;
     bool gateIsOn;
     size_t samplesSinceGateChange;
+    bool inKillQuickMode;
+    float killQuickDelta;
 public:
     const int index;
     AHDSREnvelope(EVT* tree, int idx);
@@ -28,4 +32,6 @@ public:
     }
     void tick();
     float getCurrentSample();
+    void steal();
+    void killQuick();
 };

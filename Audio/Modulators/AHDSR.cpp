@@ -57,3 +57,20 @@ float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSin
     else 
         return 0.0f;
 }
+
+size_t AHDSRData::getSamplesForAttackValue(AHDSRData* env, float value)
+{
+  /*
+    currentMs = samples * 1000 / sampleRate
+    and t = currentMs / attackMs
+    value = t^(log(midpoint)/log(0.5))
+    t = value^(log(0.5) / log(midpoint))
+    currentMs = attackMs * t
+    samples = currentMs / (1000 / sampleRate)
+  */
+  float t = std::pow(value, std::log(0.5f) / std::log(env->attackCurve));
+  float currentMs = t * env->attackMs;
+  float samples = currentMs / (1000.0f / (float)AudioSystem::getSampleRate());
+  return (size_t)samples;
+}
+

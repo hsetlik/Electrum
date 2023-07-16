@@ -18,7 +18,6 @@ private:
     ModDestMap currentModulation;
 // state
     OwnedArray<ElectrumVoice> voices;
-    float left, right;
     
 // functions
     void noteOn(int note, float velocity);

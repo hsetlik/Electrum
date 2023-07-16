@@ -42,6 +42,11 @@ void ElectrumVoice::startNote(int note, float vel)
     state->startVoice(index);
 }
 
+void ElectrumVoice::stealNote(int note, float velocity)
+{
+  
+}
+
 void ElectrumVoice::stopNote()
 {
     env.gateEnd();

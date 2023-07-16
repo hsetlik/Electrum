@@ -1,8 +1,6 @@
 #include "ElectrumEngine.h"
 
 ElectrumEngine::ElectrumEngine (EVT* tree) : 
-left (0.0f),
-right (0.0f),
 state (tree)
 {
     for (int i = 0; i < NUM_VOICES; i++)
@@ -43,38 +41,41 @@ ElectrumVoice* ElectrumEngine::getFreeVoice()
         if (!v->isBusy())
             return v;
     }
+    DLog::log("Warning! No free voices!");
     return nullptr;
 }
-
-
 
 ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 {
     //ElectrumVoice* voice = nullptr;
     for (auto v : voices)
     {
-        if (v->getCurrentNote() == note && v->gateIsOn())
+        if (v->getCurrentNote() == note && v->isBusy())
             return v;
     }
     return nullptr;
 }
+
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
     TRACE_DSP();
     state->loadModulationData(currentModulation);
     updateParamsForBlock();
+    // this loads the midi events and their timestamps into a queue
     loadMidiEvents(midi);
     //make sure we have stereo
     jassert(buffer.getNumChannels() >= 2);
     for (int s = 0; s < buffer.getNumSamples(); s++)
     {
         //STEP 1: Check if we have a midi event on this sample
+        //there's a good reason this is a while rather than a for loop: many GUI plugin hosts will send multiple midi events with the same timestamp
         while(!midiQueue.empty() && midiQueue.front().timestamp == s)
         {
             handleMidiMessage(midiQueue.front().message);
             midiQueue.pop();
         }
-
+        float left = 0.0f;
+        float right = 0.0f;
         //STEP 3: Render the actual samples
         renderNextSample(left, right);
         buffer.setSample(0, s, left);
@@ -87,7 +88,6 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 
 void ElectrumEngine::renderNextSample(float& l, float& r)
 {
-   
     state->tickPerlinForSample();
     l = 0.0f;
     r = 0.0f;
@@ -113,6 +113,7 @@ void ElectrumEngine::updateParamsForBlock()
 {
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
+  // check to update state for voices that have trailed off
   for(int i = 0; i < NUM_VOICES; i++)
   {
     voices[i]->updateForBlock();
@@ -133,6 +134,7 @@ void ElectrumEngine::loadMidiEvents(MidiBuffer& midi)
     }
 
 }
+
 void ElectrumEngine::handleMidiMessage(MidiMessage& message)
 {
     // big ol else if to handle every type of MIDI message
@@ -165,6 +167,5 @@ void ElectrumEngine::handleMidiMessage(MidiMessage& message)
     {
         DLog::log("Warning! Unhandled MIDI message: " + message.getDescription());
     }
-
 }
 //=============================================================

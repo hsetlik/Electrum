@@ -39,6 +39,7 @@ public:
     bool gateIsOn() { return gate; }
     bool isBusy();
     void startNote(int note, float velocity);
+    void stealNote(int note, float velocity);
     void stopNote();
     void updateForBlock();
 
@@ -49,6 +50,6 @@ public:
     float getCurrentModDestValue(const String& destID);
 
     //called for each sample on audio thread
-    void renderNextSample (float& left, float& right);
+    void renderNextSample(float& left, float& right);
     int getIndex() const { return index; }
 };
