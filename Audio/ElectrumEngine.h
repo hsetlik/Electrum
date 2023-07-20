@@ -1,5 +1,4 @@
 #pragma once
-#include "Modulators/Envelope.h"
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
 #include "ElectrumVoice.h"

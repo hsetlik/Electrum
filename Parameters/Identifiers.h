@@ -7,7 +7,7 @@
 #define NUM_OSCILLATORS 3
 #define NUM_ENVELOPES 3
 #define OSC_POS_DEFAULT 0.1f
-#define OSC_LEVEL_DEFAULT 0.8f
+#define OSC_LEVEL_DEFAULT 0.25f
 
 #define ENV_CURVE_MIN 0.0f
 #define ENV_CURVE_MAX 1.0f
@@ -50,6 +50,7 @@
 #define CONTROL_LENGTH_DEFAULT 0.5f
 #define CONTROL_ANGLE_DEFAULT MathConstants<float>::pi / 4.0f
 
+#define QUICK_KILL_MS 2.5f
 
 #define PERLIN_OCTAVES_DEFAULT 2
 #define PERLIN_FREQ_DEFAULT 1.0f

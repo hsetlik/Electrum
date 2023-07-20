@@ -8,6 +8,7 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx) :
   currentNote(-1),
   currentNoteVelocity(0.0f), 
   gate(false), 
+  vge(this),
   filter(tree, idx),
   inQuickKill(false),
   quickKillSamples(0),
@@ -31,7 +32,7 @@ bool ElectrumVoice::isBusy()
       if(!e->isFinished())
         return true;
     }
-    return gate || (!env.isFinished());
+    return gate || (!vge.isFinished());
 }
 
 void ElectrumVoice::startNote(int note, float vel)
@@ -39,7 +40,7 @@ void ElectrumVoice::startNote(int note, float vel)
     currentNote = note;
     currentNoteVelocity = vel;
     gate = true;
-    env.gateStart();
+    vge.start();
     for(auto e : envs)
     {
         e->gateStart();
@@ -58,7 +59,7 @@ void ElectrumVoice::stealNote(int note, float velocity)
 
 void ElectrumVoice::stopNote()
 {
-    env.gateEnd();
+    vge.end();
     gate = false;
     for(auto e : envs)
     {
@@ -87,6 +88,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     {
       e->tick();
     }
+    vge.tick();
     float output = 0.0f;
     // add each osc's output together to get the input to the processor phase
     for (auto o : oscs)
@@ -96,7 +98,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
         //jassert(posMod < 1.0f);
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
-    output = output * env.getSample() * 0.2f;
+    output = output * vge.getCurrentSample() * 0.2f;
     output = filterSample(output);
     left += output;
     right += output;
@@ -113,14 +115,14 @@ void ElectrumVoice::updateForBlock()
     baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString()); baseFilterMix = state->getFloatParamValue(IDs::filterMix.toString());
     baseFilterTracking = state->getFloatParamValue(IDs::filterTracking.toString());
     baseFilterType = state->getCurrentFilterType();
-    // if this is currently the newest voice, update levels for the graphics side
-    // if(state->currentNewestVoice() == index && state->isEditorOpen())
-    // {
-    //  for(int i = 0; i < NUM_ENVELOPES; i++)
-    //  {
-    //   state->setLeadingVoiceEnvLevel(i, envs[i]->getCurrentSample());
-    //  }
-    // }
+    //if this is currently the newest voice, update levels for the graphics side
+    if(state->currentNewestVoice() == index && state->isEditorOpen())
+    {
+     for(int i = 0; i < NUM_ENVELOPES; i++)
+     {
+      state->setLeadingVoiceEnvLevel(i, envs[i]->getCurrentSample());
+     }
+    }
 }
 
 
@@ -169,7 +171,6 @@ float ElectrumVoice::getCurrentModDestValue(const String& destID)
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p) :
   parent(p),
   gate(false),
-  samplesSinceGateChange(0),
   lastOutput(0.0f)
 {
 
@@ -177,5 +178,28 @@ VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p) :
 
 void VoiceGateEnvelope::tick()
 {
+  if(gate)
+    lastOutput = std::max(lastOutput + levelDelta(), 1.0f);
+  else if(!parentIsFinished())
+    lastOutput = 1.0f;
+  else
+    lastOutput = std::max(lastOutput - levelDelta(), 0.0f);
+}
 
+
+void VoiceGateEnvelope::start()
+{
+  gate = true;
+}
+
+bool VoiceGateEnvelope::parentIsFinished()
+{
+  if(gate)
+    return false;
+  for(auto e : parent->envs)
+  {
+    if(!e->isFinished())
+      return false;
+  }
+  return true;
 }

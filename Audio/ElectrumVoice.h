@@ -1,13 +1,35 @@
 #pragma once
-#include "Modulators/Envelope.h"
+#include "Modulators/AHDSREnvelope.h"
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
 #include "../Parameters/MathUtil.h"
 #include "Generators/WavetableOscillator.h"
 #include "Processors/FilterProcessor.h"
 
-// forward declaration, implementation at the bottom
-class VoiceGateEnvelope;
+// forward declaration for the envelope
+class ElectrumVoice;
+
+class VoiceGateEnvelope
+{
+private:
+  ElectrumVoice* const parent;
+  bool gate;
+  size_t samplesSinceGateChange;
+  float lastOutput;
+  float levelDelta()
+  {
+      return 1.0f / ((QUICK_KILL_MS / 1000.0f) * (float)AudioSystem::getSampleRate());
+  }
+public:
+  VoiceGateEnvelope(ElectrumVoice* parent);
+  void tick();
+  float getCurrentSample() { return lastOutput; }
+  void start();
+  void end() { gate = false;}
+  bool isFinished() { return !gate && lastOutput == 0; }
+private:
+  bool parentIsFinished();
+};
 
 class ElectrumVoice
 {
@@ -19,7 +41,7 @@ private:
     int currentNote;
     float currentNoteVelocity;
     bool gate;
-    PlaceholderEnvelope env;
+    VoiceGateEnvelope vge;
     PlaceholderOsc osc;
     OwnedArray<WavetableOscillator> oscs;
     OwnedArray<AHDSREnvelope> envs;
@@ -63,17 +85,4 @@ public:
 };
 //=======================================================
     // this controls the default organ envelope that just makes stuff work
-class VoiceGateEnvelope
-{
-private:
-  ElectrumVoice* const parent;
-  bool gate;
-  size_t samplesSinceGateChange;
-  float lastOutput;
-public:
-  VoiceGateEnvelope(ElectrumVoice* parent);
 
-  void tick();
-  float getCurrentSample() { return lastOutput; }
-
-};
