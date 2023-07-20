@@ -31,6 +31,7 @@ private:
     ValueTree getModulationsTree();
     std::vector<ValueTree> getModulations();
     ValueTree getModulation(const String& source, const String& dest);
+    bool sourceIsInUse(const String& source);
 //========================================================================================
     //state
     std::unique_ptr<ElectrumAudioData> audioData;
@@ -40,7 +41,7 @@ private:
     std::atomic<float> modWheelValue;
     std::atomic<float> pitchBendValue;
     String currentFilterType = IDs::filterTypes[0];
-
+    int envsInUse;
 //========================================================================================
     // perlin stuff
     PerlinGenerator perlin;
@@ -61,6 +62,7 @@ public:
          sustainPedalOn(false),
          modWheelValue(0.0f),
          pitchBendValue(0.0f),
+         envsInUse(0),
          lastPerlinVal(0.0f),
          editorOpen(false),
          voicesState(0),
@@ -155,6 +157,11 @@ public:
     void removeModulation(const String& src, const String& dest);
     //updates the AudioData with the current envelope parameters
     void updateEnvelopesForBlock();
+
+    bool envIsInUse(int idx)
+    {
+      return envsInUse & (1 << idx);
+    }
 
     void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }
 

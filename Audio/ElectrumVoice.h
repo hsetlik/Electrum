@@ -1,16 +1,18 @@
 #pragma once
 #include "Modulators/Envelope.h"
-#include "Modulators/AHDSREnvelope.h"
 #include "Modulators/Oscillator.h"
 #include "../Parameters/ElectrumValueTree.h"
 #include "../Parameters/MathUtil.h"
 #include "Generators/WavetableOscillator.h"
 #include "Processors/FilterProcessor.h"
 
+// forward declaration, implementation at the bottom
+class VoiceGateEnvelope;
 
 class ElectrumVoice
 {
 private:
+
     EVT* const state;
     ModDestMap* const modMap;
     const int index;
@@ -29,6 +31,11 @@ private:
     String baseFilterType;
     // helper function for renderNextSample, deals with the filtering
     float filterSample(float input);
+    // killQuick stuff
+    bool inQuickKill;
+    size_t quickKillSamples;
+    int queuedNote;
+    float queuedVelocity;
 public:
     ElectrumVoice(EVT* tree, ModDestMap* map, int idx);
     void prepareToPlay(double sampleRate, size_t blockSize)
@@ -52,4 +59,21 @@ public:
     //called for each sample on audio thread
     void renderNextSample(float& left, float& right);
     int getIndex() const { return index; }
+    friend class VoiceGateEnvelope;
+};
+//=======================================================
+    // this controls the default organ envelope that just makes stuff work
+class VoiceGateEnvelope
+{
+private:
+  ElectrumVoice* const parent;
+  bool gate;
+  size_t samplesSinceGateChange;
+  float lastOutput;
+public:
+  VoiceGateEnvelope(ElectrumVoice* parent);
+
+  void tick();
+  float getCurrentSample() { return lastOutput; }
+
 };

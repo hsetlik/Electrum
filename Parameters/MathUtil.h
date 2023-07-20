@@ -5,9 +5,16 @@
 #define MATHUTIL_H
 namespace Math
 {
+    // interpolate between a and b where t is in the range 0, 1
     inline float flerp (float a, float b, float t)
     {
         return a + ((b - a) * t);
+    }
+    inline float bipolarFlerp(float min, float max, float current, float t)
+    {
+      if(t > 0.0f)
+        return flerp(current, max, t); 
+      return flerp(min, current, 1.0f - std::fabs(t)); 
     }
     inline double dlerp (double a, double b, double t)
     {

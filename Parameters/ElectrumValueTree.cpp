@@ -1,4 +1,6 @@
 #include "ElectrumValueTree.h"
+#include "ElectrumVoicesState.h"
+#include "Identifiers.h"
 
 ValueTree EVT::getModulationsTree()
 {
@@ -36,6 +38,21 @@ ValueTree EVT::getModulation(const String &source, const String &dest)
             return mod;
     }
     return ValueTree();
+}
+
+
+
+bool EVT::sourceIsInUse(const String& source)
+{
+  auto modTree = getModulationsTree();
+  for(auto it = modTree.begin(); it != modTree.end(); ++it)
+  {
+    auto tree = *it;
+    String srcID = tree[IDs::modulationSource];
+    if(srcID == source)
+      return true;
+  }
+  return false;
 }
 
 // use this to add or update the value of a modulation
@@ -100,6 +117,8 @@ void EVT::updateEnvelopesForBlock()
     {
         // step 1: grip atomic values from the tree;
         String iStr(i);
+        String srcID = IDs::envSource.toString() + iStr;
+        envsInUse = ElectrumVoicesState::setVoice(envsInUse, i, sourceIsInUse(srcID));
         const float atkMs = getFloatParamValue(IDs::attackMs.toString() + iStr);
         const float atkCrv = getFloatParamValue(IDs::attackCurve.toString() + iStr);
 

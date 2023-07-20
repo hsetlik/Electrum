@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Core/CustomJuceHeader.h"
+#include "AHDSREnvelope.h"
 #define PLACEHOLDER_ATTACK_MS 60.0f
 #define PLACEHOLDER_DECAY_MS 200.0f
 

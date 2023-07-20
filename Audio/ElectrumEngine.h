@@ -4,7 +4,7 @@
 #include "../Parameters/ElectrumValueTree.h"
 #include "ElectrumVoice.h"
 #include <stack>
-#define NUM_VOICES 18
+#define NUM_VOICES 24
 
 class ElectrumEngine
 {

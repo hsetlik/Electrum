@@ -19,7 +19,7 @@ MidiBuffer TestUtil::getTestMidiBuffer(int length, int numNotes, int minNoteLeng
     MidiBuffer out;
     auto noteStartIndeces = randPositiveInRange(0, length - maxNoteLength, numNotes);
     std::sort(noteStartIndeces.begin(), noteStartIndeces.end());
-    int numStartsAdded = 0;
+    size_t numStartsAdded = 0;
     for(int s = 0; s < length; s++)
     {
         while (noteStartIndeces[numStartsAdded] == s)

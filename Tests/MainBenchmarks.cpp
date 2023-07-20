@@ -99,9 +99,9 @@ TEST_CASE("ElectrumEngine tests")
     
     std::unique_ptr<ElectrumAudioProcessor> proc = std::make_unique<ElectrumAudioProcessor>();
     AudioBuffer<float> testBuffer1(2, 2000);
-    auto midiBuffer = TestUtil::getTestMidiBuffer(2000, 7, 50, 500);
+    auto midiBuffer = TestUtil::getTestMidiBuffer(2000, 3, 50, 500);
     proc->prepareToPlay(44100.0f, 2000);
-    BENCHMARK("Buffer with 7 notes 2000 samples")
+    BENCHMARK("Buffer with 3 notes 2000 samples")
     {
         proc->processBlock(testBuffer1, midiBuffer);
     };
@@ -156,6 +156,22 @@ TEST_CASE("flerp Benchmarks")
         }
     };
 
+    std::vector<float> currentVals;
+    tVals.clear();
+    for(int i = 0; i < numLerps; i++)
+    {
+      tVals.push_back((rand.nextFloat() * 2.0f) - 1.0f);
+      currentVals.push_back(rand.nextFloat() * 1000.0f);
+    }
+
+    BENCHMARK("bipolarFlerp")
+    {
+      std::vector<float> output;
+      for(size_t i = 0; i < numLerps; i++)
+      {
+       output.push_back(Math::bipolarFlerp(0.0f, 1000.0f, currentVals[i], tVals[i])); 
+      }
+    };
 
 }
 
