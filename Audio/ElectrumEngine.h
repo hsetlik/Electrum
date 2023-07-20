@@ -25,6 +25,7 @@ private:
 
     ElectrumVoice* getFreeVoice();
     ElectrumVoice* getVoicePlayingNote(int note);
+    ElectrumVoice* getVoiceForNote(int note);
 
     int numBusyVoices();
     void updateParamsForBlock();

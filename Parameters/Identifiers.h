@@ -298,7 +298,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     }
     // filter params
     String fTypeID = filterType.toString();
-    layout.add(std::make_unique<AudioParameterChoice>(fTypeID, getParamName(fTypeID, true), filterTypes, 1));
+    layout.add(std::make_unique<AudioParameterChoice>(fTypeID, getParamName(fTypeID, true), filterTypes, 0));
     String cutoffID = filterCutoff.toString();
     layout.add(std::make_unique<AudioParameterFloat>(cutoffID, getParamName(cutoffID, true), getCutoffRange(), CUTOFF_HZ_DEFAULT));
     String resID = filterResonance.toString();

@@ -7,17 +7,21 @@ state (tree)
     {
         voices.add (new ElectrumVoice(state, &currentModulation, i));
     }
-
 }
 
 void ElectrumEngine::noteOn(int note, float velocity)
 {
+  auto existing = getVoicePlayingNote(note);
+  if(existing != nullptr)
+  {
+    existing->stealNote(note, velocity);
+  }
+  else
+  {
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
     voice->startNote(note, velocity);
-    auto busy = numBusyVoices();
-    String str = (busy == 1) ? " voice is busy" : " voices are busy";
-    DLog::log(String(busy) + str);
+  }
 }
 
 void ElectrumEngine::noteOff(int note)
@@ -47,7 +51,6 @@ ElectrumVoice* ElectrumEngine::getFreeVoice()
 
 ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 {
-    //ElectrumVoice* voice = nullptr;
     for (auto v : voices)
     {
         if (v->getCurrentNote() == note && v->isBusy())

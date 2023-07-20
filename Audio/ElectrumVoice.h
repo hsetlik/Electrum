@@ -14,6 +14,7 @@ class VoiceGateEnvelope
 private:
   ElectrumVoice* const parent;
   bool gate;
+  bool forceKillQuick;
   size_t samplesSinceGateChange;
   float lastOutput;
   float levelDelta()
@@ -27,6 +28,11 @@ public:
   void start();
   void end() { gate = false;}
   bool isFinished() { return !gate && lastOutput == 0; }
+  void killQuick() 
+  { 
+    forceKillQuick = true; 
+    gate = false;
+  }
 private:
   bool parentIsFinished();
 };
@@ -55,7 +61,6 @@ private:
     float filterSample(float input);
     // killQuick stuff
     bool inQuickKill;
-    size_t quickKillSamples;
     int queuedNote;
     float queuedVelocity;
 public:
@@ -84,5 +89,4 @@ public:
     friend class VoiceGateEnvelope;
 };
 //=======================================================
-    // this controls the default organ envelope that just makes stuff work
 

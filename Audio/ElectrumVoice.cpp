@@ -11,7 +11,6 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx) :
   vge(this),
   filter(tree, idx),
   inQuickKill(false),
-  quickKillSamples(0),
   queuedNote(0),
   queuedVelocity(0.0f)
 {
@@ -27,11 +26,6 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx) :
 
 bool ElectrumVoice::isBusy()
 {
-    for(auto e : envs)
-    {
-      if(!e->isFinished())
-        return true;
-    }
     return gate || (!vge.isFinished());
 }
 
@@ -51,10 +45,11 @@ void ElectrumVoice::startNote(int note, float vel)
 void ElectrumVoice::stealNote(int note, float velocity)
 {
   inQuickKill = true;
-  quickKillSamples = 0;
   queuedNote = note;
   queuedVelocity = velocity;
-  //TODO: start quick kill on gate envelope and moc envelopes here
+  for(auto e : envs)
+    e->killQuick();
+  vge.killQuick();
 }
 
 void ElectrumVoice::stopNote()
@@ -98,10 +93,17 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
         //jassert(posMod < 1.0f);
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
-    output = output * vge.getCurrentSample() * 0.2f;
-    output = filterSample(output);
+    output = output * vge.getCurrentSample();
+    output = filterSample(output) * 0.4f;
     left += output;
     right += output;
+
+    // now we need to handle if this voice has been quick-killed and needs to start the next note
+  if(inQuickKill && vge.getCurrentSample() == 0.0f)
+  {
+    inQuickKill = false;
+    startNote(queuedNote, queuedVelocity);
+  }
 }
 
 void ElectrumVoice::updateForBlock()
@@ -171,6 +173,7 @@ float ElectrumVoice::getCurrentModDestValue(const String& destID)
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p) :
   parent(p),
   gate(false),
+  forceKillQuick(false),
   lastOutput(0.0f)
 {
 
@@ -178,8 +181,13 @@ VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p) :
 
 void VoiceGateEnvelope::tick()
 {
-  if(gate)
-    lastOutput = std::max(lastOutput + levelDelta(), 1.0f);
+  if(forceKillQuick)
+  {
+    lastOutput = std::max(lastOutput - levelDelta(), 0.0f);
+    forceKillQuick = lastOutput > 0.0f;
+  }
+  else if(gate)
+    lastOutput = std::min(lastOutput + levelDelta(), 1.0f);
   else if(!parentIsFinished())
     lastOutput = 1.0f;
   else

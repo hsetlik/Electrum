@@ -43,5 +43,5 @@ void AHDSREnvelope::killQuick()
 {
   gateIsOn = false;
   inKillQuickMode = true;
-  killQuickDelta = lastOutput / ((KILL_QUICK_MS / 1000.0f) * (float)AudioSystem::getSampleRate());
+  killQuickDelta = lastOutput / ((QUICK_KILL_MS / 1000.0f) * (float)AudioSystem::getSampleRate());
 }

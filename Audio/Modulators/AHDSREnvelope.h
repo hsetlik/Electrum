@@ -2,7 +2,6 @@
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../../Parameters/AudioSystem.h"
 
-#define KILL_QUICK_MS 3.0f
 
 class AHDSREnvelope
 {
