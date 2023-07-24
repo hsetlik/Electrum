@@ -1,4 +1,5 @@
 #include "AHDSREnvelope.h"
+#include "AHDSR.h"
 
 AHDSREnvelope::AHDSREnvelope(EVT* tree, int idx) : 
 state(tree), 
@@ -25,7 +26,7 @@ void AHDSREnvelope::tick()
       inKillQuickMode = lastOutput != 0.0f;
   }
   else
-    lastOutput = AHDSRData::getEnvelopeValue(state->getAudioData()->getEnvelopeData(index), gateIsOn, samplesSinceGateChange);
+    lastOutput = getEnvelopeSample();
   ++samplesSinceGateChange;
 }
 
@@ -44,4 +45,51 @@ void AHDSREnvelope::killQuick()
   gateIsOn = false;
   inKillQuickMode = true;
   killQuickDelta = lastOutput / ((QUICK_KILL_MS / 1000.0f) * (float)AudioSystem::getSampleRate());
+}
+
+float AHDSREnvelope::getEnvelopeSample()
+{
+  auto* env = state->getAudioData()->getEnvelopeData(index);
+  auto currentPhase = AHDSRData::getCurrentPhase(env, gateIsOn, samplesSinceGateChange);
+  float currentMs = (float)samplesSinceGateChange * (float)(1000.0f / AudioSystem::getSampleRate());
+  if(currentPhase == AHDSRPhase::Attack)
+  {
+    if(prevAttackCurve != env->attackCurve)
+    {
+      prevAttackCurve = env->attackCurve;
+      attackExp = std::log(prevAttackCurve) / std::log(0.5f);
+    }
+    float x = currentMs / env->attackMs;
+    return std::pow(x, attackExp);
+  }
+  else if(currentPhase == AHDSRPhase::Hold)
+  {
+   return 1.0f; 
+  }
+  else if(currentPhase == AHDSRPhase::Decay)
+  {
+    float fX = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
+    if(prevDecayCurve != env->decayCurve)
+    {
+      prevDecayCurve = env->decayCurve;
+      decayExp = std::log(prevDecayCurve) / std::log(0.5f);
+    }
+    float normY = std::pow(1.0f - fX, decayExp);
+    return env->sustainLevel + (normY * (1.0f - env->sustainLevel));
+  }
+  else if(currentPhase == AHDSRPhase::Sustain)
+  {
+    return env->sustainLevel;    
+  }
+  else if(currentPhase == AHDSRPhase::Release)
+  {
+    float fX = currentMs / env->releaseMs;
+    if(prevReleaseCurve != env->releaseCurve)
+    {
+      prevReleaseCurve = env->releaseCurve;
+      releaseExp = std::log(prevReleaseCurve) / std::log(0.5f); 
+    }
+    return std::pow(1.0f - fX, releaseExp) * env->sustainLevel;
+  }
+  return 0.0f;
 }

@@ -12,6 +12,16 @@ private:
     size_t samplesSinceGateChange;
     bool inKillQuickMode;
     float killQuickDelta;
+
+    float prevAttackCurve;
+    float prevDecayCurve;
+    float prevReleaseCurve;
+
+    float attackExp;
+    float decayExp;
+    float releaseExp;
+
+    float getEnvelopeSample();
 public:
     const int index;
     AHDSREnvelope(EVT* tree, int idx);
