@@ -33,6 +33,8 @@ struct AHDSRData
 
 // static methods to hande the logic of turning these parameters into an envelope output
     static AHDSRPhase getCurrentPhase(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange);
+// similar to above but takes argume in ms rather than samples
+    static AHDSRPhase getPhaseForMs(AHDSRData* env, bool gateOn, float msSinceGateChange);
 // this does the heavy lifting
     static float getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange);
 // this is helpful for the voice stealing logic

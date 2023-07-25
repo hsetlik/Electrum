@@ -79,9 +79,9 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     if (!isBusy())
         return;
     //tick the modulation sources before we calculate any mod values
-    for(auto e : envs)
+    for(int i = 0; i < NUM_ENVELOPES; i++)
     {
-      e->tick();
+      envs[i]->tick();
     }
     vge.tick();
     float output = 0.0f;

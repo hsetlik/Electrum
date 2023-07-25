@@ -12,6 +12,7 @@ private:
     size_t samplesSinceGateChange;
     bool inKillQuickMode;
     float killQuickDelta;
+    float sampleRate;
 
     float prevAttackCurve;
     float prevDecayCurve;

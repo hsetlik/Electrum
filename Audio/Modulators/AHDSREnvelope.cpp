@@ -10,7 +10,7 @@ inKillQuickMode(false),
 killQuickDelta(0.0f),
 index(idx)
 {
-
+  sampleRate = (float)AudioSystem::getSampleRate();
 }
 
 float AHDSREnvelope::getCurrentSample()
@@ -50,8 +50,8 @@ void AHDSREnvelope::killQuick()
 float AHDSREnvelope::getEnvelopeSample()
 {
   auto* env = state->getAudioData()->getEnvelopeData(index);
-  auto currentPhase = AHDSRData::getCurrentPhase(env, gateIsOn, samplesSinceGateChange);
   float currentMs = (float)samplesSinceGateChange * (float)(1000.0f / AudioSystem::getSampleRate());
+  auto currentPhase = AHDSRData::getPhaseForMs(env, gateIsOn, currentMs);
   if(currentPhase == AHDSRPhase::Attack)
   {
     if(prevAttackCurve != env->attackCurve)
@@ -93,3 +93,4 @@ float AHDSREnvelope::getEnvelopeSample()
   }
   return 0.0f;
 }
+

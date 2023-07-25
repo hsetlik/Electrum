@@ -24,6 +24,26 @@ AHDSRPhase AHDSRData::getCurrentPhase(AHDSRData* env, bool gateOn, size_t sample
     return AHDSRPhase::Idle;
 }
 
+AHDSRPhase AHDSRData::getPhaseForMs(AHDSRData* env, bool gateOn, float msSinceGateChange)
+{
+  if(gateOn)
+  {
+    float current = env->attackMs;
+    if(msSinceGateChange < current)
+      return AHDSRPhase::Attack;
+    current += env->holdMs;
+    if(msSinceGateChange < current)
+      return AHDSRPhase::Hold;
+    current += env->decayMs;
+    if(msSinceGateChange < current)
+      return AHDSRPhase::Decay;
+    return AHDSRPhase::Sustain;
+  }
+  else if(msSinceGateChange < env->releaseMs)
+      return AHDSRPhase::Release;
+  return AHDSRPhase::Idle;
+}
+
 float AHDSRData::getEnvelopeValue(AHDSRData* env, bool gateOn, size_t samplesSinceGateChange)
 {
     auto phase = getCurrentPhase(env, gateOn, samplesSinceGateChange);
