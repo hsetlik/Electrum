@@ -84,13 +84,9 @@ struct WaveUtil
         {
             getRisingRampWave(),
             getTriangleWave(),
-            getPulseWave(0.1f),
-            getPulseWave(0.2f),
-            getPulseWave(0.3f),
-            getPulseWave(0.4f),
+            getFallingRampWave(),
             getPulseWave(0.5f),
-            getPulseWave(0.6f),
-            getFallingRampWave()
+            getPulseWave(0.6f)
         };
     }
 

@@ -101,7 +101,7 @@ BandLimitedWave* Wavetable::getWaveForHz(double hz, double sampleRate)
     float phaseDelta = (float)(hz / sampleRate);
     for (auto& wave : data)
     {
-        if (wave.maxPhaseDelta > phaseDelta && wave.minPhaseDelta <= phaseDelta)
+        if (wave.maxPhaseDelta >= phaseDelta)
             return &wave;
     }
     return &data[WAVES_PER_TABLE - 1];
