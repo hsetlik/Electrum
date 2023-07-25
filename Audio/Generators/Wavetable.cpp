@@ -98,8 +98,7 @@ float Wavetable::makeTable(Wave& waveReal, Wave& waveImag, float scale, float bo
 //================================================================================
 BandLimitedWave* Wavetable::getWaveForHz(double hz, double sampleRate)
 {
-    static float phaseDelta = 0.0f;
-    phaseDelta = (float)(hz / sampleRate);
+    float phaseDelta = (float)(hz / sampleRate);
     for (auto& wave : data)
     {
         if (wave.maxPhaseDelta > phaseDelta && wave.minPhaseDelta <= phaseDelta)
@@ -130,12 +129,11 @@ WavetableSet::WavetableSet(std::string waveData) : WavetableSet(WaveUtil::wavesF
 
 float WavetableSet::getSample(float phase, float tablePos, double freq, double sampleRate)
 {
-    static float lower;
-    static float upper;
-    auto fIdx = Math::fastFloor(tablePos * tables.size());
-    lower = tables[fIdx].getSample(phase, freq, sampleRate);
-    upper = tables[(fIdx + 1) % tables.size()].getSample(phase, freq, sampleRate);
-    return Math::flerp(lower, upper, ((float)tablePos * tables.size()) - (float)Math::fastFloor(tablePos * tables.size()));
+  float fIdx = tablePos * (float)tables.size();
+  size_t iIdx = Math::fastFloor(fIdx);
+  float lower = tables[iIdx].getSample(phase, freq, sampleRate);
+  float upper = tables[(iIdx + 1) % tables.size()].getSample(phase, freq, sampleRate);
+  return Math::flerp(lower, upper, fIdx - (float)iIdx);
 }
 
 

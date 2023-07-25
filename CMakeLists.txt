@@ -10,6 +10,9 @@ enable_testing()
 
 include(FetchContent)
 
+# this sets whether the oscillators use integer indeces or linear interpolation
+add_compile_definitions(INT_INDEX)
+
 # Juce module wrapper for Perfetto profiler
 FetchContent_Declare (
   melatonin_perfetto

@@ -10,17 +10,23 @@ struct WaveUtil
     static float valueAtPhase(float* wave, float phase)
     {
         auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
+#if INT_INDEX
+        return wave[fIdx];
+#else
         return Math::flerp(wave[fIdx], wave[(fIdx + 1) % TABLE_SIZE], (phase * (float)TABLE_SIZE) - (float)fIdx);
+#endif
     }
+
     static float valueAtPhase(Wave& wave, float phase)
     {
         auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
+#if INT_INDEX
+        return wave[fIdx];
+#else
         return Math::flerp(wave[fIdx], wave[(fIdx + 1) % TABLE_SIZE], (phase * (float)TABLE_SIZE) - (float)fIdx);
+#endif
     }
-    static float nonLerpedValueAtPhase(Wave& wave, float phase)
-    {
-        return wave[Math::fastFloor(phase * TABLE_SIZE)];
-    }
+
     static Wave getRisingRampWave()
     {
         Wave wave;
