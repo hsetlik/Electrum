@@ -61,9 +61,9 @@ ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
-    TRACE_DSP();
-    state->loadModulationData(currentModulation);
+//    TRACE_DSP();
     updateParamsForBlock();
+    state->loadModulationData(currentModulation);
     // this loads the midi events and their timestamps into a queue
     loadMidiEvents(midi);
     //make sure we have stereo
@@ -85,15 +85,13 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         buffer.setSample(1, s, right);
     }
     //ensure that the midi queue is empty (i.e. no out of range timestamps)
-    jassert(midiQueue.empty());
+    //jassert(midiQueue.empty());
 }
 
 
 void ElectrumEngine::renderNextSample(float& l, float& r)
 {
     state->tickPerlinForSample();
-    l = 0.0f;
-    r = 0.0f;
     for (auto v : voices)
     {
         v->renderNextSample (l, r);

@@ -9,7 +9,23 @@
 #include "ElectrumVoicesState.h"
 
 // this works like
-using ModDestMap = std::unordered_map<String, std::unordered_map<String, float>>;
+
+struct Modulation
+{
+  String sourceID;
+  float depth;
+};
+
+
+class ModDestMap
+{
+private:
+    std::unordered_map<String, std::vector<Modulation>> map;
+public:
+    ModDestMap();
+    void loadFromTree(ValueTree& modTree);
+    std::vector<Modulation>* getModulationsFor(const String& destID);
+};
 
 class EVT : public APVTS::Listener
 {

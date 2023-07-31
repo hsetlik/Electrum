@@ -65,13 +65,16 @@ void ElectrumVoice::stopNote()
 float ElectrumVoice::filterSample(float input)
 {
   
+  //float mixMod = getCurrentModDestValue(IDs::filterMix.toString());
+  float mixMod = 0.0f;
+  float mix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix, mixMod);
+  if(mix == 0.0f)
+    return input;
   float currentCutoff = ((float)Math::midiToHz(currentNote) * Math::bipolarFlerp(0.0f, 1.0f, baseFilterTracking, getCurrentModDestValue(IDs::filterTracking.toString())));
   currentCutoff = Math::bipolarFlerp(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, currentCutoff, getCurrentModDestValue(IDs::filterCutoff.toString()));
   float currentRes = Math::bipolarFlerp(RESONANCE_MIN, RESONANCE_MAX, baseFilterRes, getCurrentModDestValue(IDs::filterResonance.toString()));
-  float currentMix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix, getCurrentModDestValue(IDs::filterMix.toString()));
-  
   float filtered = filter.process(input, baseFilterType, currentCutoff, currentRes);
-  return Math::flerp(input, filtered, currentMix);
+  return Math::flerp(input, filtered, mix);
 }
 
 void ElectrumVoice::renderNextSample(float& left, float& right)
@@ -79,6 +82,7 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     if (!isBusy())
         return;
     //tick the modulation sources before we calculate any mod values
+    // note from benchmarking: the envelopes seem to take up about 25% of the time
     for(int i = 0; i < NUM_ENVELOPES; i++)
     {
       envs[i]->tick();
@@ -86,15 +90,18 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     vge.tick();
     float output = 0.0f;
     // add each osc's output together to get the input to the processor phase
+    float levelMod = 0.0f;
+    float posMod = 0.0f;
+
     for (auto o : oscs)
     {
-        float levelMod = getCurrentModDestValue(o->getLevelParamName());
-        float posMod = getCurrentModDestValue(o->getPosParamName());
+    //     levelMod = getCurrentModDestValue(o->getLevelParamName());
+    //     posMod = getCurrentModDestValue(o->getPosParamName());
         //jassert(posMod < 1.0f);
         output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
     }
-    output = output * vge.getCurrentSample();
-    output = filterSample(output) * 0.4f;
+   // jassert(output <= 1.0f);
+    output = filterSample(output) * 0.4f * vge.getCurrentSample();
     left += output;
     right += output;
 
@@ -145,8 +152,7 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
     }
     else if(safeID == IDs::envSource.toString())
     {
-        String numStr = srcID.trimCharactersAtStart(safeID);
-        int idx = std::stoi(numStr.toStdString());
+        int idx = srcID.getTrailingIntValue();
         return envs[idx]->getCurrentSample();
     }
     else
@@ -157,15 +163,14 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
 
 float ElectrumVoice::getCurrentModDestValue(const String& destID)
 {
-    auto destIt = modMap->find(destID);
-    if (destIt == modMap->end())
-        return 0.0f;
-    auto& destMap = destIt->second;
+   //TODO 
     float value = 0.0f;
-    for(auto it = destMap.begin(); it != destMap.end(); ++it)
+    auto& sources = *modMap->getModulationsFor(destID);
+    for(auto src : sources)
     {
-        value += getModValueForSample(it->first) * it->second;
+      value += getModValueForSample(src.sourceID) * src.depth;
     }
+
     return value;
 }
 

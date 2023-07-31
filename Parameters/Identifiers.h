@@ -145,7 +145,19 @@ const std::vector<Identifier> ElectrumIDs =
     envSource
 };
 
+const std::vector<Identifier> DestinationIDs = 
+  {
+    oscillatorPos,
+    oscillatorLevel,
+
+    filterCutoff,
+    filterResonance,
+    filterMix,
+    filterTracking
+  };
 #undef DECLARE_ID
+
+#define NUM_DESTINATIONS 6
 
 const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 struct ParamInfoStrings

@@ -6,5 +6,7 @@
 struct TestUtil
 {
     static std::vector<int> randPositiveInRange(int min, int max, int num);
-    static MidiBuffer getTestMidiBuffer(int length, int numNotes, int minNoteLength, int maxNoteLength);
+    static MidiBuffer getRandomMidiBuffer(int length, int numNotes, int minNoteLength, int maxNoteLength);
+  
+    static MidiBuffer getChordBuffer(int length, int numNotes, float noteLength);
 };

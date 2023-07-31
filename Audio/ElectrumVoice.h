@@ -19,7 +19,7 @@ private:
   float lastOutput;
   float levelDelta()
   {
-      return 1.0f / ((QUICK_KILL_MS / 1000.0f) * (float)AudioSystem::getSampleRate());
+      return (float)AudioSystem::getSampleRate() / (QUICK_KILL_MS / 1000.0f);
   }
 public:
   VoiceGateEnvelope(ElectrumVoice* parent);

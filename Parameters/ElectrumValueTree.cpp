@@ -1,7 +1,46 @@
 #include "ElectrumValueTree.h"
 #include "ElectrumVoicesState.h"
 #include "Identifiers.h"
+ModDestMap::ModDestMap()
+{
 
+}
+
+void ModDestMap::loadFromTree(ValueTree& modTree)
+{
+    map.clear();
+    for (auto it = modTree.begin(); it != modTree.end(); ++it)
+    {
+        auto tree = *it;
+        if (tree.hasType(IDs::MODULATION))
+        {
+          String srcID = tree[IDs::modulationSource];
+          String destID = tree[IDs::modulationDest];
+          float depth = tree[IDs::modulationDepth];
+          // if this is already in the map, add it to the end of the list
+          auto existing = map.find(destID);
+          if(existing != map.end())
+          {
+             map[destID].push_back({srcID, depth});
+          }
+          else
+          {
+            map[destID] = {{srcID, depth}};
+          }
+        }
+    }
+}
+
+
+std::vector<Modulation>* ModDestMap::getModulationsFor(const String& destID)
+{
+  if(map.find(destID) != map.end())
+  {
+    return &map[destID];
+  }
+  return nullptr;
+}
+//===============================================================================
 ValueTree EVT::getModulationsTree()
 {
     auto modTree = coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
@@ -86,28 +125,8 @@ void EVT::removeModulation(const String &src, const String &dest)
 void EVT::loadModulationData(ModDestMap& modMap)
 {
     TRACE_DSP();
-    modMap.clear();
-    auto currentMods = getModulations();
-    for(auto& mod : currentMods)
-    {
-        // grip some data
-        String src = mod[IDs::modulationSource];
-        String dest = mod[IDs::modulationDest];
-        float depth = mod[IDs::modulationDepth];
-        // first, check if the dest exists as a key yet
-        auto destIt = modMap.find(dest);
-        // if it does, add the source and depth to the appropriate hashmap
-        if (destIt != modMap.end())
-        {
-            modMap[dest][src] = depth;
-        }
-        // otherwise set it to a new hashmap with just this source and dest
-        else
-        {
-            modMap[dest] = {{src, depth}};
-        }
-    }
-
+    auto tree = getModulationsTree();
+    modMap.loadFromTree(tree);
 }
 //===============================================================
 void EVT::updateEnvelopesForBlock()

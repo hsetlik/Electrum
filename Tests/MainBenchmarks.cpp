@@ -37,30 +37,30 @@
 //     };
 //}
 
-// TEST_CASE("WavetableSet Construction")
-// {
-//     BENCHMARK_ADVANCED("10 square waves")
-//     (Catch::Benchmark::Chronometer meter)
-//     {
-//         auto gui= juce::ScopedJuceInitialiser_GUI {};
+TEST_CASE("WavetableSet Construction")
+{
+    BENCHMARK_ADVANCED("10 square waves")
+    (Catch::Benchmark::Chronometer meter)
+    {
+        auto gui= juce::ScopedJuceInitialiser_GUI {};
 
-//         std::vector<Wave> waves = 
-//         {
-//             WaveUtil::getPulseWave(0.1f),
-//             WaveUtil::getPulseWave(0.2f),
-//             WaveUtil::getPulseWave(0.3f),
-//             WaveUtil::getPulseWave(0.4f),
-//             WaveUtil::getPulseWave(0.5f),
-//             WaveUtil::getPulseWave(0.6f),
-//             WaveUtil::getPulseWave(0.7f),
-//             WaveUtil::getPulseWave(0.8f),
-//             WaveUtil::getPulseWave(0.9f),
-//             WaveUtil::getPulseWave(0.99f)
-//         };
-//         std::vector<Catch::Benchmark::storage_for<WavetableSet>> storage (size_t (meter.runs()));
-//         meter.measure ([&] (int i) { storage[(size_t) i].construct<WavetableSet>(waves); });
-//     };
-// }
+        std::vector<Wave> waves = 
+        {
+            WaveUtil::getPulseWave(0.1f),
+            WaveUtil::getPulseWave(0.2f),
+            WaveUtil::getPulseWave(0.3f),
+            WaveUtil::getPulseWave(0.4f),
+            WaveUtil::getPulseWave(0.5f),
+            WaveUtil::getPulseWave(0.6f),
+            WaveUtil::getPulseWave(0.7f),
+            WaveUtil::getPulseWave(0.8f),
+            WaveUtil::getPulseWave(0.9f),
+            WaveUtil::getPulseWave(0.99f)
+        };
+        std::vector<Catch::Benchmark::storage_for<WavetableSet>> storage (size_t (meter.runs()));
+        meter.measure ([&] (int i) { storage[(size_t) i].construct<WavetableSet>(waves); });
+    };
+}
 
 // TEST_CASE("Perlin generation")
 // {
@@ -96,23 +96,33 @@
 TEST_CASE("ElectrumEngine tests")
 {
     auto gui = juce::ScopedJuceInitialiser_GUI {};
-    
+    const int length1 = 2000; 
     std::unique_ptr<ElectrumAudioProcessor> proc = std::make_unique<ElectrumAudioProcessor>();
-    AudioBuffer<float> testBuffer1(2, 2000);
-    auto midiBuffer = TestUtil::getTestMidiBuffer(2000, 3, 50, 500);
-    proc->prepareToPlay(44100.0f, 2000);
-    BENCHMARK("Buffer with 3 notes 2000 samples")
+    AudioBuffer<float> testBuffer1(2, length1);
+    auto midiBuffer = TestUtil::getChordBuffer(length1, 2, 0.8f);
+    proc->prepareToPlay(44100.0f, length1);
+    BENCHMARK("2000 samples, 2 note chord")
     {
         proc->processBlock(testBuffer1, midiBuffer);
     };
-    // proc.reset(new ElectrumAudioProcessor());
-    // auto midiBuffer2 = TestUtil::getTestMidiBuffer(1000, 5, 50, 500); 
-    // AudioBuffer<float> testBuffer2(2, 1000);
-    // proc->prepareToPlay(44100.0f, 1000);
-    // BENCHMARK("Buffer with 5 notes and 1000 samples")
-    // {
-    //     proc->processBlock(testBuffer2, midiBuffer2);
-    // };
+    const int length2 = 2000;
+    proc.reset(new ElectrumAudioProcessor());
+    auto midiBuffer2 =  TestUtil::getChordBuffer(length2, 4, 0.8f);
+
+    AudioBuffer<float> testBuffer2(2, length2);
+    proc->prepareToPlay(44100.0f, length2);
+    BENCHMARK("2000 samples, 4 note chord")
+    {
+        proc->processBlock(testBuffer2, midiBuffer2);
+    };
+    proc.reset(new ElectrumAudioProcessor());
+    proc->prepareToPlay(44100.0f, length2);
+    auto midiBuffer3 =  TestUtil::getChordBuffer(length2, 8, 0.8f);
+    testBuffer2.clear();
+    BENCHMARK("2000 samples, 8 note chord")
+    {
+        proc->processBlock(testBuffer2, midiBuffer3);
+    };
 }
 
 TEST_CASE("Oscillator benchmarks")
@@ -120,7 +130,7 @@ TEST_CASE("Oscillator benchmarks")
     auto gui = juce::ScopedJuceInitialiser_GUI {};
     std::unique_ptr<ElectrumAudioProcessor> proc = std::make_unique<ElectrumAudioProcessor>();   
     auto& state = proc->state;
-    BENCHMARK("getOscillatorValue")
+    BENCHMARK("getOscillatorValue x 5000")
     {
         const int numSamples = 5000;
         const float phaseDelta = 440.0f / 44100.0f;
@@ -169,7 +179,7 @@ TEST_CASE("flerp Benchmarks")
       std::vector<float> output;
       for(size_t i = 0; i < numLerps; i++)
       {
-       output.push_back(Math::bipolarFlerp(0.0f, 1000.0f, currentVals[i], tVals[i])); 
+       output.push_back(Math::bipolarFlerp(aVals[i], bVals[i], currentVals[i], tVals[i])); 
       }
     };
 
