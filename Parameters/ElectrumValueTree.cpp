@@ -3,12 +3,18 @@
 #include "Identifiers.h"
 ModDestMap::ModDestMap()
 {
-
+  for(size_t i = 0; i < NUM_DESTINATIONS; i++)
+    {
+      modArr[i].destID = IDs::DestinationIDs[i].toString();
+    }
 }
 
 void ModDestMap::loadFromTree(ValueTree& modTree)
 {
-    map.clear();
+    for(auto& mod : modArr)
+    {
+      mod.clearMods();
+    }
     for (auto it = modTree.begin(); it != modTree.end(); ++it)
     {
         auto tree = *it;
@@ -18,25 +24,90 @@ void ModDestMap::loadFromTree(ValueTree& modTree)
           String destID = tree[IDs::modulationDest];
           float depth = tree[IDs::modulationDepth];
           // if this is already in the map, add it to the end of the list
-          auto existing = map.find(destID);
-          if(existing != map.end())
+          for(auto& mod : modArr)
           {
-             map[destID].push_back({srcID, depth});
-          }
-          else
-          {
-            map[destID] = {{srcID, depth}};
+            if(mod.destID == destID)
+            {
+              mod.setMod(srcID, depth);
+              break;
+            }
           }
         }
     }
+  
+}
+
+ModulationDestList::ModulationDestList(const String& id) : destID(id)
+{
+}
+
+ModulationDestList::ModulationDestList(const String& id, ValueTree& tree) : destID(id)
+{
+ for(auto it = tree.begin(); it != tree.end(); ++it)
+  {
+        auto modTree = *it;
+        if (tree.hasType(IDs::MODULATION))
+        {
+          String srcID = modTree[IDs::modulationSource];
+          float depth = modTree[IDs::modulationDepth];
+          mods.add(new Modulation(srcID, depth));
+        }
+  }
+}
+
+void ModulationDestList::addMod(const String& srcID, float depth)
+{
+  mods.add(new Modulation(srcID, depth));
+}
+
+void ModulationDestList::removeMod(const String& srcID)
+{
+ for(auto* mod : mods)
+  {
+    if(mod->sourceID == srcID)
+    {
+      mods.removeObject(mod, true);
+      return;
+    }
+  }
+}
+
+void ModulationDestList::setMod(const String& srcID, float depth)
+{
+  if(!hasMod(srcID))
+  {
+    addMod(srcID, depth);
+    return;
+  }
+  for(auto* mod : mods)
+  {
+    if(mod->sourceID == srcID)
+    {
+      mod->depth = depth;
+      return;
+    }
+  }
 }
 
 
-std::vector<Modulation>* ModDestMap::getModulationsFor(const String& destID)
+bool ModulationDestList::hasMod(const String& srcID)
 {
-  if(map.find(destID) != map.end())
+  for(auto* mod : mods)
   {
-    return &map[destID];
+    if(mod->sourceID == srcID)
+    {
+      return true;
+    }
+  } 
+  return false;
+}
+
+OwnedArray<Modulation>* ModDestMap::getModsFor(const String& destID)
+{
+  for(auto& dest : modArr)
+  {
+    if(dest.destID == destID)
+      return &dest.getMods();
   }
   return nullptr;
 }

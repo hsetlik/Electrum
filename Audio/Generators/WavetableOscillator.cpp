@@ -5,7 +5,9 @@ WavetableOscillator::WavetableOscillator(EVT* t, int idx) :
 state(t),
 index(idx),
 baseWavetablePos(0.0f),
-baseLevel(1.0f)
+baseLevel(1.0f),
+levelMod(0.0f),
+posMod(0.0f)
 {
     
 }

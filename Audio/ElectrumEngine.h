@@ -4,6 +4,7 @@
 #include "ElectrumVoice.h"
 #include <stack>
 #define NUM_VOICES 24
+#define DEST_UPDATE_INTERVAL 50
 
 class ElectrumEngine
 {
@@ -17,11 +18,11 @@ private:
     ModDestMap currentModulation;
 // state
     OwnedArray<ElectrumVoice> voices;
-    
+    uint32 destUpdateIdx; 
 // functions
     void noteOn(int note, float velocity);
     void noteOff(int note);
-    void renderNextSample(float& left, float& right);
+    void renderNextSample(float& left, float& right, bool updateDests);
 
     ElectrumVoice* getFreeVoice();
     ElectrumVoice* getVoicePlayingNote(int note);

@@ -9,7 +9,11 @@ private:
     float phase;
     float baseWavetablePos;
     float baseLevel;
+
 public:
+    //these make things slightly easier ill explain later
+    float levelMod;
+    float posMod;
     WavetableOscillator(EVT* t, int idx);
     float getNextSample(double freq, double sampleRate, float positionMod, float levelMod);
     void setBasePosition(float value) { baseWavetablePos = value; }

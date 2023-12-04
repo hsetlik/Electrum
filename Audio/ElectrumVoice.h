@@ -53,16 +53,21 @@ private:
     OwnedArray<AHDSREnvelope> envs;
     SynthFilter filter;
     float baseFilterCutoff;
+    float currentCutoff;
     float baseFilterRes;
+    float currentRes;
     float baseFilterMix;
+    float currentFilterMix;
     float baseFilterTracking;
+    float currentFilterTracking;
     String baseFilterType;
     // helper function for renderNextSample, deals with the filtering
-    float filterSample(float input);
+    float filterSample(float input, bool updateDests);
     // killQuick stuff
     bool inQuickKill;
     int queuedNote;
     float queuedVelocity;
+
 public:
     ElectrumVoice(EVT* tree, ModDestMap* map, int idx);
     void prepareToPlay(double sampleRate, size_t blockSize)
@@ -84,7 +89,7 @@ public:
     float getCurrentModDestValue(const String& destID);
 
     //called for each sample on audio thread
-    void renderNextSample(float& left, float& right);
+    void renderNextSample(float& left, float& right, bool updateDests);
     int getIndex() const { return index; }
     friend class VoiceGateEnvelope;
 };

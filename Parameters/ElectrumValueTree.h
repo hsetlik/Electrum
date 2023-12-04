@@ -14,19 +14,44 @@ struct Modulation
 {
   String sourceID;
   float depth;
+  Modulation(const String& s, float d) : sourceID(s), depth(d)
+  {
+  }
+};
+
+class ModulationDestList
+{
+  private:
+    OwnedArray<Modulation> mods;
+  public:
+    String destID;
+    ModulationDestList(const String& id="OscPosition0");
+    ModulationDestList(const String& id, ValueTree& tree);
+
+    OwnedArray<Modulation>& getMods() { return mods; }
+
+    void addMod(const String& srcID, float depth);
+    void removeMod(const String& srcID);
+    void setMod(const String& srcID, float depth);
+    bool hasMod(const String& srcID);
+
+    void clearMods()
+    {
+      mods.clear();
+    }
 };
 
 
 class ModDestMap
 {
 private:
-    std::unordered_map<String, std::vector<Modulation>> map;
+    std::array<ModulationDestList, NUM_DESTINATIONS> modArr;
 public:
     ModDestMap();
     void loadFromTree(ValueTree& modTree);
-    std::vector<Modulation>* getModulationsFor(const String& destID);
+    OwnedArray<Modulation>* getModsFor(const String& destID); 
 };
-
+//============================================================================================
 class EVT : public APVTS::Listener
 {
 private:
@@ -192,6 +217,7 @@ public:
     float getPitchBend() { return pitchBendValue.load(); }
     // load the modulations to a structure we can access in a thread-safe way
     void loadModulationData(ModDestMap& modMap);
+    void loadModulationData(ModulationDestList& modList);
     //APVTS::Listener override
     void parameterChanged(const String& paramID, float value) override;
     // -- Graphics/readout stuff===============================================================================

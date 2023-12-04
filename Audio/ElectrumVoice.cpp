@@ -62,22 +62,24 @@ void ElectrumVoice::stopNote()
     }
 }
 
-float ElectrumVoice::filterSample(float input)
+float ElectrumVoice::filterSample(float input, bool updateDests)
 {
   
-  //float mixMod = getCurrentModDestValue(IDs::filterMix.toString());
-  float mixMod = 0.0f;
-  float mix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix, mixMod);
-  if(mix == 0.0f)
+  if(updateDests) // we try to avoid doing this every time
+  {
+    currentFilterMix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix, getCurrentModDestValue(IDs::filterMix.toString()));
+    currentFilterTracking = Math::bipolarFlerp(0.0f, 1.0f, baseFilterTracking, getCurrentModDestValue(IDs::filterTracking.toString()));
+    currentCutoff = ((float)Math::midiToHz(currentNote) * currentFilterTracking);
+    currentCutoff = Math::bipolarFlerp(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff, getCurrentModDestValue(IDs::filterCutoff.toString()));
+    currentRes = Math::bipolarFlerp(RESONANCE_MIN, RESONANCE_MAX, baseFilterRes, getCurrentModDestValue(IDs::filterResonance.toString()));
+  }
+  if(currentFilterMix == 0.0f)
     return input;
-  float currentCutoff = ((float)Math::midiToHz(currentNote) * Math::bipolarFlerp(0.0f, 1.0f, baseFilterTracking, getCurrentModDestValue(IDs::filterTracking.toString())));
-  currentCutoff = Math::bipolarFlerp(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, currentCutoff, getCurrentModDestValue(IDs::filterCutoff.toString()));
-  float currentRes = Math::bipolarFlerp(RESONANCE_MIN, RESONANCE_MAX, baseFilterRes, getCurrentModDestValue(IDs::filterResonance.toString()));
   float filtered = filter.process(input, baseFilterType, currentCutoff, currentRes);
-  return Math::flerp(input, filtered, mix);
+  return Math::flerp(input, filtered, currentFilterMix);
 }
 
-void ElectrumVoice::renderNextSample(float& left, float& right)
+void ElectrumVoice::renderNextSample(float& left, float& right, bool updateDests)
 {
     if (!isBusy())
         return;
@@ -89,19 +91,17 @@ void ElectrumVoice::renderNextSample(float& left, float& right)
     }
     vge.tick();
     float output = 0.0f;
-    // add each osc's output together to get the input to the processor phase
-    float levelMod = 0.0f;
-    float posMod = 0.0f;
-
     for (auto o : oscs)
     {
-    //     levelMod = getCurrentModDestValue(o->getLevelParamName());
-    //     posMod = getCurrentModDestValue(o->getPosParamName());
-        //jassert(posMod < 1.0f);
-        output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), posMod, levelMod);
+      if(updateDests)
+      {
+        o->levelMod = getCurrentModDestValue(o->getLevelParamName());
+        o->posMod = getCurrentModDestValue(o->getPosParamName());
+      }
+      output += o->getNextSample(Math::midiToHz(currentNote), AudioSystem::getSampleRate(), o->posMod, o->levelMod);
     }
    // jassert(output <= 1.0f);
-    output = filterSample(output) * 0.4f * vge.getCurrentSample();
+    output = filterSample(output, updateDests) * 0.5f * vge.getCurrentSample();
     left += output;
     right += output;
 
@@ -137,20 +137,19 @@ void ElectrumVoice::updateForBlock()
 
 float ElectrumVoice::getModValueForSample(const String& srcID)
 {
-    auto safeID = StringUtil::removeTrailingNumbers(srcID);
-    if (srcID == IDs::modWheelSource.toString())
+    if (srcID.contains(IDs::modWheelSource.toString()))
     {
         return state->getModWheel();
     }
-    else if (srcID == IDs::pitchWheelSource.toString())
+    else if (srcID.contains(IDs::pitchWheelSource.toString()))
     {
         return state->getPitchBend();
     }
-    else if(srcID == IDs::perlinSource.toString())
+    else if(srcID.contains(IDs::perlinSource.toString()))
     {
         return state->perlinValue();
     }
-    else if(safeID == IDs::envSource.toString())
+    else if(srcID.contains(IDs::envSource.toString()))
     {
         int idx = srcID.getTrailingIntValue();
         return envs[idx]->getCurrentSample();
@@ -164,13 +163,15 @@ float ElectrumVoice::getModValueForSample(const String& srcID)
 float ElectrumVoice::getCurrentModDestValue(const String& destID)
 {
    //TODO 
+    auto pMap = modMap->getModsFor(destID);
+    if(pMap == nullptr)
+      return 0.0f;
     float value = 0.0f;
-    auto& sources = *modMap->getModulationsFor(destID);
-    for(auto src : sources)
+    auto& sources = *pMap;
+    for(auto* src : sources)
     {
-      value += getModValueForSample(src.sourceID) * src.depth;
+      value += getModValueForSample(src->sourceID) * src->depth;
     }
-
     return value;
 }
 

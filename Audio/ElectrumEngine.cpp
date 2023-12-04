@@ -1,6 +1,7 @@
 #include "ElectrumEngine.h"
 
 ElectrumEngine::ElectrumEngine (EVT* tree) : 
+destUpdateIdx(DEST_UPDATE_INTERVAL), // set this high so we update everything on the first sample
 state (tree)
 {
     for (int i = 0; i < NUM_VOICES; i++)
@@ -62,8 +63,8 @@ ElectrumVoice* ElectrumEngine::getVoicePlayingNote(int note)
 void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 {
 //    TRACE_DSP();
-    updateParamsForBlock();
     state->loadModulationData(currentModulation);
+    updateParamsForBlock();
     // this loads the midi events and their timestamps into a queue
     loadMidiEvents(midi);
     //make sure we have stereo
@@ -79,8 +80,18 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
         }
         float left = 0.0f;
         float right = 0.0f;
-        //STEP 3: Render the actual samples
-        renderNextSample(left, right);
+        // STEP 2: figure out whether to update the mod dests or not
+        if(destUpdateIdx >= DEST_UPDATE_INTERVAL)
+        {
+          destUpdateIdx = 0;
+          //STEP 3: Render the actual samples
+          renderNextSample(left, right, true);
+        }
+        else
+        {
+          ++destUpdateIdx;
+          renderNextSample(left, right, false);
+        }
         buffer.setSample(0, s, left);
         buffer.setSample(1, s, right);
     }
@@ -89,12 +100,12 @@ void ElectrumEngine::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midi)
 }
 
 
-void ElectrumEngine::renderNextSample(float& l, float& r)
+void ElectrumEngine::renderNextSample(float& l, float& r, bool updateDests)
 {
     state->tickPerlinForSample();
     for (auto v : voices)
     {
-        v->renderNextSample (l, r);
+        v->renderNextSample (l, r, updateDests);
     }
 }
 
@@ -110,6 +121,7 @@ int ElectrumEngine::numBusyVoices()
 }
 
 
+// note: this just updates the base of the 
 void ElectrumEngine::updateParamsForBlock()
 {
   state->updatePerlinForBlock();
