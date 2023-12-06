@@ -52,44 +52,54 @@ float AHDSREnvelope::getEnvelopeSample()
   auto* env = state->getAudioData()->getEnvelopeData(index);
   float currentMs = (float)samplesSinceGateChange * (float)(1000.0f / AudioSystem::getSampleRate());
   auto currentPhase = AHDSRData::getPhaseForMs(env, gateIsOn, currentMs);
-  if(currentPhase == AHDSRPhase::Attack)
+  switch(currentPhase)
   {
-    if(prevAttackCurve != env->attackCurve)
-    {
-      prevAttackCurve = env->attackCurve;
-      attackExp = std::log(prevAttackCurve) / std::log(0.5f);
-    }
-    float x = currentMs / env->attackMs;
-    return std::pow(x, attackExp);
-  }
-  else if(currentPhase == AHDSRPhase::Hold)
-  {
-   return 1.0f; 
-  }
-  else if(currentPhase == AHDSRPhase::Decay)
-  {
-    float fX = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
-    if(prevDecayCurve != env->decayCurve)
-    {
-      prevDecayCurve = env->decayCurve;
-      decayExp = std::log(prevDecayCurve) / std::log(0.5f);
-    }
-    float normY = std::pow(1.0f - fX, decayExp);
-    return env->sustainLevel + (normY * (1.0f - env->sustainLevel));
-  }
-  else if(currentPhase == AHDSRPhase::Sustain)
-  {
-    return env->sustainLevel;    
-  }
-  else if(currentPhase == AHDSRPhase::Release)
-  {
-    float fX = currentMs / env->releaseMs;
-    if(prevReleaseCurve != env->releaseCurve)
-    {
-      prevReleaseCurve = env->releaseCurve;
-      releaseExp = std::log(prevReleaseCurve) / std::log(0.5f); 
-    }
-    return std::pow(1.0f - fX, releaseExp) * env->sustainLevel;
+    case AHDSRPhase::Attack:
+      {
+        if(prevAttackCurve != env->attackCurve)
+        {
+          prevAttackCurve = env->attackCurve;
+          attackExp = std::log(prevAttackCurve) / std::log(0.5f);
+        }
+        float x = currentMs / env->attackMs;
+        return std::pow(x, attackExp);
+        break;
+      }
+    case AHDSRPhase::Hold:
+      return 1.0f;
+      break;
+    case AHDSRPhase::Decay:
+      {
+        float fX = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
+        if(prevDecayCurve != env->decayCurve)
+        {
+          prevDecayCurve = env->decayCurve;
+          decayExp = std::log(prevDecayCurve) / std::log(0.5f);
+        }
+        float normY = std::pow(1.0f - fX, decayExp);
+        return env->sustainLevel + (normY * (1.0f - env->sustainLevel));
+        break;
+      }
+    case AHDSRPhase::Sustain:
+      return env->sustainLevel;
+      break;
+    case AHDSRPhase::Release:
+      {
+        float fX = currentMs / env->releaseMs;
+        if(prevReleaseCurve != env->releaseCurve)
+        {
+          prevReleaseCurve = env->releaseCurve;
+          releaseExp = std::log(prevReleaseCurve) / std::log(0.5f); 
+        }
+        return std::pow(1.0f - fX, releaseExp) * env->sustainLevel;
+        break;
+      }
+    case AHDSRPhase::Idle:
+      return 0.0f;
+      break;
+    default:
+      return 0.0f;
+      break;
   }
   return 0.0f;
 }

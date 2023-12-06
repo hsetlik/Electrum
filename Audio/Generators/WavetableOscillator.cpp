@@ -12,12 +12,12 @@ posMod(0.0f)
     
 }
 
-float WavetableOscillator::getNextSample(double freq, double sampleRate, float position, float level)
+float WavetableOscillator::getNextSample(double freq, double sampleRate, float position, float levelMod)
 {
-    if (baseLevel + level <= 0.0f)
+    if (baseLevel + levelMod <= 0.0f)
         return 0.0f;
     phase = std::fmod(phase + (float)(freq / sampleRate), 1.0f);
-    return state->getOscillatorValue(index, phase, Math::bipolarFlerp(0.0f, 1.0f, baseWavetablePos, position), freq, sampleRate) * Math::bipolarFlerp(0.0f, 1.0f, baseLevel, level);
+    return state->getOscillatorValue(index, phase, Math::bipolarFlerp(0.0f, 1.0f, baseWavetablePos, position), freq, sampleRate) * Math::bipolarFlerp(0.0f, 1.0f, baseLevel, levelMod);
 }
 
 void WavetableOscillator::updateBasePos()
