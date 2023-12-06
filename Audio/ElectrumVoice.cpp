@@ -81,8 +81,9 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   for (uint8 i = 0; i < oscs.size(); i++) {
     if (updateDests) {
       oscState[i].levelMod =
+          getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
+      oscState[i].posMod =
           getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
-      oscState[i].posMod = getCurrentModDestValue(oscs[i]->getPosParamName());
     }
     output += oscs[i]->getNextSample(Math::midiToHz(currentNote),
                                      AudioSystem::getSampleRate(),
@@ -142,9 +143,6 @@ float ElectrumVoice::getCurrentModDestValue(const String &destID) {
   }
   float value = 0.0f;
   auto &sources = *pMap;
-  if (destID.contains(IDs::oscillatorLevel.toString()) && sources.size() > 0) {
-    DLog::log("Level has mod sources");
-  }
   for (auto *src : sources)
     value += getModValueForSample(src->sourceID) * src->depth;
   return value;

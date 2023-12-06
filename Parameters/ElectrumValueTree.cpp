@@ -17,6 +17,7 @@ ModDestMap::ModDestMap() {
     modArr[idx].destID = IDs::oscillatorLevel.toString() + String(o);
     ++idx;
   }
+  DLog::log(String(idx) + " mod destinations initialized");
 }
 
 void ModDestMap::loadFromTree(ValueTree &modTree) {
