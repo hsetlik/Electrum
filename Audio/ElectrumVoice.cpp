@@ -73,23 +73,20 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   if (!isBusy())
     return;
   // tick the modulation sources before we calculate any mod values
-  //  note from benchmarking: the envelopes seem to take up about 25% of the
-  //  time
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     envs[i]->tick();
   }
   vge.tick();
   float output = 0.0f;
-  for (auto o : oscs) {
+  for (uint8 i = 0; i < oscs.size(); i++) {
     if (updateDests) {
-      o->levelMod = getCurrentModDestValue(o->getLevelParamName());
-      o->posMod = getCurrentModDestValue(o->getPosParamName());
-      if (o->levelMod == 1.0f) {
-      }
+      oscState[i].levelMod =
+          getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
+      oscState[i].posMod = getCurrentModDestValue(oscs[i]->getPosParamName());
     }
-    output +=
-        o->getNextSample(Math::midiToHz(currentNote),
-                         AudioSystem::getSampleRate(), o->posMod, o->levelMod);
+    output += oscs[i]->getNextSample(Math::midiToHz(currentNote),
+                                     AudioSystem::getSampleRate(),
+                                     oscState[i].levelMod, oscState[i].posMod);
   }
   // jassert(output <= 1.0f);
   output = filterSample(output, updateDests) * 0.5f * vge.getCurrentSample();
@@ -129,7 +126,7 @@ float ElectrumVoice::getModValueForSample(const String &srcID) {
     return state->getPitchBend();
   } else if (srcID.contains(IDs::perlinSource.toString())) {
     return state->perlinValue();
-  } else if (srcID.contains(IDs::envSource.toString())) {
+  } else if (srcID.contains("envSource")) {
     int idx = srcID.getTrailingIntValue();
     return envs[idx]->getCurrentSample();
   } else {
@@ -139,13 +136,17 @@ float ElectrumVoice::getModValueForSample(const String &srcID) {
 
 float ElectrumVoice::getCurrentModDestValue(const String &destID) {
   auto pMap = modMap->getModsFor(destID);
-  if (pMap == nullptr)
+  if (pMap == nullptr) {
+    DLog::log("No modulations found for ID " + destID);
     return 0.0f;
+  }
   float value = 0.0f;
   auto &sources = *pMap;
-  for (auto *src : sources) {
-    value += getModValueForSample(src->sourceID) * src->depth;
+  if (destID.contains(IDs::oscillatorLevel.toString()) && sources.size() > 0) {
+    DLog::log("Level has mod sources");
   }
+  for (auto *src : sources)
+    value += getModValueForSample(src->sourceID) * src->depth;
   return value;
 }
 

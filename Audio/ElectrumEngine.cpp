@@ -50,8 +50,8 @@ ElectrumVoice *ElectrumEngine::getVoicePlayingNote(int note) {
 void ElectrumEngine::processBlock(AudioBuffer<float> &buffer,
                                   MidiBuffer &midi) {
   //    TRACE_DSP();
-  state->loadModulationData(currentModulation);
   updateParamsForBlock();
+  state->loadModulationData(currentModulation);
   // this loads the midi events and their timestamps into a queue
   loadMidiEvents(midi);
   // make sure we have stereo
@@ -99,7 +99,8 @@ int ElectrumEngine::numBusyVoices() {
   return count;
 }
 
-// note: this just updates the base of the
+// note: this just updates the base value of the various parameters, modulation
+// is dealt with elsewhere
 void ElectrumEngine::updateParamsForBlock() {
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
