@@ -16,6 +16,8 @@ public:
   WavetableOscillator(EVT *t, int idx);
   float getNextSample(double freq, double sampleRate, float levelMod,
                       float posMod);
+  float getNextSample(int midiNote, double sampleRate, float levelMod,
+                      float posMod, float coarseMod, float fineMod);
   void setBasePosition(float value) { baseWavetablePos = value; }
   void setBaseLevel(float value) { baseLevel = value; }
   void updateBasePos();

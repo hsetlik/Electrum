@@ -6,7 +6,8 @@
 #define NUM_VOICES 24
 #define DEST_UPDATE_INTERVAL 50
 
-class ElectrumEngine {
+class ElectrumEngine
+{
 private:
   struct TimestampedMidiMessage {
     int timestamp;
@@ -38,7 +39,8 @@ public:
   // main callback
   void processBlock(AudioBuffer<float> &buffer, MidiBuffer &midi);
   // setup for audio stuff
-  void prepareToPlay(double sampleRate, size_t blockSize) {
+  void prepareToPlay(double sampleRate, size_t blockSize)
+  {
     for (auto v : voices)
       v->prepareToPlay(sampleRate, blockSize);
   }

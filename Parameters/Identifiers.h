@@ -161,7 +161,7 @@ const std::vector<Identifier> DestinationIDs = {
 
 // NOTE: there are TEN potential destinations for each voice because there are
 // three oscillators
-#define NUM_DESTINATIONS 10
+#define NUM_DESTINATIONS 16
 
 const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 struct ParamInfoStrings {
@@ -251,7 +251,8 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
 
 };
 
-inline String getParamName(const String &paramID, bool longName = false) {
+inline String getParamName(const String &paramID, bool longName = false)
+{
   String safeParamID = StringUtil::removeTrailingNumbers(paramID);
   auto it = paramDisplayNames.find(safeParamID);
   if (it != paramDisplayNames.end()) {
@@ -261,47 +262,55 @@ inline String getParamName(const String &paramID, bool longName = false) {
   return "";
 }
 
-inline frange getAttackRange() {
+inline frange getAttackRange()
+{
   frange range(ATTACK_MS_MIN, ATTACK_MS_MAX, 0.0001f);
   range.setSkewForCentre(ATTACK_MS_CENTER);
   return range;
 }
 
-inline frange getHoldRange() {
+inline frange getHoldRange()
+{
   frange range(HOLD_MS_MIN, HOLD_MS_MAX, 0.0001f);
   range.setSkewForCentre(HOLD_MS_CENTER);
   return range;
 }
 
-inline frange getDecayRange() {
+inline frange getDecayRange()
+{
   frange range(DECAY_MS_MIN, DECAY_MS_MAX, 0.0001f);
   range.setSkewForCentre(DECAY_MS_CENTER);
   return range;
 }
 
-inline frange getSustainRange() {
+inline frange getSustainRange()
+{
   frange range(0.0f, 1.0f, 0.00000f);
   return range;
 }
 
-inline frange getReleaseRange() {
+inline frange getReleaseRange()
+{
   frange range(RELEASE_MS_MIN, RELEASE_MS_MAX, 0.0001f);
   range.setSkewForCentre(RELEASE_MS_CENTER);
   return range;
 }
 
-inline frange getCutoffRange() {
+inline frange getCutoffRange()
+{
   frange range(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, 0.00001f);
   range.setSkewForCentre(CUTOFF_HZ_CENTER);
   return range;
 }
-inline frange getResonanceRange() {
+inline frange getResonanceRange()
+{
   frange range(RESONANCE_MIN, RESONANCE_MAX, 0.00001f);
   range.setSkewForCentre(RESONANCE_CENTER);
   return range;
 }
 
-inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout() {
+inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
+{
   AudioProcessorValueTreeState::ParameterLayout layout;
   frange posRange(0.0f, 1.0f, 0.0001f);
   frange levelRange(0.0f, 1.0f, 0.0001f);

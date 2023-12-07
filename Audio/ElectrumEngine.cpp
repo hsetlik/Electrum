@@ -3,13 +3,15 @@
 ElectrumEngine::ElectrumEngine(EVT *tree)
     : destUpdateIdx(DEST_UPDATE_INTERVAL), // set this high so we update
                                            // everything on the first sample
-      state(tree) {
+      state(tree)
+{
   for (int i = 0; i < NUM_VOICES; i++) {
     voices.add(new ElectrumVoice(state, &currentModulation, i));
   }
 }
 
-void ElectrumEngine::noteOn(int note, float velocity) {
+void ElectrumEngine::noteOn(int note, float velocity)
+{
   auto existing = getVoicePlayingNote(note);
   if (existing != nullptr) {
     existing->stealNote(note, velocity);
@@ -20,7 +22,8 @@ void ElectrumEngine::noteOn(int note, float velocity) {
   }
 }
 
-void ElectrumEngine::noteOff(int note) {
+void ElectrumEngine::noteOff(int note)
+{
 
   auto voice = getVoicePlayingNote(note);
   if (voice != nullptr) {
@@ -30,7 +33,8 @@ void ElectrumEngine::noteOff(int note) {
   }
 }
 
-ElectrumVoice *ElectrumEngine::getFreeVoice() {
+ElectrumVoice *ElectrumEngine::getFreeVoice()
+{
   for (auto v : voices) {
     if (!v->isBusy())
       return v;
@@ -39,7 +43,8 @@ ElectrumVoice *ElectrumEngine::getFreeVoice() {
   return nullptr;
 }
 
-ElectrumVoice *ElectrumEngine::getVoicePlayingNote(int note) {
+ElectrumVoice *ElectrumEngine::getVoicePlayingNote(int note)
+{
   for (auto v : voices) {
     if (v->getCurrentNote() == note && v->isBusy())
       return v;
@@ -47,8 +52,8 @@ ElectrumVoice *ElectrumEngine::getVoicePlayingNote(int note) {
   return nullptr;
 }
 
-void ElectrumEngine::processBlock(AudioBuffer<float> &buffer,
-                                  MidiBuffer &midi) {
+void ElectrumEngine::processBlock(AudioBuffer<float> &buffer, MidiBuffer &midi)
+{
   //    TRACE_DSP();
   updateParamsForBlock();
   state->loadModulationData(currentModulation);
@@ -83,14 +88,16 @@ void ElectrumEngine::processBlock(AudioBuffer<float> &buffer,
   // jassert(midiQueue.empty());
 }
 
-void ElectrumEngine::renderNextSample(float &l, float &r, bool updateDests) {
+void ElectrumEngine::renderNextSample(float &l, float &r, bool updateDests)
+{
   state->tickPerlinForSample();
   for (auto v : voices) {
     v->renderNextSample(l, r, updateDests);
   }
 }
 
-int ElectrumEngine::numBusyVoices() {
+int ElectrumEngine::numBusyVoices()
+{
   int count = 0;
   for (auto v : voices) {
     if (v->isBusy())
@@ -101,7 +108,8 @@ int ElectrumEngine::numBusyVoices() {
 
 // note: this just updates the base value of the various parameters, modulation
 // is dealt with elsewhere
-void ElectrumEngine::updateParamsForBlock() {
+void ElectrumEngine::updateParamsForBlock()
+{
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
   // check to update state for voices that have trailed off
@@ -112,7 +120,8 @@ void ElectrumEngine::updateParamsForBlock() {
   }
 }
 
-void ElectrumEngine::loadMidiEvents(MidiBuffer &midi) {
+void ElectrumEngine::loadMidiEvents(MidiBuffer &midi)
+{
   for (auto it = midi.begin(); it != midi.end(); ++it) {
     auto metadata = *it;
     TimestampedMidiMessage m;
@@ -122,7 +131,8 @@ void ElectrumEngine::loadMidiEvents(MidiBuffer &midi) {
   }
 }
 
-void ElectrumEngine::handleMidiMessage(MidiMessage &message) {
+void ElectrumEngine::handleMidiMessage(MidiMessage &message)
+{
   // big ol else if to handle every type of MIDI message
   if (message.isNoteOn()) {
     noteOn(message.getNoteNumber(), message.getVelocity());
