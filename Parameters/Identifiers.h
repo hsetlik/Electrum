@@ -37,6 +37,12 @@
 
 #define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
 
+#define COARSE_TUNE_MIN -12.0f
+#define COARSE_TUNE_MAX 12.0f
+
+#define FINE_TUNE_MIN -100.0f
+#define FINE_TUNE_MAX 100.0f
+
 #define CUTOFF_HZ_MIN 20.0f
 #define CUTOFF_HZ_MAX 20000.0f
 #define CUTOFF_HZ_CENTER 1000.0f
@@ -64,6 +70,8 @@ DECLARE_ID(ELECTRUM_STATE)
 // oscillator
 DECLARE_ID(oscillatorPos)
 DECLARE_ID(oscillatorLevel)
+DECLARE_ID(oscillatorCoarseTune)
+DECLARE_ID(oscillatorFineTune)
 
 // envelope
 DECLARE_ID(attackMs)
@@ -105,31 +113,50 @@ DECLARE_ID(pitchWheelSource)
 DECLARE_ID(perlinSource)
 DECLARE_ID(envSource)
 
-const std::vector<Identifier> ElectrumIDs = {
-    oscillatorPos,    oscillatorLevel,
+const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
+                                             oscillatorLevel,
 
-    attackMs,         attackCurve,      holdMs,
+                                             oscillatorCoarseTune,
+                                             oscillatorFineTune,
 
-    decayMs,          decayCurve,       sustainLevel,
+                                             attackMs,
+                                             attackCurve,
+                                             holdMs,
 
-    releaseMs,        releaseCurve,
+                                             decayMs,
+                                             decayCurve,
+                                             sustainLevel,
 
-    filterType,       filterCutoff,     filterResonance,
-    filterMix,        filterTracking,
+                                             releaseMs,
+                                             releaseCurve,
 
-    wavetableName,    wavetableSize,    wavetableStringData,
+                                             filterType,
+                                             filterCutoff,
+                                             filterResonance,
+                                             filterMix,
+                                             filterTracking,
 
-    modulationSource, modulationDest,   modulationDepth,
+                                             wavetableName,
+                                             wavetableSize,
+                                             wavetableStringData,
 
-    perlinFreq,       perlinOctaves,    perlinLacunarity,
+                                             modulationSource,
+                                             modulationDest,
+                                             modulationDepth,
 
-    modWheelSource,   pitchWheelSource, perlinSource,
-    envSource};
+                                             perlinFreq,
+                                             perlinOctaves,
+                                             perlinLacunarity,
 
-const std::vector<Identifier> DestinationIDs = {oscillatorPos, oscillatorLevel,
+                                             modWheelSource,
+                                             pitchWheelSource,
+                                             perlinSource,
+                                             envSource};
 
-                                                filterCutoff,  filterResonance,
-                                                filterMix,     filterTracking};
+const std::vector<Identifier> DestinationIDs = {
+    oscillatorPos,      oscillatorLevel, oscillatorCoarseTune,
+    oscillatorFineTune, filterCutoff,    filterResonance,
+    filterMix,          filterTracking};
 #undef DECLARE_ID
 
 // NOTE: there are TEN potential destinations for each voice because there are
@@ -149,7 +176,12 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
      {"Osc. pos.", "Wavetable Oscillator Position",
       "Current position (range 0-1) in this oscillator's set of wavetables"}},
     {oscillatorLevel.toString(),
-     {"Osc. level", "Oscilator level", "The oscillator's output level"}},
+     {"Osc. level", "Oscillator level", "The oscillator's output level"}},
+    {oscillatorCoarseTune.toString(),
+     {"Osc. coarse tune", "Oscillator coarse tuning",
+      "Coarse pitch adjustment"}},
+    {oscillatorFineTune.toString(),
+     {"Osc. fine tune", "Oscillator fine tuning", "Fine pitch adjustment"}},
     // perlin
     {perlinFreq.toString(),
      {"Freq.", "Perlin Noise Frequency",
@@ -273,17 +305,27 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout() {
   AudioProcessorValueTreeState::ParameterLayout layout;
   frange posRange(0.0f, 1.0f, 0.0001f);
   frange levelRange(0.0f, 1.0f, 0.0001f);
+  frange coarseRange(COARSE_TUNE_MIN, COARSE_TUNE_MAX, 1.0f);
+  frange fineRange(FINE_TUNE_MIN, FINE_TUNE_MAX, 0.0001f);
   // oscillator params
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     auto iStr = String(i);
     String positionId = oscillatorPos.toString() + iStr;
     String levelId = oscillatorLevel.toString() + iStr;
+    String coarseId = oscillatorCoarseTune.toString() + iStr;
+    String fineId = oscillatorFineTune.toString() + iStr;
     auto levelName = getParamName(positionId, true);
     auto positionName = getParamName(levelId, true);
+    auto coarseName = getParamName(coarseId, true);
+    auto fineName = getParamName(fineId, true);
     layout.add(std::make_unique<AudioParameterFloat>(
         positionId, positionName, posRange, OSC_POS_DEFAULT));
     layout.add(std::make_unique<AudioParameterFloat>(
         levelId, levelName, levelRange, OSC_LEVEL_DEFAULT));
+    layout.add(std::make_unique<AudioParameterFloat>(coarseId, coarseName,
+                                                     coarseRange, 0.0f));
+    layout.add(std::make_unique<AudioParameterFloat>(fineId, fineName,
+                                                     fineRange, 0.0f));
   }
   // envelopes
   frange curveRange(ENV_CURVE_MIN, ENV_CURVE_MAX, 0.0001f);

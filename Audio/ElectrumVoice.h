@@ -42,6 +42,8 @@ private:
   struct OscModValues {
     float posMod;
     float levelMod;
+    float coarseMod;
+    float fineMod;
   };
 
   EVT *const state;

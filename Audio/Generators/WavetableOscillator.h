@@ -8,6 +8,8 @@ private:
   float phase;
   float baseWavetablePos;
   float baseLevel;
+  float baseCoarseTune;
+  float baseFineTune;
 
 public:
   // these make things slightly easier ill explain later
@@ -18,6 +20,8 @@ public:
   void setBaseLevel(float value) { baseLevel = value; }
   void updateBasePos();
   void updateBaseLevel();
+  void updateBaseCoarse();
+  void updateBaseFine();
   String getPosParamName() const {
     return IDs::oscillatorPos.toString() + String(index);
   }

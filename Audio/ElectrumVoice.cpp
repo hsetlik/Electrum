@@ -84,6 +84,10 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
           getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
       oscState[i].posMod =
           getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
+      oscState[i].coarseMod = getCurrentModDestValue(
+          IDs::oscillatorCoarseTune.toString() + String(i));
+      oscState[i].fineMod = getCurrentModDestValue(
+          IDs::oscillatorFineTune.toString() + String(i));
     }
     output += oscs[i]->getNextSample(Math::midiToHz(currentNote),
                                      AudioSystem::getSampleRate(),
@@ -105,6 +109,8 @@ void ElectrumVoice::updateForBlock() {
   for (auto o : oscs) {
     o->updateBasePos();
     o->updateBaseLevel();
+    o->updateBaseCoarse();
+    o->updateBaseFine();
   }
   baseFilterCutoff = state->getFloatParamValue(IDs::filterCutoff.toString());
   baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString());

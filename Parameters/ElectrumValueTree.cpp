@@ -16,6 +16,10 @@ ModDestMap::ModDestMap() {
     ++idx;
     modArr[idx].destID = IDs::oscillatorLevel.toString() + String(o);
     ++idx;
+    modArr[idx].destID = IDs::oscillatorCoarseTune.toString() + String(o);
+    ++idx;
+    modArr[idx].destID = IDs::oscillatorFineTune.toString() + String(o);
+    ++idx;
   }
   DLog::log(String(idx) + " mod destinations initialized");
 }

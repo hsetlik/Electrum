@@ -16,7 +16,7 @@ void ModulationDestSlider::resized() {
   lBounds = Rectangle<float>(0.0f, 0.0f, shorter, shorter);
   stack.setBounds(lBounds.toNearestInt());
   paramSlider.setBounds(
-      lBounds.reduced(lBounds.getWidth() / 4.0f).toNearestInt());
+      lBounds.reduced(lBounds.getWidth() / 6.0f).toNearestInt());
   paramSlider.toFront(false);
 }
 

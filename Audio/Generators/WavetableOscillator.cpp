@@ -24,3 +24,13 @@ void WavetableOscillator::updateBaseLevel() {
   String id = IDs::oscillatorLevel.toString() + String(index);
   baseLevel = *state->getAPVTS()->getRawParameterValue(id);
 }
+
+void WavetableOscillator::updateBaseCoarse() {
+  String id = IDs::oscillatorCoarseTune.toString() + String(index);
+  baseCoarseTune = *state->getAPVTS()->getRawParameterValue(id);
+}
+
+void WavetableOscillator::updateBaseFine() {
+  String id = IDs::oscillatorFineTune.toString() + String(index);
+  baseFineTune = *state->getAPVTS()->getRawParameterValue(id);
+}
