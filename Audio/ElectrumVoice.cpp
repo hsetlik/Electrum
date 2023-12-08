@@ -3,7 +3,8 @@
 ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
     : state(tree), modMap(map), index(idx), currentNote(-1),
       currentNoteVelocity(0.0f), gate(false), vge(this), filter(tree, idx),
-      inQuickKill(false), queuedNote(0), queuedVelocity(0.0f) {
+      inQuickKill(false), queuedNote(0), queuedVelocity(0.0f)
+{
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     oscs.add(new WavetableOscillator(state, i));
   }
@@ -14,7 +15,8 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
 
 bool ElectrumVoice::isBusy() { return gate || (!vge.isFinished()); }
 
-void ElectrumVoice::startNote(int note, float vel) {
+void ElectrumVoice::startNote(int note, float vel)
+{
   currentNote = note;
   currentNoteVelocity = vel;
   gate = true;
@@ -25,7 +27,8 @@ void ElectrumVoice::startNote(int note, float vel) {
   state->startVoice(index);
 }
 
-void ElectrumVoice::stealNote(int note, float velocity) {
+void ElectrumVoice::stealNote(int note, float velocity)
+{
   inQuickKill = true;
   queuedNote = note;
   queuedVelocity = velocity;
@@ -34,7 +37,8 @@ void ElectrumVoice::stealNote(int note, float velocity) {
   vge.killQuick();
 }
 
-void ElectrumVoice::stopNote() {
+void ElectrumVoice::stopNote()
+{
   vge.end();
   gate = false;
   for (auto e : envs) {
@@ -42,7 +46,8 @@ void ElectrumVoice::stopNote() {
   }
 }
 
-float ElectrumVoice::filterSample(float input, bool updateDests) {
+float ElectrumVoice::filterSample(float input, bool updateDests)
+{
 
   if (updateDests) // we try to avoid doing this every time
   {
@@ -69,7 +74,8 @@ float ElectrumVoice::filterSample(float input, bool updateDests) {
 }
 
 void ElectrumVoice::renderNextSample(float &left, float &right,
-                                     bool updateDests) {
+                                     bool updateDests)
+{
   if (!isBusy())
     return;
   // tick the modulation sources before we calculate any mod values
@@ -89,9 +95,9 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
       oscState[i].fineMod = getCurrentModDestValue(
           IDs::oscillatorFineTune.toString() + String(i));
     }
-    output += oscs[i]->getNextSample(Math::midiToHz(currentNote),
-                                     AudioSystem::getSampleRate(),
-                                     oscState[i].levelMod, oscState[i].posMod);
+    output += oscs[i]->getNextSample(
+        currentNote, AudioSystem::getSampleRate(), oscState[i].levelMod,
+        oscState[i].posMod, oscState[i].coarseMod, oscState[i].fineMod);
   }
   // jassert(output <= 1.0f);
   output = filterSample(output, updateDests) * 0.5f * vge.getCurrentSample();
@@ -105,7 +111,8 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   }
 }
 
-void ElectrumVoice::updateForBlock() {
+void ElectrumVoice::updateForBlock()
+{
   for (auto o : oscs) {
     o->updateBasePos();
     o->updateBaseLevel();
@@ -126,7 +133,8 @@ void ElectrumVoice::updateForBlock() {
   }
 }
 
-float ElectrumVoice::getModValueForSample(const String &srcID) {
+float ElectrumVoice::getModValueForSample(const String &srcID)
+{
   if (srcID.contains(IDs::modWheelSource.toString())) {
     return state->getModWheel();
   } else if (srcID.contains(IDs::pitchWheelSource.toString())) {
@@ -141,7 +149,8 @@ float ElectrumVoice::getModValueForSample(const String &srcID) {
   }
 }
 
-float ElectrumVoice::getCurrentModDestValue(const String &destID) {
+float ElectrumVoice::getCurrentModDestValue(const String &destID)
+{
   auto pMap = modMap->getModsFor(destID);
   if (pMap == nullptr) {
     DLog::log("No modulations found for ID " + destID);
@@ -156,9 +165,12 @@ float ElectrumVoice::getCurrentModDestValue(const String &destID) {
 
 //=========================================================================
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice *p)
-    : parent(p), gate(false), forceKillQuick(false), lastOutput(0.0f) {}
+    : parent(p), gate(false), forceKillQuick(false), lastOutput(0.0f)
+{
+}
 
-void VoiceGateEnvelope::tick() {
+void VoiceGateEnvelope::tick()
+{
   if (forceKillQuick) {
     lastOutput = std::max(lastOutput - levelDelta(), 0.0f);
     forceKillQuick = lastOutput > 0.0f;
@@ -172,7 +184,8 @@ void VoiceGateEnvelope::tick() {
 
 void VoiceGateEnvelope::start() { gate = true; }
 
-bool VoiceGateEnvelope::parentIsFinished() {
+bool VoiceGateEnvelope::parentIsFinished()
+{
   if (gate)
     return false;
   for (auto e : parent->envs) {

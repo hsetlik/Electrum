@@ -1,17 +1,14 @@
 #include "ElectrumEditor.h"
 
 ElectrumEditor::ElectrumEditor(EVT *tree)
-    : state(tree), modWhlSource(tree), pitchWhlSource(tree), perlin(tree),
-      envPanel(tree), procPanel(tree)
+    : state(tree), macro(tree), envPanel(tree), procPanel(tree)
 {
   setLookAndFeel(&lnf);
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     oscEditors.add(new OscillatorEditor(state, i));
     addAndMakeVisible(oscEditors.getLast());
   }
-  addAndMakeVisible(modWhlSource);
-  addAndMakeVisible(pitchWhlSource);
-  addAndMakeVisible(perlin);
+  addAndMakeVisible(macro);
   addAndMakeVisible(envPanel);
   addAndMakeVisible(procPanel);
 }
@@ -21,21 +18,21 @@ void ElectrumEditor::paint(Graphics &) {}
 void ElectrumEditor::resized()
 {
   auto lBounds = getLocalBounds().toFloat();
-  auto modArea = lBounds.removeFromLeft(lBounds.getWidth() / 5.0f);
-  modWhlSource.setBounds(
-      modArea.removeFromTop(modArea.getWidth() / 3.0f).toNearestInt());
-  pitchWhlSource.setBounds(
-      modArea.removeFromTop(modArea.getWidth() / 3.0f).toNearestInt());
-  perlin.setBounds(modArea.removeFromTop(modArea.getWidth()).toNearestInt());
-  auto oscArea = lBounds.removeFromTop(lBounds.getHeight() * 0.45f);
-  auto oscWidth = oscArea.getWidth() / (NUM_OSCILLATORS + 1);
+  float dX = lBounds.getWidth() / 36.0f;
+  auto modArea = lBounds.removeFromLeft(dX * 8.0f);
+  // TODO: this is where the header and patch selector should eventually go
+  // auto headerArea = modArea.removeFromTop(dX * 8.0f);
+  macro.setBounds(modArea.toNearestInt());
+  auto oscArea = lBounds.removeFromTop(dX * 14);
+  const float oscWidth = oscArea.getWidth() / (float)NUM_OSCILLATORS;
+  // set up eac oscillator here
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
-    auto a = oscArea.removeFromLeft(oscWidth).toNearestInt();
-    oscEditors[i]->setBounds(a);
+    auto bounds = oscArea.removeFromLeft(oscWidth);
+    oscEditors[i]->setBounds(bounds.toNearestInt());
   }
-  auto envArea = lBounds.removeFromTop(oscArea.getHeight() * 0.65f);
-  envPanel.setBounds(envArea.removeFromLeft(oscWidth * 2.0f).toNearestInt());
-
-  auto procArea = lBounds.removeFromLeft(lBounds.getWidth() * 0.70f);
-  procPanel.setBounds(procArea.toNearestInt());
+  // the envelope panel
+  auto envArea = lBounds.removeFromLeft(12.0f * dX);
+  envPanel.setBounds(envArea.toNearestInt());
+  // the processor panel
+  procPanel.setBounds(lBounds.toNearestInt());
 }

@@ -114,6 +114,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeGraph.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeLevelComponent.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/EnvelopeLevelComponent.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModMacroPanel.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModMacroPanel.cpp"
     # /GUI/GeneratorPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
