@@ -29,6 +29,8 @@ FetchContent_Declare(
   GIT_TAG v3.3.2)
 FetchContent_MakeAvailable(Catch2)
 
+set(FONTFILES "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf")
+
 set(SOURCES
     # /Core
     "${CMAKE_CURRENT_LIST_DIR}/Core/PluginEditor.h"
@@ -89,6 +91,8 @@ set(SOURCES
     # /GUI/Modulation
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/LabeledMDS.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/LabeledMDS.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationSourceComponent.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/DepthSlider.h"
@@ -136,6 +140,16 @@ juce_add_binary_data(
   SOURCES
   "${CMAKE_CURRENT_LIST_DIR}/Shaders/WavetableGraphFragment.glsl"
   "${CMAKE_CURRENT_LIST_DIR}/Shaders/WavetableGraphVertex.glsl")
+
+# make a binary data target to share the font files
+juce_add_binary_data(
+  fontBinaries
+  HEADER_NAME
+  "FontBinaries.h"
+  NAMESPACE
+  "FontBinaries"
+  SOURCES
+  "${FONTFILES}")
 
 set(FORMATS AU VST3)
 # By default we don't want Xcode schemes to be made for modules, etc
@@ -198,7 +212,8 @@ target_link_libraries(
          juce::juce_recommended_lto_flags
          juce::juce_recommended_warning_flags
          Melatonin::Perfetto
-         shaderLib)
+         shaderLib
+         fontBinaries)
 # setting up benchamrks
 if(BUILD_BENCHMARKS)
 
