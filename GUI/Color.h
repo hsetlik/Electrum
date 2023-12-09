@@ -4,10 +4,10 @@
 #include "Utility/GUIUtil.h"
 #ifndef COLOR_H
 #define COLOR_H
-namespace Color
-{
+namespace Color {
 // a little macro to make globally defining and accessing colors easier
-#define DECLARE_COLOR(name, r, g, b) const Colour name = Colour::fromRGB(r, g, b);
+#define DECLARE_COLOR(name, r, g, b)                                           \
+  const Colour name = Colour::fromRGB(r, g, b);
 
 DECLARE_COLOR(darkSlateGray, 47, 79, 79)
 DECLARE_COLOR(closeRedBright, 209, 67, 67)
@@ -34,27 +34,27 @@ DECLARE_COLOR(cornFlowerBlue, 100, 149, 237)
 DECLARE_COLOR(darkCyan, 0, 139, 139)
 DECLARE_COLOR(maroon, 128, 0, 0)
 DECLARE_COLOR(crimson, 220, 20, 60)
+DECLARE_COLOR(ghostWhite, 248, 248, 255)
 
 #undef DECLARE_COLOR
 
 // assign and access the color assigned to eact modulation source
-const std::unordered_map<String, Colour> modSourceColors = 
-{
-    { IDs::modWheelSource.toString(), mediumSeaGreen},
-    { IDs::pitchWheelSource.toString(), indigo},
-    { IDs::perlinSource.toString(), chartreuse},
-    { IDs::envSource.toString() + "0", salmon},
-    { IDs::envSource.toString() + "1", lightSteelBlue},
-    { IDs::envSource.toString() + "2", darkSeaGreen},
+const std::unordered_map<String, Colour> modSourceColors = {
+    {IDs::modWheelSource.toString(), mediumSeaGreen},
+    {IDs::pitchWheelSource.toString(), indigo},
+    {IDs::perlinSource.toString(), chartreuse},
+    {IDs::envSource.toString() + "0", salmon},
+    {IDs::envSource.toString() + "1", lightSteelBlue},
+    {IDs::envSource.toString() + "2", darkSeaGreen},
 };
 
-inline Colour getColorForModSource(const String& srcID)
+inline Colour getColorForModSource(const String &srcID)
 {
-    auto it = modSourceColors.find(srcID);
-    if (it != modSourceColors.end())
-        return it->second;
-    return magenta;
+  auto it = modSourceColors.find(srcID);
+  if (it != modSourceColors.end())
+    return it->second;
+  return magenta;
 }
 
-}
+} // namespace Color
 #endif

@@ -9,14 +9,16 @@
 // forward declaration for the envelope
 class ElectrumVoice;
 
-class VoiceGateEnvelope {
+class VoiceGateEnvelope
+{
 private:
   ElectrumVoice *const parent;
   bool gate;
   bool forceKillQuick;
   size_t samplesSinceGateChange;
   float lastOutput;
-  float levelDelta() {
+  float levelDelta()
+  {
     return (float)AudioSystem::getSampleRate() / (QUICK_KILL_MS / 1000.0f);
   }
 
@@ -27,7 +29,8 @@ public:
   void start();
   void end() { gate = false; }
   bool isFinished() { return !gate && lastOutput == 0; }
-  void killQuick() {
+  void killQuick()
+  {
     forceKillQuick = true;
     gate = false;
   }
@@ -36,12 +39,14 @@ private:
   bool parentIsFinished();
 };
 
-class ElectrumVoice {
+class ElectrumVoice
+{
 private:
   // helps keep track of the oscillator mod values
   struct OscModValues {
     float posMod;
     float levelMod;
+    float panMod;
     float coarseMod;
     float fineMod;
   };
@@ -69,6 +74,7 @@ private:
   String baseFilterType;
   // helper function for renderNextSample, deals with the filtering
   float filterSample(float input, bool updateDests);
+  void filterSampleStereo(float &left, float &right, bool updateDests);
   // killQuick stuff
   bool inQuickKill;
   int queuedNote;
@@ -76,8 +82,9 @@ private:
 
 public:
   ElectrumVoice(EVT *tree, ModDestMap *map, int idx);
-  void prepareToPlay(double sampleRate, size_t blockSize) {
-    filter.prepare(sampleRate, blockSize, 1);
+  void prepareToPlay(double sampleRate, size_t blockSize)
+  {
+    filter.prepare(sampleRate, blockSize, 2);
   }
   // returns whether the voice can start a new note
   bool gateIsOn() { return gate; }

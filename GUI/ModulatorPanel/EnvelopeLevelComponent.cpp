@@ -1,18 +1,19 @@
 #include "EnvelopeLevelComponent.h"
 #define LEVEL_UPDATE_HZ 24
 
-EnvelopeLevelComponent::EnvelopeLevelComponent(EVT* tree, int idx) : state(tree), index(idx)
+EnvelopeLevelComponent::EnvelopeLevelComponent(EVT *tree, int idx)
+    : state(tree), index(idx)
 {
   startTimerHz(LEVEL_UPDATE_HZ);
-  upper = Color::maroon;
+  upper = Color::getColorForModSource(IDs::envSource.toString() + String(idx));
   lower = upper.brighter();
 }
 
-void EnvelopeLevelComponent::paint(Graphics& g)
+void EnvelopeLevelComponent::paint(Graphics &g)
 {
   auto fBounds = getLocalBounds().toFloat();
   float level = 1.0f - state->getLeadingVoiceEnvLevel(index);
-  float yMin = fBounds.getHeight() * level; 
+  float yMin = fBounds.getHeight() * level;
   g.setColour(lower);
   g.fillRect(fBounds);
   g.setColour(upper);

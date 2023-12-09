@@ -5,7 +5,8 @@ LabeledMDS::LabeledMDS(EVT *tree, const String &id, const String &labelText)
     : mds(std::make_unique<ModulationDestSlider>(tree, id)), text(labelText),
       labelFont(Typeface::createSystemTypefaceFor(
           FontBinaries::RobotoMediumItalic_ttf,
-          FontBinaries::RobotoMediumItalic_ttfSize))
+          FontBinaries::RobotoMediumItalic_ttfSize)),
+      textColor(Color::black)
 {
   addAndMakeVisible(mds.get());
 }
@@ -22,6 +23,6 @@ void LabeledMDS::paint(Graphics &g)
   float dX = (float)getWidth() / 16.0f;
   Rectangle<float> labelLimits(0.0f, 13.0f * dX, 16.0f * dX, 3.0f * dX);
   g.setFont(labelFont);
-  // g.setColour(Color::gainsboro);
+  g.setColour(textColor);
   g.drawFittedText(text, labelLimits.toNearestInt(), Justification::centred, 2);
 }

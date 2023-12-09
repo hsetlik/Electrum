@@ -1,19 +1,20 @@
 #pragma once
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../Color.h"
-#include "../Modulation/ModulationDestSlider.h"
+#include "../Modulation/LabeledMDS.h"
 
 class FilterPanel : public Component
 {
 public:
-    EVT* const state;
-    FilterPanel(EVT* tree);
-    void resized() override;
+  EVT *const state;
+  FilterPanel(EVT *tree);
+  void resized() override;
+
 private:
-    std::unique_ptr<ModulationDestSlider> sCutoff;
-    std::unique_ptr<ModulationDestSlider> sRes;
-    std::unique_ptr<ModulationDestSlider> sMix;
-    std::unique_ptr<ModulationDestSlider> sTracking;
-    ComboBox bFilterType;
-    std::unique_ptr<APVTS::ComboBoxAttachment> typeAttach;
+  LabeledMDS sCutoff;
+  LabeledMDS sRes;
+  LabeledMDS sMix;
+  LabeledMDS sTracking;
+  ComboBox bFilterType;
+  std::unique_ptr<APVTS::ComboBoxAttachment> typeAttach;
 };

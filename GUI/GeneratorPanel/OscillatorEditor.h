@@ -10,6 +10,7 @@ private:
   const int index;
   LabeledMDS sLevel;
   LabeledMDS sPos;
+  LabeledMDS sPan;
   LabeledMDS sCoarse;
   LabeledMDS sFine;
   Label label;

@@ -70,6 +70,7 @@ DECLARE_ID(ELECTRUM_STATE)
 // oscillator
 DECLARE_ID(oscillatorPos)
 DECLARE_ID(oscillatorLevel)
+DECLARE_ID(oscillatorPan)
 DECLARE_ID(oscillatorCoarseTune)
 DECLARE_ID(oscillatorFineTune)
 
@@ -115,6 +116,7 @@ DECLARE_ID(envSource)
 
 const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
                                              oscillatorLevel,
+                                             oscillatorPan,
 
                                              oscillatorCoarseTune,
                                              oscillatorFineTune,
@@ -154,14 +156,12 @@ const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
                                              envSource};
 
 const std::vector<Identifier> DestinationIDs = {
-    oscillatorPos,      oscillatorLevel, oscillatorCoarseTune,
-    oscillatorFineTune, filterCutoff,    filterResonance,
-    filterMix,          filterTracking};
+    oscillatorPos,        oscillatorLevel,    oscillatorPan,
+    oscillatorCoarseTune, oscillatorFineTune, filterCutoff,
+    filterResonance,      filterMix,          filterTracking};
 #undef DECLARE_ID
 
-// NOTE: there are TEN potential destinations for each voice because there are
-// three oscillators
-#define NUM_DESTINATIONS 16
+#define NUM_DESTINATIONS 19
 
 const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 struct ParamInfoStrings {
@@ -177,6 +177,9 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
       "Current position (range 0-1) in this oscillator's set of wavetables"}},
     {oscillatorLevel.toString(),
      {"Osc. level", "Oscillator level", "The oscillator's output level"}},
+    {oscillatorPan.toString(),
+     {"Osc. pan", "Oscillator pan",
+      "The oscillator's position in the stereo field"}},
     {oscillatorCoarseTune.toString(),
      {"Osc. coarse tune", "Oscillator coarse tuning",
       "Coarse pitch adjustment"}},
@@ -314,6 +317,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
   AudioProcessorValueTreeState::ParameterLayout layout;
   frange posRange(0.0f, 1.0f, 0.0001f);
   frange levelRange(0.0f, 1.0f, 0.0001f);
+  frange panRange(0.0f, 1.0f, 0.00001f);
   frange coarseRange(COARSE_TUNE_MIN, COARSE_TUNE_MAX, 1.0f);
   frange fineRange(FINE_TUNE_MIN, FINE_TUNE_MAX, 0.0001f);
   // oscillator params
@@ -321,16 +325,20 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     auto iStr = String(i);
     String positionId = oscillatorPos.toString() + iStr;
     String levelId = oscillatorLevel.toString() + iStr;
+    String panId = oscillatorPan.toString() + iStr;
     String coarseId = oscillatorCoarseTune.toString() + iStr;
     String fineId = oscillatorFineTune.toString() + iStr;
     auto levelName = getParamName(positionId, true);
     auto positionName = getParamName(levelId, true);
+    auto panName = getParamName(panId, true);
     auto coarseName = getParamName(coarseId, true);
     auto fineName = getParamName(fineId, true);
     layout.add(std::make_unique<AudioParameterFloat>(
         positionId, positionName, posRange, OSC_POS_DEFAULT));
     layout.add(std::make_unique<AudioParameterFloat>(
         levelId, levelName, levelRange, OSC_LEVEL_DEFAULT));
+    layout.add(
+        std::make_unique<AudioParameterFloat>(panId, panName, panRange, 0.5f));
     layout.add(std::make_unique<AudioParameterFloat>(coarseId, coarseName,
                                                      coarseRange, 0.0f));
     layout.add(std::make_unique<AudioParameterFloat>(fineId, fineName,

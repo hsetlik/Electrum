@@ -5,6 +5,7 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
     : state(tree), index(idx),
       sLevel(state, IDs::oscillatorLevel.toString() + String(idx), "Level"),
       sPos(state, IDs::oscillatorPos.toString() + String(idx), "Position"),
+      sPan(state, IDs::oscillatorPan.toString() + String(idx), "Pan"),
       sCoarse(state, IDs::oscillatorCoarseTune.toString() + String(idx),
               "Coarse"),
       sFine(state, IDs::oscillatorFineTune.toString() + String(idx), "Fine"),
@@ -15,6 +16,7 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
   addAndMakeVisible(&label);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPos);
+  addAndMakeVisible(sPan);
   addAndMakeVisible(sCoarse);
   addAndMakeVisible(sFine);
   addAndMakeVisible(&graph);
@@ -29,9 +31,10 @@ void OscillatorEditor::resized()
   auto coarseArea = graphArea.removeFromRight(dX * 5.0f);
   auto fineArea = coarseArea.removeFromTop(dX * 5.0f);
   auto labelArea = graphArea.removeFromTop(dX * 2.0f);
-  auto lower = lBounds.removeFromTop(dX * 5.0f);
-  auto posArea = lower.removeFromLeft(dX * 5.0f);
-  auto levelArea = lower.removeFromLeft(dX * 5.0f);
+  auto lowerKnobWidth = lBounds.getWidth() / 3.0f;
+  auto panArea = lBounds.removeFromTop(lowerKnobWidth);
+  auto posArea = panArea.removeFromLeft(lowerKnobWidth);
+  auto levelArea = panArea.removeFromLeft(lowerKnobWidth);
 
   label.setBounds(labelArea.toNearestInt());
   sCoarse.setBounds(coarseArea.toNearestInt());
@@ -39,6 +42,7 @@ void OscillatorEditor::resized()
   graph.setBounds(graphArea.toNearestInt());
   sPos.setBounds(posArea.toNearestInt());
   sLevel.setBounds(levelArea.toNearestInt());
+  sPan.setBounds(panArea.toNearestInt());
 }
 
 void OscillatorEditor::paint(Graphics &g)

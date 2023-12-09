@@ -73,6 +73,32 @@ float ElectrumVoice::filterSample(float input, bool updateDests)
   return Math::flerp(input, filtered, currentFilterMix);
 }
 
+void ElectrumVoice::filterSampleStereo(float &left, float &right,
+                                       bool updateDests)
+{
+  if (updateDests) // we try to avoid doing this every time
+  {
+    currentFilterMix =
+        Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix,
+                           getCurrentModDestValue(IDs::filterMix.toString()));
+    currentFilterTracking = Math::bipolarFlerp(
+        0.0f, 1.0f, baseFilterTracking,
+        getCurrentModDestValue(IDs::filterTracking.toString()));
+    currentCutoff =
+        ((float)Math::midiToHz(currentNote) * currentFilterTracking);
+    currentCutoff = Math::bipolarFlerp(
+        CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff,
+        getCurrentModDestValue(IDs::filterCutoff.toString()));
+    currentRes = Math::bipolarFlerp(
+        RESONANCE_MIN, RESONANCE_MAX, baseFilterRes,
+        getCurrentModDestValue(IDs::filterResonance.toString()));
+  }
+  if (currentFilterMix == 0.0f)
+    return;
+  filter.processStereo(left, right, baseFilterType, currentCutoff, currentRes,
+                       currentFilterMix);
+}
+
 void ElectrumVoice::renderNextSample(float &left, float &right,
                                      bool updateDests)
 {
@@ -83,26 +109,30 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
     envs[i]->tick();
   }
   vge.tick();
-  float output = 0.0f;
+  float voiceLeft = 0.0f;
+  float voiceRight = 0.0f;
   for (uint8 i = 0; i < oscs.size(); i++) {
     if (updateDests) {
       oscState[i].levelMod =
           getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
       oscState[i].posMod =
           getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
+      oscState[i].panMod =
+          getCurrentModDestValue(IDs::oscillatorPan.toString() + String(i));
       oscState[i].coarseMod = getCurrentModDestValue(
           IDs::oscillatorCoarseTune.toString() + String(i));
       oscState[i].fineMod = getCurrentModDestValue(
           IDs::oscillatorFineTune.toString() + String(i));
     }
-    output += oscs[i]->getNextSample(
-        currentNote, AudioSystem::getSampleRate(), oscState[i].levelMod,
-        oscState[i].posMod, oscState[i].coarseMod, oscState[i].fineMod);
+    oscs[i]->renderSampleStereo(currentNote, AudioSystem::getSampleRate(),
+                                oscState[i].levelMod, oscState[i].posMod,
+                                oscState[i].panMod, oscState[i].coarseMod,
+                                oscState[i].fineMod, voiceLeft, voiceRight);
   }
   // jassert(output <= 1.0f);
-  output = filterSample(output, updateDests) * 0.5f * vge.getCurrentSample();
-  left += output;
-  right += output;
+  filterSampleStereo(voiceLeft, voiceRight, updateDests);
+  left += voiceLeft * vge.getCurrentSample();
+  right += voiceRight * vge.getCurrentSample();
   // now we need to handle if this voice has been quick-killed and needs to
   // start the next note
   if (inQuickKill && vge.getCurrentSample() == 0.0f) {
@@ -116,6 +146,7 @@ void ElectrumVoice::updateForBlock()
   for (auto o : oscs) {
     o->updateBasePos();
     o->updateBaseLevel();
+    o->updateBasePan();
     o->updateBaseCoarse();
     o->updateBaseFine();
   }

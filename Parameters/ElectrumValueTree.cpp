@@ -1,7 +1,8 @@
 #include "ElectrumValueTree.h"
 #include "ElectrumVoicesState.h"
 #include "Identifiers.h"
-ModDestMap::ModDestMap() {
+ModDestMap::ModDestMap()
+{
   size_t idx = 0;
   modArr[idx].destID = IDs::filterCutoff.toString();
   ++idx;
@@ -16,6 +17,8 @@ ModDestMap::ModDestMap() {
     ++idx;
     modArr[idx].destID = IDs::oscillatorLevel.toString() + String(o);
     ++idx;
+    modArr[idx].destID = IDs::oscillatorPan.toString() + String(o);
+    ++idx;
     modArr[idx].destID = IDs::oscillatorCoarseTune.toString() + String(o);
     ++idx;
     modArr[idx].destID = IDs::oscillatorFineTune.toString() + String(o);
@@ -24,7 +27,8 @@ ModDestMap::ModDestMap() {
   DLog::log(String(idx) + " mod destinations initialized");
 }
 
-void ModDestMap::loadFromTree(ValueTree &modTree) {
+void ModDestMap::loadFromTree(ValueTree &modTree)
+{
   for (auto &mod : modArr) {
     mod.clearMods();
   }
@@ -48,7 +52,8 @@ void ModDestMap::loadFromTree(ValueTree &modTree) {
 ModulationDestList::ModulationDestList(const String &id) : destID(id) {}
 
 ModulationDestList::ModulationDestList(const String &id, ValueTree &tree)
-    : destID(id) {
+    : destID(id)
+{
   for (auto it = tree.begin(); it != tree.end(); ++it) {
     auto modTree = *it;
     if (tree.hasType(IDs::MODULATION)) {
@@ -59,11 +64,13 @@ ModulationDestList::ModulationDestList(const String &id, ValueTree &tree)
   }
 }
 
-void ModulationDestList::addMod(const String &srcID, float depth) {
+void ModulationDestList::addMod(const String &srcID, float depth)
+{
   mods.add(new Modulation(srcID, depth));
 }
 
-void ModulationDestList::removeMod(const String &srcID) {
+void ModulationDestList::removeMod(const String &srcID)
+{
   for (auto *mod : mods) {
     if (mod->sourceID == srcID) {
       mods.removeObject(mod, true);
@@ -72,7 +79,8 @@ void ModulationDestList::removeMod(const String &srcID) {
   }
 }
 
-void ModulationDestList::setMod(const String &srcID, float depth) {
+void ModulationDestList::setMod(const String &srcID, float depth)
+{
   if (!hasMod(srcID)) {
     addMod(srcID, depth);
     return;
@@ -85,7 +93,8 @@ void ModulationDestList::setMod(const String &srcID, float depth) {
   }
 }
 
-bool ModulationDestList::hasMod(const String &srcID) {
+bool ModulationDestList::hasMod(const String &srcID)
+{
   for (auto *mod : mods) {
     if (mod->sourceID == srcID) {
       return true;
@@ -94,7 +103,8 @@ bool ModulationDestList::hasMod(const String &srcID) {
   return false;
 }
 
-OwnedArray<Modulation> *ModDestMap::getModsFor(const String &destID) {
+OwnedArray<Modulation> *ModDestMap::getModsFor(const String &destID)
+{
   for (auto &dest : modArr) {
     if (dest.destID == destID)
       return &dest.getMods();
@@ -102,7 +112,8 @@ OwnedArray<Modulation> *ModDestMap::getModsFor(const String &destID) {
   return nullptr;
 }
 //===============================================================================
-ValueTree EVT::getModulationsTree() {
+ValueTree EVT::getModulationsTree()
+{
   auto modTree = coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
   if (modTree.isValid())
     return modTree;
@@ -112,7 +123,8 @@ ValueTree EVT::getModulationsTree() {
   }
 }
 
-std::vector<ValueTree> EVT::getModulations() {
+std::vector<ValueTree> EVT::getModulations()
+{
   std::vector<ValueTree> mods;
   for (auto it = getModulationsTree().begin(); it != getModulationsTree().end();
        ++it) {
@@ -124,7 +136,8 @@ std::vector<ValueTree> EVT::getModulations() {
   return mods;
 }
 
-ValueTree EVT::getModulation(const String &source, const String &dest) {
+ValueTree EVT::getModulation(const String &source, const String &dest)
+{
   for (auto &mod : getModulations()) {
     String src = mod[IDs::modulationSource];
     String dst = mod[IDs::modulationDest];
@@ -134,7 +147,8 @@ ValueTree EVT::getModulation(const String &source, const String &dest) {
   return ValueTree();
 }
 
-bool EVT::sourceIsInUse(const String &source) {
+bool EVT::sourceIsInUse(const String &source)
+{
   auto modTree = getModulationsTree();
   for (auto it = modTree.begin(); it != modTree.end(); ++it) {
     auto tree = *it;
@@ -146,7 +160,8 @@ bool EVT::sourceIsInUse(const String &source) {
 }
 
 // use this to add or update the value of a modulation
-void EVT::setModulation(const String &source, const String &dest, float depth) {
+void EVT::setModulation(const String &source, const String &dest, float depth)
+{
   auto existing = getModulation(source, dest);
   if (existing.isValid()) {
     existing.setProperty(IDs::modulationDepth, depth, nullptr);
@@ -156,24 +171,28 @@ void EVT::setModulation(const String &source, const String &dest, float depth) {
   }
 }
 // check if a given modulation exists
-bool EVT::modulationExists(const String &source, const String &dest) {
+bool EVT::modulationExists(const String &source, const String &dest)
+{
   auto mod = getModulation(source, dest);
   return mod.isValid();
 }
 // removes a modulation routing
-void EVT::removeModulation(const String &src, const String &dest) {
+void EVT::removeModulation(const String &src, const String &dest)
+{
   auto mod = getModulation(src, dest);
   // make sure we're removing a modulation that actually exists
   jassert(mod.isValid());
   getModulationsTree().removeChild(mod, nullptr);
 }
-void EVT::loadModulationData(ModDestMap &modMap) {
+void EVT::loadModulationData(ModDestMap &modMap)
+{
   TRACE_DSP();
   auto tree = getModulationsTree();
   modMap.loadFromTree(tree);
 }
 //===============================================================
-void EVT::updateEnvelopesForBlock() {
+void EVT::updateEnvelopesForBlock()
+{
   TRACE_DSP();
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     // step 1: grip atomic values from the tree;
@@ -216,7 +235,8 @@ void EVT::updateEnvelopesForBlock() {
   }
 }
 
-void EVT::parameterChanged(const String &paramID, float value) {
+void EVT::parameterChanged(const String &paramID, float value)
+{
   if (paramID == IDs::filterType.toString()) {
     DLog::log("New filter type has value: " + String(value));
     auto fMax = (float)(IDs::filterTypes.size() - 1);
