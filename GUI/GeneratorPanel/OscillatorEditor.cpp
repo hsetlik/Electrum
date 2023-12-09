@@ -1,3 +1,4 @@
+#include "FontBinaries.h"
 #include "OscillatorEditor.h"
 #include <memory>
 
@@ -10,9 +11,11 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
               "Coarse"),
       sFine(state, IDs::oscillatorFineTune.toString() + String(idx), "Fine"),
       label("oscLabel" + String(idx), "Oscillator " + String(idx)),
-      graph(tree, idx)
+      graph(tree, idx), noodle(Typeface::createSystemTypefaceFor(
+                            FontBinaries::big_noodle_titling_ttf,
+                            FontBinaries::big_noodle_titling_ttfSize))
 {
-  addAndMakeVisible(&label);
+  //  addAndMakeVisible(&label);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPos);
   addAndMakeVisible(sPan);
@@ -37,7 +40,6 @@ void OscillatorEditor::resized()
   auto posArea = panArea.removeFromLeft(lowerKnobWidth);
   auto levelArea = panArea.removeFromLeft(lowerKnobWidth);
 
-  label.setBounds(labelArea.toNearestInt());
   sCoarse.setBounds(coarseArea.toNearestInt());
   sFine.setBounds(fineArea.toNearestInt());
   graph.setBounds(graphArea.toNearestInt());
@@ -48,5 +50,15 @@ void OscillatorEditor::resized()
 
 void OscillatorEditor::paint(Graphics &g)
 {
-  g.fillAll(Colour::fromRGB(40, 60, 92));
+  const String labelText = "Oscillator " + String(index + 1);
+  float dX = (float)getWidth() / 14.0f;
+  Rectangle<float> labelBounds(0.0f, 0.0f, 9.0f * dX, 2.0f * dX);
+  g.setFont(Font(noodle));
+  auto bgColor =
+      getLookAndFeel().findColour(Label::ColourIds::backgroundColourId);
+  g.fillAll(bgColor);
+  auto textColor = getLookAndFeel().findColour(Label::ColourIds::textColourId);
+  g.setColour(textColor);
+  g.drawFittedText(labelText, labelBounds.toNearestInt(),
+                   Justification::centred, 1);
 }

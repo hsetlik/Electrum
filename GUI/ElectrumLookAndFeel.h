@@ -13,6 +13,7 @@ public:
   Font getLabelFont(Label &l) override;
 
 private:
-  Typeface::Ptr highwayGothic;
+  Typeface::Ptr helvetica;
+  Typeface::Ptr robotoMediumItalic;
 };
 #endif

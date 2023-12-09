@@ -8,11 +8,11 @@ class LabeledMDS : public Component
 public:
   LabeledMDS(EVT *tree, const String &paramID, const String &labelText);
   void resized() override;
-  void paint(Graphics &g) override;
   void setTextColor(const Colour &c) { textColor = c; }
 
 private:
   std::unique_ptr<ModulationDestSlider> mds;
+  Label label;
   const String text;
   Font labelFont;
   Colour textColor;

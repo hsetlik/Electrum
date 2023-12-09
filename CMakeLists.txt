@@ -32,6 +32,7 @@ FetchContent_MakeAvailable(Catch2)
 set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/big_noodle_titling.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothicWide.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Light.otf")

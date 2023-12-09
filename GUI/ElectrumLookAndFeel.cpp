@@ -2,11 +2,14 @@
 #include "FontBinaries.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
-    : highwayGothic(Typeface::createSystemTypefaceFor(
+    : helvetica(Typeface::createSystemTypefaceFor(
           FontBinaries::HelveticaNeueRegular_otf,
-          FontBinaries::HelveticaNeueRegular_otfSize))
+          FontBinaries::HelveticaNeueRegular_otfSize)),
+      robotoMediumItalic(Typeface::createSystemTypefaceFor(
+          FontBinaries::RobotoMediumItalic_ttf,
+          FontBinaries::RobotoMediumItalic_ttfSize))
 {
-  setDefaultSansSerifTypeface(highwayGothic);
+  setDefaultSansSerifTypeface(helvetica);
 }
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
                                            int height,
@@ -45,7 +48,7 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
 
 Font ElectrumLookAndFeel::getLabelFont(Label &l)
 {
-  Font f(highwayGothic);
+  Font f(robotoMediumItalic);
   auto lFont = l.getFont();
   f = f.withHeight(lFont.getHeight());
   return f;
