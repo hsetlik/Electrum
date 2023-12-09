@@ -1,5 +1,13 @@
 #include "ElectrumLookAndFeel.h"
+#include "FontBinaries.h"
 
+ElectrumLookAndFeel::ElectrumLookAndFeel()
+    : highwayGothic(Typeface::createSystemTypefaceFor(
+          FontBinaries::HelveticaNeueRegular_otf,
+          FontBinaries::HelveticaNeueRegular_otfSize))
+{
+  setDefaultSansSerifTypeface(highwayGothic);
+}
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
                                            int height,
                                            float sliderPosProportional,
@@ -13,12 +21,13 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
   Path p;
   p.addCentredArc(centerX, centerY, rInner, rInner, 0.0f, rotaryStartAngle,
                   rotaryEndAngle, true);
-  p.addCentredArc(centerX, centerY, rOuter * 0.85f, rOuter * 0.85f, 0.0f,
-                  rotaryEndAngle, rotaryStartAngle, false);
+  p.addCentredArc(centerX, centerY, rOuter, rOuter, 0.0f, rotaryEndAngle,
+                  rotaryStartAngle, false);
   p.closeSubPath();
-  g.setColour(Color::dimGray);
+  auto trackColor = findColour(Slider::ColourIds::trackColourId);
+  g.setColour(trackColor);
   g.fillPath(p);
-  const float thumbAngleWidth = 0.3f;
+  const float thumbAngleWidth = 0.2f;
   float thumbCenterAngle =
       Math::flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
   Path thumb;
@@ -29,6 +38,15 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
                       thumbCenterAngle + thumbAngleWidth,
                       thumbCenterAngle - thumbAngleWidth, false);
   thumb.closeSubPath();
-  g.setColour(Color::darkCyan);
+  auto thumbColor = findColour(Slider::ColourIds::thumbColourId);
+  g.setColour(thumbColor);
   g.fillPath(thumb);
+}
+
+Font ElectrumLookAndFeel::getLabelFont(Label &l)
+{
+  Font f(highwayGothic);
+  auto lFont = l.getFont();
+  f = f.withHeight(lFont.getHeight());
+  return f;
 }

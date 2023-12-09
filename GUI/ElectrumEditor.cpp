@@ -7,6 +7,7 @@ ElectrumEditor::ElectrumEditor(EVT *tree)
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     oscEditors.add(new OscillatorEditor(state, i));
     addAndMakeVisible(oscEditors.getLast());
+    oscEditors.getLast()->setLookAndFeel(&lnf);
   }
   addAndMakeVisible(macro);
   addAndMakeVisible(envPanel);

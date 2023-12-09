@@ -29,7 +29,12 @@ FetchContent_Declare(
   GIT_TAG v3.3.2)
 FetchContent_MakeAvailable(Catch2)
 
-set(FONTFILES "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf")
+set(FONTFILES
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothicWide.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Light.otf")
 
 set(SOURCES
     # /Core

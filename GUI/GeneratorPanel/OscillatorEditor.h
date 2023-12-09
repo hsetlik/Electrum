@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Parameters/Identifiers.h"
+#include "../ElectrumLookAndFeel.h"
 #include "../Modulation/LabeledMDS.h"
 #include "WavetableGraph.h"
 
@@ -18,6 +19,7 @@ private:
 
 public:
   OscillatorEditor(EVT *tree, int idx);
+  ~OscillatorEditor() override;
   void resized() override;
   void paint(Graphics &g) override;
 };

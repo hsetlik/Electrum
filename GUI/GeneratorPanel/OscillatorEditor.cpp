@@ -12,7 +12,6 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
       label("oscLabel" + String(idx), "Oscillator " + String(idx)),
       graph(tree, idx)
 {
-
   addAndMakeVisible(&label);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPos);
@@ -21,6 +20,8 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
   addAndMakeVisible(sFine);
   addAndMakeVisible(&graph);
 }
+
+OscillatorEditor::~OscillatorEditor() { setLookAndFeel(nullptr); }
 
 void OscillatorEditor::resized()
 {
