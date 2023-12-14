@@ -14,7 +14,6 @@ private:
   float baseFineTune;
 
 public:
-  // these make things slightly easier ill explain later
   WavetableOscillator(EVT *t, int idx);
   float getNextSample(double freq, double sampleRate, float levelMod,
                       float posMod);

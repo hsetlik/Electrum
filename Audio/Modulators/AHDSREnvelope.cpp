@@ -12,7 +12,8 @@ float AHDSREnvelope::getCurrentSample() { return lastOutput; }
 
 void AHDSREnvelope::tick()
 {
-  if (inKillQuickMode) {
+  if (inKillQuickMode)
+  {
     lastOutput = std::max(lastOutput - killQuickDelta, 0.0f);
     inKillQuickMode = lastOutput != 0.0f;
   } else
@@ -34,20 +35,21 @@ void AHDSREnvelope::killQuick()
 {
   gateIsOn = false;
   inKillQuickMode = true;
-  killQuickDelta = lastOutput / ((QUICK_KILL_MS / 1000.0f) *
-                                 (float)AudioSystem::getSampleRate());
+  killQuickDelta = lastOutput / ((QUICK_KILL_MS / 1000.0f) * sampleRate);
 }
 
 float AHDSREnvelope::getEnvelopeSample()
 {
   auto *env = state->getAudioData()->getEnvelopeData(index);
-  float currentMs = (float)samplesSinceGateChange *
-                    (float)(1000.0f / AudioSystem::getSampleRate());
+  float currentMs =
+      (float)samplesSinceGateChange * (float)(1000.0f / sampleRate);
   auto currentPhase = AHDSRData::getPhaseForMs(env, gateIsOn, currentMs);
   float modLevel = Math::flerp(currentVelocity, 1.0f, 1.0f - env->velTracking);
-  switch (currentPhase) {
+  switch (currentPhase)
+  {
   case AHDSRPhase::Attack: {
-    if (prevAttackCurve != env->attackCurve) {
+    if (prevAttackCurve != env->attackCurve)
+    {
       prevAttackCurve = env->attackCurve;
       attackExp = std::log(prevAttackCurve) / std::log(0.5f);
     }
@@ -60,7 +62,8 @@ float AHDSREnvelope::getEnvelopeSample()
     break;
   case AHDSRPhase::Decay: {
     float fX = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
-    if (prevDecayCurve != env->decayCurve) {
+    if (prevDecayCurve != env->decayCurve)
+    {
       prevDecayCurve = env->decayCurve;
       decayExp = std::log(prevDecayCurve) / std::log(0.5f);
     }
@@ -74,7 +77,8 @@ float AHDSREnvelope::getEnvelopeSample()
     break;
   case AHDSRPhase::Release: {
     float fX = currentMs / env->releaseMs;
-    if (prevReleaseCurve != env->releaseCurve) {
+    if (prevReleaseCurve != env->releaseCurve)
+    {
       prevReleaseCurve = env->releaseCurve;
       releaseExp = std::log(prevReleaseCurve) / std::log(0.5f);
     }

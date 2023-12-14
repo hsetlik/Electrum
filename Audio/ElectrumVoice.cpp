@@ -5,10 +5,12 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
       currentNoteVelocity(0.0f), gate(false), vge(this), filter(tree, idx),
       inQuickKill(false), queuedNote(0), queuedVelocity(0.0f)
 {
-  for (int i = 0; i < NUM_OSCILLATORS; i++) {
+  for (int i = 0; i < NUM_OSCILLATORS; i++)
+  {
     oscs.add(new WavetableOscillator(state, i));
   }
-  for (int i = 0; i < NUM_ENVELOPES; i++) {
+  for (int i = 0; i < NUM_ENVELOPES; i++)
+  {
     envs.add(new AHDSREnvelope(state, i));
   }
 }
@@ -21,7 +23,8 @@ void ElectrumVoice::startNote(int note, float vel)
   currentNoteVelocity = vel;
   gate = true;
   vge.start();
-  for (auto e : envs) {
+  for (auto e : envs)
+  {
     e->gateStart(vel);
   }
   state->startVoice(index);
@@ -41,7 +44,8 @@ void ElectrumVoice::stopNote()
 {
   vge.end();
   gate = false;
-  for (auto e : envs) {
+  for (auto e : envs)
+  {
     e->gateEnd();
   }
 }
@@ -105,14 +109,17 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   if (!isBusy())
     return;
   // tick the modulation sources before we calculate any mod values
-  for (int i = 0; i < NUM_ENVELOPES; i++) {
+  for (int i = 0; i < NUM_ENVELOPES; i++)
+  {
     envs[i]->tick();
   }
   vge.tick();
   float voiceLeft = 0.0f;
   float voiceRight = 0.0f;
-  for (uint8 i = 0; i < oscs.size(); i++) {
-    if (updateDests) {
+  for (uint8 i = 0; i < oscs.size(); i++)
+  {
+    if (updateDests)
+    {
       oscState[i].levelMod =
           getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
       oscState[i].posMod =
@@ -135,7 +142,8 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   right += voiceRight * vge.getCurrentSample();
   // now we need to handle if this voice has been quick-killed and needs to
   // start the next note
-  if (inQuickKill && vge.getCurrentSample() == 0.0f) {
+  if (inQuickKill && vge.getCurrentSample() == 0.0f)
+  {
     inQuickKill = false;
     startNote(queuedNote, queuedVelocity);
   }
@@ -143,7 +151,8 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
 
 void ElectrumVoice::updateForBlock()
 {
-  for (auto o : oscs) {
+  for (auto o : oscs)
+  {
     o->updateBasePos();
     o->updateBaseLevel();
     o->updateBasePan();
@@ -157,8 +166,10 @@ void ElectrumVoice::updateForBlock()
       state->getFloatParamValue(IDs::filterTracking.toString());
   baseFilterType = state->getCurrentFilterType();
   // if this is currently the newest voice, update levels for the graphics side
-  if (state->currentNewestVoice() == index && state->isEditorOpen()) {
-    for (int i = 0; i < NUM_ENVELOPES; i++) {
+  if (state->currentNewestVoice() == index && state->isEditorOpen())
+  {
+    for (int i = 0; i < NUM_ENVELOPES; i++)
+    {
       state->setLeadingVoiceEnvLevel(i, envs[i]->getCurrentSample());
     }
   }
@@ -166,16 +177,21 @@ void ElectrumVoice::updateForBlock()
 
 float ElectrumVoice::getModValueForSample(const String &srcID)
 {
-  if (srcID.contains(IDs::modWheelSource.toString())) {
+  if (srcID.contains(IDs::modWheelSource.toString()))
+  {
     return state->getModWheel();
-  } else if (srcID.contains(IDs::pitchWheelSource.toString())) {
+  } else if (srcID.contains(IDs::pitchWheelSource.toString()))
+  {
     return state->getPitchBend();
-  } else if (srcID.contains(IDs::perlinSource.toString())) {
+  } else if (srcID.contains(IDs::perlinSource.toString()))
+  {
     return state->perlinValue();
-  } else if (srcID.contains("envSource")) {
+  } else if (srcID.contains("envSource"))
+  {
     int idx = srcID.getTrailingIntValue();
     return envs[idx]->getCurrentSample();
-  } else {
+  } else
+  {
     return 0.0f;
   }
 }
@@ -183,7 +199,8 @@ float ElectrumVoice::getModValueForSample(const String &srcID)
 float ElectrumVoice::getCurrentModDestValue(const String &destID)
 {
   auto pMap = modMap->getModsFor(destID);
-  if (pMap == nullptr) {
+  if (pMap == nullptr)
+  {
     DLog::log("No modulations found for ID " + destID);
     return 0.0f;
   }
@@ -202,7 +219,8 @@ VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice *p)
 
 void VoiceGateEnvelope::tick()
 {
-  if (forceKillQuick) {
+  if (forceKillQuick)
+  {
     lastOutput = std::max(lastOutput - levelDelta(), 0.0f);
     forceKillQuick = lastOutput > 0.0f;
   } else if (gate)
@@ -219,7 +237,8 @@ bool VoiceGateEnvelope::parentIsFinished()
 {
   if (gate)
     return false;
-  for (auto e : parent->envs) {
+  for (auto e : parent->envs)
+  {
     if (!e->isFinished())
       return false;
   }
