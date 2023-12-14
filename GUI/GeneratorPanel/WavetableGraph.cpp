@@ -1,4 +1,5 @@
 #include "WavetableGraph.h"
+#include "juce_opengl/opengl/juce_gl.h"
 
 WavetableGraph::WavetableGraph(EVT *tree, int idx) : state(tree), index(idx)
 {
@@ -38,6 +39,9 @@ void WavetableGraph::compileShaders()
 
     projectionMatrix.connectToShaderProgram(glContext, *shaderProgram);
     viewMatrix.connectToShaderProgram(glContext, *shaderProgram);
+  } else
+  {
+    DLog::log("Failed to compile shaders!");
   }
 }
 
@@ -48,9 +52,11 @@ void WavetableGraph::newOpenGLContextCreated()
   compileShaders();
   updateVertices();
 
-  // Generate opengl vertex objects ==========================================
+  // Generate opengl vertex and index objects
+  // ==========================================
   glContext.extensions.glGenVertexArrays(1, &VAO); // Vertex Array Object
   glContext.extensions.glGenBuffers(1, &VBO);      // Vertex Buffer Object
+  glContext.extensions.glGenBuffers(1, &IBO);      // Index Buffer Object
 
   glContext.extensions.glBindVertexArray(VAO);
 
@@ -58,14 +64,18 @@ void WavetableGraph::newOpenGLContextCreated()
   glContext.extensions.glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glContext.extensions.glBufferData(
       GL_ARRAY_BUFFER, (long)sizeof(GLfloat) * (long)vertices.size() * 3,
-      vertices.data(), GL_STATIC_DRAW);
-
+      vertices.data(), GL_DYNAMIC_DRAW);
+  // fill IBO buffer with indeces array
+  glContext.extensions.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+  glContext.extensions.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                                    (long)sizeof(GLuint) * (long)indeces.size(),
+                                    indeces.data(), GL_DYNAMIC_DRAW);
   // Define that our vertices are laid out as groups of 3 GLfloats
   glContext.extensions.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                                              3 * sizeof(GLfloat), NULL);
   glContext.extensions.glEnableVertexAttribArray(0);
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Show wireframe
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Show wireframe
 }
 
 void WavetableGraph::openGLContextClosing() {}
@@ -91,11 +101,19 @@ void WavetableGraph::renderOpenGL()
 
   // Draw Vertices
   glContext.extensions.glBindVertexArray(VAO);
-  glDrawArrays(GL_TRIANGLES, 0, (int)vertices.size());
+  glDrawElements(GL_TRIANGLES, (GLsizei)indeces.size(), GL_UNSIGNED_INT,
+                 nullptr);
   glContext.extensions.glBindVertexArray(0);
 }
 
 //===========Vertex generation======================
+
+GLuint WavetableGraph::indexOfVertex(size_t wave, size_t sample,
+                                     int numVertices)
+{
+  size_t offset = (wave * WAVE_GRAPH_POINTS) + sample;
+  return (GLuint)((size_t)numVertices - offset);
+}
 void WavetableGraph::updateVertices()
 {
   DLog::log("Updating vertices for graph #" + String(index + 1));
@@ -115,8 +133,8 @@ void WavetableGraph::updateVertices()
     for (int s = 0; s < WAVE_GRAPH_POINTS; s++)
     {
       float xPhase = (float)s / (float)WAVE_GRAPH_POINTS;
-      float sample = WaveUtil::valueAtPhase(wave, xPhase);
-      float xPos = Math::flerp(xMin, xMax, xPhase);
+      float sample = WaveUtil::valueAtPhase(wave, 1.0f - xPhase);
+      float xPos = Math::flerp(xMin, xMax, 1.0f - xPhase);
       float yPos = Math::flerp(yMin, yMax, sample);
       float zPos = Math::flerp(zMin, zMax, zPhase);
       // if(index == 0)
@@ -127,10 +145,34 @@ void WavetableGraph::updateVertices()
       vertices.push_back({xPos, yPos, zPos});
     }
   }
-  // vertices = {};
-  // vertices.push_back({-1.0f, -1.0f, 0.0f});
-  // vertices.push_back({1.0f, -1.0f, 0.0f});
-  // vertices.push_back({0.0f, 1.0f, 0.0f});
+  // now time to figure out the indeces
+  const int numVertices = (int)vertices.size();
+  indeces.clear();
+  for (size_t w = 1; w < baseWaves.size(); w++)
+  {
+    size_t lowerWave = w - 1;
+    size_t upperWave = w;
+    // now loop through the points and draw 2 triangles between the adjacent
+    // wave points
+    for (size_t i = 1; i < WAVE_GRAPH_POINTS; i++)
+    {
+      size_t lowerX = i - 1;
+      size_t upperX = i;
+      // grip the indeces we need
+      const GLuint ll = indexOfVertex(lowerWave, lowerX, numVertices);
+      const GLuint lu = indexOfVertex(lowerWave, upperX, numVertices);
+      const GLuint ul = indexOfVertex(upperWave, lowerX, numVertices);
+      const GLuint uu = indexOfVertex(upperWave, upperX, numVertices);
+      // first triangle
+      indeces.push_back(lu);
+      indeces.push_back(uu);
+      indeces.push_back(ll);
+      // second triangle
+      indeces.push_back(uu);
+      indeces.push_back(ul);
+      indeces.push_back(ll);
+    }
+  }
 }
 
 //===========Matrix generation======================

@@ -38,8 +38,8 @@
 
 #define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
 
-#define COARSE_TUNE_MIN -12.0f
-#define COARSE_TUNE_MAX 12.0f
+#define COARSE_TUNE_MIN -36.0f
+#define COARSE_TUNE_MAX 36.0f
 
 #define FINE_TUNE_MIN -100.0f
 #define FINE_TUNE_MAX 100.0f
@@ -266,7 +266,8 @@ inline String getParamName(const String &paramID, bool longName = false)
 {
   String safeParamID = StringUtil::removeTrailingNumbers(paramID);
   auto it = paramDisplayNames.find(safeParamID);
-  if (it != paramDisplayNames.end()) {
+  if (it != paramDisplayNames.end())
+  {
     return longName ? it->second.longName : it->second.shortName;
   }
   DLog::log("Warning! No name info found for parameter: " + safeParamID);
@@ -329,7 +330,8 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
   frange coarseRange(COARSE_TUNE_MIN, COARSE_TUNE_MAX, 1.0f);
   frange fineRange(FINE_TUNE_MIN, FINE_TUNE_MAX, 0.0001f);
   // oscillator params
-  for (int i = 0; i < NUM_OSCILLATORS; i++) {
+  for (int i = 0; i < NUM_OSCILLATORS; i++)
+  {
     auto iStr = String(i);
     String positionId = oscillatorPos.toString() + iStr;
     String levelId = oscillatorLevel.toString() + iStr;
@@ -359,7 +361,8 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
   auto decayRange = getDecayRange();
   auto releaseRange = getReleaseRange();
   frange velTrackingRange(0.0f, 1.0f, 0.0001f);
-  for (int i = 0; i < NUM_ENVELOPES; i++) {
+  for (int i = 0; i < NUM_ENVELOPES; i++)
+  {
     // attack MS
     auto iStr = String(i);
     String aMsID = attackMs.toString() + iStr;
