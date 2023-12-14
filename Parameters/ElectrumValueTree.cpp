@@ -213,6 +213,9 @@ void EVT::updateEnvelopesForBlock()
     const float sustainLvl =
         getFloatParamValue(IDs::sustainLevel.toString() + iStr);
 
+    const float velTracking =
+        getFloatParamValue(IDs::velocityTracking.toString() + iStr);
+
     const float relMs = getFloatParamValue(IDs::releaseMs.toString() + iStr);
     const float releaseCrv =
         getFloatParamValue(IDs::releaseCurve.toString() + iStr);
@@ -229,6 +232,8 @@ void EVT::updateEnvelopesForBlock()
     envData->decayCurve = decayCrv;
 
     envData->sustainLevel = sustainLvl;
+
+    envData->velTracking = velTracking;
 
     envData->releaseMs = relMs;
     envData->releaseCurve = releaseCrv;

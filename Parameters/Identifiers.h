@@ -29,6 +29,7 @@
 #define DECAY_MS_CENTER 250.0f
 
 #define SUSTAIN_LEVEL_DEFAULT 0.65f
+#define VEL_TRACKING_DEFAULT 0.85f
 
 #define RELEASE_MS_DEFAULT 85.0f
 #define RELEASE_MS_MIN 1.0f
@@ -81,6 +82,7 @@ DECLARE_ID(holdMs)
 DECLARE_ID(decayMs)
 DECLARE_ID(decayCurve)
 DECLARE_ID(sustainLevel)
+DECLARE_ID(velocityTracking)
 DECLARE_ID(releaseMs)
 DECLARE_ID(releaseCurve)
 
@@ -128,6 +130,7 @@ const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
                                              decayMs,
                                              decayCurve,
                                              sustainLevel,
+                                             velocityTracking,
 
                                              releaseMs,
                                              releaseCurve,
@@ -223,6 +226,11 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
      {"Sustain", "Envelope sustain level",
       "Sustain: the level which the envelope maintains after the decay stage "
       "has finished and before the envelope's gate has ended"}},
+
+    {velocityTracking.toString(),
+     {"Velocity Tracking", "Envelope velocity tracking level",
+      "How much the overall level of an envelope should be modulated by the "
+      "current MIDI note's velocity"}},
 
     {releaseMs.toString(),
      {"Release", "Envelope release time",
@@ -350,6 +358,7 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
   auto holdRange = getHoldRange();
   auto decayRange = getDecayRange();
   auto releaseRange = getReleaseRange();
+  frange velTrackingRange(0.0f, 1.0f, 0.0001f);
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     // attack MS
     auto iStr = String(i);
@@ -375,6 +384,11 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     layout.add(std::make_unique<AudioParameterFloat>(
         sustainID, getParamName(sustainID, true), 0.0f, 1.0f,
         SUSTAIN_LEVEL_DEFAULT));
+    // velocity tracking
+    String velTrackingID = velocityTracking.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterFloat>(
+        velTrackingID, getParamName(velTrackingID, true), velTrackingRange,
+        VEL_TRACKING_DEFAULT));
     // release Ms
     String releaseID = releaseMs.toString() + iStr;
     layout.add(std::make_unique<AudioParameterFloat>(

@@ -3,7 +3,15 @@
 #include "../../Parameters/DLog.h"
 #include "../../Parameters/MathUtil.h"
 
-enum AHDSRPhase { Attack, Hold, Decay, Sustain, Release, Idle };
+enum AHDSRPhase
+{
+  Attack,
+  Hold,
+  Decay,
+  Sustain,
+  Release,
+  Idle
+};
 
 struct AHDSRData {
   // attack
@@ -17,6 +25,9 @@ struct AHDSRData {
 
   // sustain
   float sustainLevel = SUSTAIN_LEVEL_DEFAULT;
+  // velocity tracking
+  float velTracking = VEL_TRACKING_DEFAULT;
+
   // release
   float releaseMs = RELEASE_MS_DEFAULT;
   float releaseCurve = ENV_CURVE_DEFAULT;

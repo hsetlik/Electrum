@@ -4,12 +4,13 @@
 class SourceParamSlider : public Component
 {
 private:
-    EVT* const state;
-    const String paramID;
-    Slider slider;
-    sAttachPtr attach;
+  EVT *const state;
+  const String paramID;
+  Slider slider;
+  sAttachPtr attach;
+
 public:
-    SourceParamSlider(EVT* tree, const String& ID);
-    ~SourceParamSlider() override {}
-    void resized() override;
+  SourceParamSlider(EVT *tree, const String &ID, bool vertical = false);
+  ~SourceParamSlider() override {}
+  void resized() override;
 };

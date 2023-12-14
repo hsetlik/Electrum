@@ -135,7 +135,7 @@ void ElectrumEngine::handleMidiMessage(MidiMessage &message)
 {
   // big ol else if to handle every type of MIDI message
   if (message.isNoteOn()) {
-    noteOn(message.getNoteNumber(), message.getVelocity());
+    noteOn(message.getNoteNumber(), message.getFloatVelocity());
   } else if (message.isNoteOff()) {
     noteOff(message.getNoteNumber());
   } else if (message.isSustainPedalOn()) {

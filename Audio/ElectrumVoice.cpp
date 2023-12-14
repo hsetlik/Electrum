@@ -22,7 +22,7 @@ void ElectrumVoice::startNote(int note, float vel)
   gate = true;
   vge.start();
   for (auto e : envs) {
-    e->gateStart();
+    e->gateStart(vel);
   }
   state->startVoice(index);
 }
