@@ -1,8 +1,7 @@
 #include "EnvelopeLevelComponent.h"
 #define LEVEL_UPDATE_HZ 24
 
-EnvelopeLevelComponent::EnvelopeLevelComponent(EVT *tree, int idx)
-    : state(tree), index(idx)
+EnvelopeLevelComponent::EnvelopeLevelComponent(EVT *tree, int idx) : state(tree), index(idx)
 {
   startTimerHz(LEVEL_UPDATE_HZ);
   upper = Color::getColorForModSource(IDs::envSource.toString() + String(idx));

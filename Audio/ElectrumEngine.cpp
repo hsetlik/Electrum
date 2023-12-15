@@ -5,7 +5,8 @@ ElectrumEngine::ElectrumEngine(EVT *tree)
                                            // everything on the first sample
       state(tree)
 {
-  for (int i = 0; i < NUM_VOICES; i++) {
+  for (int i = 0; i < NUM_VOICES; i++)
+  {
     voices.add(new ElectrumVoice(state, &currentModulation, i));
   }
 }
@@ -13,9 +14,11 @@ ElectrumEngine::ElectrumEngine(EVT *tree)
 void ElectrumEngine::noteOn(int note, float velocity)
 {
   auto existing = getVoicePlayingNote(note);
-  if (existing != nullptr) {
+  if (existing != nullptr)
+  {
     existing->stealNote(note, velocity);
-  } else {
+  } else
+  {
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
     voice->startNote(note, velocity);
@@ -26,16 +29,19 @@ void ElectrumEngine::noteOff(int note)
 {
 
   auto voice = getVoicePlayingNote(note);
-  if (voice != nullptr) {
+  if (voice != nullptr)
+  {
     voice->stopNote();
-  } else {
+  } else
+  {
     DLog::log("No voice found for note: " + String(note));
   }
 }
 
 ElectrumVoice *ElectrumEngine::getFreeVoice()
 {
-  for (auto v : voices) {
+  for (auto v : voices)
+  {
     if (!v->isBusy())
       return v;
   }
@@ -45,7 +51,8 @@ ElectrumVoice *ElectrumEngine::getFreeVoice()
 
 ElectrumVoice *ElectrumEngine::getVoicePlayingNote(int note)
 {
-  for (auto v : voices) {
+  for (auto v : voices)
+  {
     if (v->getCurrentNote() == note && v->isBusy())
       return v;
   }
@@ -61,23 +68,27 @@ void ElectrumEngine::processBlock(AudioBuffer<float> &buffer, MidiBuffer &midi)
   loadMidiEvents(midi);
   // make sure we have stereo
   jassert(buffer.getNumChannels() >= 2);
-  for (int s = 0; s < buffer.getNumSamples(); s++) {
+  for (int s = 0; s < buffer.getNumSamples(); s++)
+  {
     // STEP 1: Check if we have a midi event on this sample
     //
     // there's a good reason this is a while rather than a for loop: many GUI
     // plugin hosts will send multiple midi events with the same timestamp
-    while (!midiQueue.empty() && midiQueue.front().timestamp == s) {
+    while (!midiQueue.empty() && midiQueue.front().timestamp == s)
+    {
       handleMidiMessage(midiQueue.front().message);
       midiQueue.pop();
     }
     float left = 0.0f;
     float right = 0.0f;
     // STEP 2: figure out whether to update the mod dests or not
-    if (destUpdateIdx >= DEST_UPDATE_INTERVAL) {
+    if (destUpdateIdx >= DEST_UPDATE_INTERVAL)
+    {
       destUpdateIdx = 0;
       // STEP 3: Render the actual samples
       renderNextSample(left, right, true);
-    } else {
+    } else
+    {
       ++destUpdateIdx;
       renderNextSample(left, right, false);
     }
@@ -91,7 +102,8 @@ void ElectrumEngine::processBlock(AudioBuffer<float> &buffer, MidiBuffer &midi)
 void ElectrumEngine::renderNextSample(float &l, float &r, bool updateDests)
 {
   state->tickPerlinForSample();
-  for (auto v : voices) {
+  for (auto v : voices)
+  {
     v->renderNextSample(l, r, updateDests);
   }
 }
@@ -99,7 +111,8 @@ void ElectrumEngine::renderNextSample(float &l, float &r, bool updateDests)
 int ElectrumEngine::numBusyVoices()
 {
   int count = 0;
-  for (auto v : voices) {
+  for (auto v : voices)
+  {
     if (v->isBusy())
       ++count;
   }
@@ -113,7 +126,8 @@ void ElectrumEngine::updateParamsForBlock()
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
   // check to update state for voices that have trailed off
-  for (int i = 0; i < NUM_VOICES; i++) {
+  for (int i = 0; i < NUM_VOICES; i++)
+  {
     voices[i]->updateForBlock();
     if (state->isVoiceActive(i) && !voices[i]->isBusy())
       state->endVoice(i);
@@ -122,7 +136,8 @@ void ElectrumEngine::updateParamsForBlock()
 
 void ElectrumEngine::loadMidiEvents(MidiBuffer &midi)
 {
-  for (auto it = midi.begin(); it != midi.end(); ++it) {
+  for (auto it = midi.begin(); it != midi.end(); ++it)
+  {
     auto metadata = *it;
     TimestampedMidiMessage m;
     m.timestamp = metadata.samplePosition;
@@ -134,22 +149,27 @@ void ElectrumEngine::loadMidiEvents(MidiBuffer &midi)
 void ElectrumEngine::handleMidiMessage(MidiMessage &message)
 {
   // big ol else if to handle every type of MIDI message
-  if (message.isNoteOn()) {
+  if (message.isNoteOn())
+  {
     noteOn(message.getNoteNumber(), message.getFloatVelocity());
-  } else if (message.isNoteOff()) {
+  } else if (message.isNoteOff())
+  {
     noteOff(message.getNoteNumber());
-  } else if (message.isSustainPedalOn()) {
+  } else if (message.isSustainPedalOn())
+  {
     state->setSustainPedal(true);
-  } else if (message.isSustainPedalOff()) {
+  } else if (message.isSustainPedalOff())
+  {
     state->setSustainPedal(false);
-  } else if (message.isController() &&
-             message.getControllerNumber() == 1) // handle mod wheel
+  } else if (message.isController() && message.getControllerNumber() == 1) // handle mod wheel
   {
     float modVal = (float)message.getControllerValue() / 127.0f;
     state->setModWheel(modVal);
-  } else if (message.isPitchWheel()) {
+  } else if (message.isPitchWheel())
+  {
     state->setPitchBend(Math::toPitchBendValue(message.getPitchWheelValue()));
-  } else {
+  } else
+  {
     DLog::log("Warning! Unhandled MIDI message: " + message.getDescription());
   }
 }

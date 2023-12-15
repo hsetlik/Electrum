@@ -17,10 +17,7 @@ private:
   bool forceKillQuick;
   size_t samplesSinceGateChange;
   float lastOutput;
-  float levelDelta()
-  {
-    return (float)AudioSystem::getSampleRate() / (QUICK_KILL_MS / 1000.0f);
-  }
+  float levelDelta() { return (float)AudioSystem::getSampleRate() / (QUICK_KILL_MS / 1000.0f); }
 
 public:
   VoiceGateEnvelope(ElectrumVoice *parent);
@@ -28,7 +25,7 @@ public:
   float getCurrentSample() { return lastOutput; }
   void start();
   void end() { gate = false; }
-  bool isFinished() { return !gate && lastOutput == 0; }
+  bool isFinished() { return !gate && lastOutput == 0.0f; }
   void killQuick()
   {
     forceKillQuick = true;
@@ -43,7 +40,8 @@ class ElectrumVoice
 {
 private:
   // helps keep track of the oscillator mod values
-  struct OscModValues {
+  struct OscModValues
+  {
     float posMod;
     float levelMod;
     float panMod;

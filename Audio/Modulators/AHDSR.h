@@ -13,7 +13,8 @@ enum AHDSRPhase
   Idle
 };
 
-struct AHDSRData {
+struct AHDSRData
+{
   // attack
   float attackMs = ATTACK_MS_DEFAULT;
   float attackCurve = ENV_CURVE_DEFAULT;
@@ -34,11 +35,9 @@ struct AHDSRData {
 
   // static methods to hande the logic of turning these parameters into an
   // envelope output
-  static AHDSRPhase getCurrentPhase(AHDSRData *env, bool gateOn,
-                                    size_t samplesSinceGateChange);
+  static AHDSRPhase getCurrentPhase(AHDSRData *env, bool gateOn, size_t samplesSinceGateChange);
   // similar to above but takes argume in ms rather than samples
-  static AHDSRPhase getPhaseForMs(AHDSRData *env, bool gateOn,
-                                  float msSinceGateChange);
+  static AHDSRPhase getPhaseForMs(AHDSRData *env, bool gateOn, float msSinceGateChange);
   // this is helpful for the voice stealing logic
   static size_t getSamplesForAttackValue(AHDSRData *env, float value);
 };

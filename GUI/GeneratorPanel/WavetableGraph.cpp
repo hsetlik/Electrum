@@ -3,8 +3,7 @@
 
 WavetableGraph::WavetableGraph(EVT *tree, int idx) : state(tree), index(idx)
 {
-  glContext.setOpenGLVersionRequired(
-      juce::OpenGLContext::OpenGLVersion::openGL3_2);
+  glContext.setOpenGLVersionRequired(juce::OpenGLContext::OpenGLVersion::openGL3_2);
   glContext.setRenderer(this);
   glContext.attachTo(*this);
   glContext.setContinuousRepainting(true);
@@ -26,10 +25,8 @@ void WavetableGraph::handleAsyncUpdate() { repaint(); }
 void WavetableGraph::compileShaders()
 {
   auto shaderProgramAttempt = std::make_unique<OpenGLShaderProgram>(glContext);
-  if (shaderProgramAttempt->addVertexShader(
-          {Shaders::WavetableGraphVertex_glsl}) &&
-      shaderProgramAttempt->addFragmentShader(
-          {Shaders::WavetableGraphFragment_glsl}) &&
+  if (shaderProgramAttempt->addVertexShader({Shaders::WavetableGraphVertex_glsl}) &&
+      shaderProgramAttempt->addFragmentShader({Shaders::WavetableGraphFragment_glsl}) &&
       shaderProgramAttempt->link())
   {
     projectionMatrix.disconnectFromShaderProgram();
@@ -65,17 +62,16 @@ void WavetableGraph::newOpenGLContextCreated()
 
   // Fill VBO buffer with vertices array
   glContext.extensions.glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glContext.extensions.glBufferData(
-      GL_ARRAY_BUFFER, (long)sizeof(GLfloat) * (long)vertices.size() * 3,
-      vertices.data(), GL_DYNAMIC_DRAW);
+  glContext.extensions.glBufferData(GL_ARRAY_BUFFER,
+                                    (long)sizeof(GLfloat) * (long)vertices.size() * 3,
+                                    vertices.data(), GL_DYNAMIC_DRAW);
   // fill IBO buffer with indeces array
   glContext.extensions.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
   glContext.extensions.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                                    (long)sizeof(GLuint) * (long)indeces.size(),
-                                    indeces.data(), GL_DYNAMIC_DRAW);
+                                    (long)sizeof(GLuint) * (long)indeces.size(), indeces.data(),
+                                    GL_DYNAMIC_DRAW);
   // Define that our vertices are laid out as groups of 3 GLfloats
-  glContext.extensions.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                                             3 * sizeof(GLfloat), NULL);
+  glContext.extensions.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
   glContext.extensions.glEnableVertexAttribArray(0);
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Show wireframe
@@ -89,8 +85,7 @@ void WavetableGraph::renderOpenGL()
 
   // Scale viewport
   const float renderingScale = (float)glContext.getRenderingScale();
-  glViewport(0, 0, (int)renderingScale * getWidth(),
-             (int)renderingScale * getHeight());
+  glViewport(0, 0, (int)renderingScale * getWidth(), (int)renderingScale * getHeight());
 
   // Set background color
   juce::OpenGLHelpers::clear(Color::maroon);
@@ -109,15 +104,13 @@ void WavetableGraph::renderOpenGL()
 
   // Draw Vertices
   glContext.extensions.glBindVertexArray(VAO);
-  glDrawElements(GL_TRIANGLES, (GLsizei)indeces.size(), GL_UNSIGNED_INT,
-                 nullptr);
+  glDrawElements(GL_TRIANGLES, (GLsizei)indeces.size(), GL_UNSIGNED_INT, nullptr);
   glContext.extensions.glBindVertexArray(0);
 }
 
 //===========Vertex generation======================
 
-GLuint WavetableGraph::indexOfVertex(size_t wave, size_t sample,
-                                     int numVertices)
+GLuint WavetableGraph::indexOfVertex(size_t wave, size_t sample, int numVertices)
 {
   size_t offset = (wave * WAVE_GRAPH_POINTS) + sample;
   return (GLuint)((size_t)numVertices - offset);
@@ -195,15 +188,13 @@ Matrix3D<GLfloat> WavetableGraph::calculateProjectionMatrix()
 Matrix3D<GLfloat> WavetableGraph::calculateViewMatrix()
 {
   float scaleFactor = 4.0f;
-  auto scale =
-      Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor, scaleFactor));
+  auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor, scaleFactor));
   auto angleX = MathConstants<float>::pi * 0.0f;
   auto angleY = MathConstants<float>::pi * 0.0f;
   auto angleZ = MathConstants<float>::pi * 0.05f;
-  auto rotation = Matrix3D<GLfloat>::rotation(Vector3D<GLfloat>(
-      angleX / scaleFactor, angleY / scaleFactor, angleZ / scaleFactor));
-  auto translate = Matrix3D<GLfloat>::fromTranslation(
-      Vector3D<GLfloat>(0.0f, -0.5f, -20.0f));
+  auto rotation = Matrix3D<GLfloat>::rotation(
+      Vector3D<GLfloat>(angleX / scaleFactor, angleY / scaleFactor, angleZ / scaleFactor));
+  auto translate = Matrix3D<GLfloat>::fromTranslation(Vector3D<GLfloat>(0.0f, -0.5f, -20.0f));
   auto out = scale * rotation * translate;
   return out;
 }

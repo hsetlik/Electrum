@@ -1,33 +1,34 @@
 #include "AHDSR.h"
 
-AHDSRPhase AHDSRData::getCurrentPhase(AHDSRData *env, bool gateOn,
-                                      size_t samplesSinceGateChange) {
-  if (gateOn) {
-    size_t attackSamples = (size_t)((env->attackMs / 1000.0f) *
-                                    (float)AudioSystem::getSampleRate());
+AHDSRPhase AHDSRData::getCurrentPhase(AHDSRData *env, bool gateOn, size_t samplesSinceGateChange)
+{
+  if (gateOn)
+  {
+    size_t attackSamples =
+        (size_t)((env->attackMs / 1000.0f) * (float)AudioSystem::getSampleRate());
     if (samplesSinceGateChange < attackSamples)
       return AHDSRPhase::Attack;
-    size_t holdSamples =
-        (size_t)((env->holdMs / 1000.0f) * (float)AudioSystem::getSampleRate());
+    size_t holdSamples = (size_t)((env->holdMs / 1000.0f) * (float)AudioSystem::getSampleRate());
     if (samplesSinceGateChange < attackSamples + holdSamples)
       return AHDSRPhase::Hold;
-    size_t decaySamples = (size_t)((env->decayMs / 1000.0f) *
-                                   (float)AudioSystem::getSampleRate());
+    size_t decaySamples = (size_t)((env->decayMs / 1000.0f) * (float)AudioSystem::getSampleRate());
     if (samplesSinceGateChange < attackSamples + holdSamples + decaySamples)
       return AHDSRPhase::Decay;
     return AHDSRPhase::Sustain;
-  } else {
-    size_t releaseSamples = (size_t)((env->releaseMs / 1000.0f) *
-                                     (float)AudioSystem::getSampleRate());
+  } else
+  {
+    size_t releaseSamples =
+        (size_t)((env->releaseMs / 1000.0f) * (float)AudioSystem::getSampleRate());
     if (samplesSinceGateChange < releaseSamples)
       return AHDSRPhase::Release;
   }
   return AHDSRPhase::Idle;
 }
 
-AHDSRPhase AHDSRData::getPhaseForMs(AHDSRData *env, bool gateOn,
-                                    float msSinceGateChange) {
-  if (gateOn) {
+AHDSRPhase AHDSRData::getPhaseForMs(AHDSRData *env, bool gateOn, float msSinceGateChange)
+{
+  if (gateOn)
+  {
     float current = env->attackMs;
     if (msSinceGateChange < current)
       return AHDSRPhase::Attack;
@@ -43,7 +44,8 @@ AHDSRPhase AHDSRData::getPhaseForMs(AHDSRData *env, bool gateOn,
   return AHDSRPhase::Idle;
 }
 
-size_t AHDSRData::getSamplesForAttackValue(AHDSRData *env, float value) {
+size_t AHDSRData::getSamplesForAttackValue(AHDSRData *env, float value)
+{
   /*
     currentMs = samples * 1000 / sampleRate
     and t = currentMs / attackMs

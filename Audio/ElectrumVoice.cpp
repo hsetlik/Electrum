@@ -1,9 +1,8 @@
 #include "ElectrumVoice.h"
 
 ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
-    : state(tree), modMap(map), index(idx), currentNote(-1),
-      currentNoteVelocity(0.0f), gate(false), vge(this), filter(tree, idx),
-      inQuickKill(false), queuedNote(0), queuedVelocity(0.0f)
+    : state(tree), modMap(map), index(idx), currentNote(-1), currentNoteVelocity(0.0f), gate(false),
+      vge(this), filter(tree, idx), inQuickKill(false), queuedNote(0), queuedVelocity(0.0f)
 {
   for (int i = 0; i < NUM_OSCILLATORS; i++)
   {
@@ -55,56 +54,44 @@ float ElectrumVoice::filterSample(float input, bool updateDests)
 
   if (updateDests) // we try to avoid doing this every time
   {
-    currentFilterMix =
-        Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix,
-                           getCurrentModDestValue(IDs::filterMix.toString()));
+    currentFilterMix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix,
+                                          getCurrentModDestValue(IDs::filterMix.toString()));
     currentFilterTracking = Math::bipolarFlerp(
-        0.0f, 1.0f, baseFilterTracking,
-        getCurrentModDestValue(IDs::filterTracking.toString()));
+        0.0f, 1.0f, baseFilterTracking, getCurrentModDestValue(IDs::filterTracking.toString()));
+    currentCutoff = ((float)Math::midiToHz(currentNote) * currentFilterTracking);
     currentCutoff =
-        ((float)Math::midiToHz(currentNote) * currentFilterTracking);
-    currentCutoff = Math::bipolarFlerp(
-        CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff,
-        getCurrentModDestValue(IDs::filterCutoff.toString()));
-    currentRes = Math::bipolarFlerp(
-        RESONANCE_MIN, RESONANCE_MAX, baseFilterRes,
-        getCurrentModDestValue(IDs::filterResonance.toString()));
+        Math::bipolarFlerp(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff,
+                           getCurrentModDestValue(IDs::filterCutoff.toString()));
+    currentRes = Math::bipolarFlerp(RESONANCE_MIN, RESONANCE_MAX, baseFilterRes,
+                                    getCurrentModDestValue(IDs::filterResonance.toString()));
   }
   if (currentFilterMix == 0.0f)
     return input;
-  float filtered =
-      filter.process(input, baseFilterType, currentCutoff, currentRes);
+  float filtered = filter.process(input, baseFilterType, currentCutoff, currentRes);
   return Math::flerp(input, filtered, currentFilterMix);
 }
 
-void ElectrumVoice::filterSampleStereo(float &left, float &right,
-                                       bool updateDests)
+void ElectrumVoice::filterSampleStereo(float &left, float &right, bool updateDests)
 {
   if (updateDests) // we try to avoid doing this every time
   {
-    currentFilterMix =
-        Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix,
-                           getCurrentModDestValue(IDs::filterMix.toString()));
+    currentFilterMix = Math::bipolarFlerp(0.0f, 1.0f, baseFilterMix,
+                                          getCurrentModDestValue(IDs::filterMix.toString()));
     currentFilterTracking = Math::bipolarFlerp(
-        0.0f, 1.0f, baseFilterTracking,
-        getCurrentModDestValue(IDs::filterTracking.toString()));
+        0.0f, 1.0f, baseFilterTracking, getCurrentModDestValue(IDs::filterTracking.toString()));
+    currentCutoff = ((float)Math::midiToHz(currentNote) * currentFilterTracking);
     currentCutoff =
-        ((float)Math::midiToHz(currentNote) * currentFilterTracking);
-    currentCutoff = Math::bipolarFlerp(
-        CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff,
-        getCurrentModDestValue(IDs::filterCutoff.toString()));
-    currentRes = Math::bipolarFlerp(
-        RESONANCE_MIN, RESONANCE_MAX, baseFilterRes,
-        getCurrentModDestValue(IDs::filterResonance.toString()));
+        Math::bipolarFlerp(CUTOFF_HZ_MIN, CUTOFF_HZ_MAX, baseFilterCutoff + currentCutoff,
+                           getCurrentModDestValue(IDs::filterCutoff.toString()));
+    currentRes = Math::bipolarFlerp(RESONANCE_MIN, RESONANCE_MAX, baseFilterRes,
+                                    getCurrentModDestValue(IDs::filterResonance.toString()));
   }
   if (currentFilterMix == 0.0f)
     return;
-  filter.processStereo(left, right, baseFilterType, currentCutoff, currentRes,
-                       currentFilterMix);
+  filter.processStereo(left, right, baseFilterType, currentCutoff, currentRes, currentFilterMix);
 }
 
-void ElectrumVoice::renderNextSample(float &left, float &right,
-                                     bool updateDests)
+void ElectrumVoice::renderNextSample(float &left, float &right, bool updateDests)
 {
   if (!isBusy())
     return;
@@ -120,20 +107,15 @@ void ElectrumVoice::renderNextSample(float &left, float &right,
   {
     if (updateDests)
     {
-      oscState[i].levelMod =
-          getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
-      oscState[i].posMod =
-          getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
-      oscState[i].panMod =
-          getCurrentModDestValue(IDs::oscillatorPan.toString() + String(i));
-      oscState[i].coarseMod = getCurrentModDestValue(
-          IDs::oscillatorCoarseTune.toString() + String(i));
-      oscState[i].fineMod = getCurrentModDestValue(
-          IDs::oscillatorFineTune.toString() + String(i));
+      oscState[i].levelMod = getCurrentModDestValue(IDs::oscillatorLevel.toString() + String(i));
+      oscState[i].posMod = getCurrentModDestValue(IDs::oscillatorPos.toString() + String(i));
+      oscState[i].panMod = getCurrentModDestValue(IDs::oscillatorPan.toString() + String(i));
+      oscState[i].coarseMod =
+          getCurrentModDestValue(IDs::oscillatorCoarseTune.toString() + String(i));
+      oscState[i].fineMod = getCurrentModDestValue(IDs::oscillatorFineTune.toString() + String(i));
     }
-    oscs[i]->renderSampleStereo(currentNote, AudioSystem::getSampleRate(),
-                                oscState[i].levelMod, oscState[i].posMod,
-                                oscState[i].panMod, oscState[i].coarseMod,
+    oscs[i]->renderSampleStereo(currentNote, AudioSystem::getSampleRate(), oscState[i].levelMod,
+                                oscState[i].posMod, oscState[i].panMod, oscState[i].coarseMod,
                                 oscState[i].fineMod, voiceLeft, voiceRight);
   }
   // jassert(output <= 1.0f);
@@ -162,8 +144,7 @@ void ElectrumVoice::updateForBlock()
   baseFilterCutoff = state->getFloatParamValue(IDs::filterCutoff.toString());
   baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString());
   baseFilterMix = state->getFloatParamValue(IDs::filterMix.toString());
-  baseFilterTracking =
-      state->getFloatParamValue(IDs::filterTracking.toString());
+  baseFilterTracking = state->getFloatParamValue(IDs::filterTracking.toString());
   baseFilterType = state->getCurrentFilterType();
   // if this is currently the newest voice, update levels for the graphics side
   if (state->currentNewestVoice() == index && state->isEditorOpen())

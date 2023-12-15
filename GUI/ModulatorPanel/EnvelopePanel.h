@@ -4,9 +4,8 @@
 #include "EnvelopeGraph.h"
 #define ENV_LABEL_HEIGHT 15
 #define LEVEL_LABEL_WIDTH 20
-struct EnvelopeLabel : public Component,
-                       public Label::Listener,
-                       public APVTS::Listener {
+struct EnvelopeLabel : public Component, public Label::Listener, public APVTS::Listener
+{
 private:
   Label label;
   // this doo helps convert the parameter value to real text

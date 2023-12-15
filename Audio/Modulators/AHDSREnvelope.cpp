@@ -41,8 +41,7 @@ void AHDSREnvelope::killQuick()
 float AHDSREnvelope::getEnvelopeSample()
 {
   auto *env = state->getAudioData()->getEnvelopeData(index);
-  float currentMs =
-      (float)samplesSinceGateChange * (float)(1000.0f / sampleRate);
+  float currentMs = (float)samplesSinceGateChange * (float)(1000.0f / sampleRate);
   auto currentPhase = AHDSRData::getPhaseForMs(env, gateIsOn, currentMs);
   float modLevel = Math::flerp(currentVelocity, 1.0f, 1.0f - env->velTracking);
   switch (currentPhase)
@@ -68,8 +67,7 @@ float AHDSREnvelope::getEnvelopeSample()
       decayExp = std::log(prevDecayCurve) / std::log(0.5f);
     }
     float normY = std::pow(1.0f - fX, decayExp);
-    return (env->sustainLevel + (normY * (1.0f - env->sustainLevel))) *
-           modLevel;
+    return (env->sustainLevel + (normY * (1.0f - env->sustainLevel))) * modLevel;
     break;
   }
   case AHDSRPhase::Sustain:

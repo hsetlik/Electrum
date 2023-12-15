@@ -7,9 +7,7 @@
 #define WAVE_GRAPH_HEIGHT 256
 #define WAVE_GRAPH_POINTS 128
 using namespace juce::gl;
-class WavetableGraph : public Component,
-                       public OpenGLRenderer,
-                       public AsyncUpdater
+class WavetableGraph : public Component, public OpenGLRenderer, public AsyncUpdater
 {
 public:
   EVT *const state;
@@ -40,11 +38,11 @@ private:
   std::vector<Vector3D<GLfloat>> vertices;
   std::vector<GLuint> indeces;
   // this checks the state for the current data to be graphed and converts it to
-  // a 3D mesh. Does the heavy lifting of the 3D logic.
+  // vertices and indeces. Does the heavy lifting of the 3D logic.
   void updateVertices();
 
   // this just easily converts betweeen a vertex's wave #/ phase index and index
-  // in a vector given the number of points
+  // in a vector given the total number of points
   static GLuint indexOfVertex(size_t wave, size_t sample, int numVertices);
   // projection matrix stuff
   Matrix3D<GLfloat> calculateProjectionMatrix();

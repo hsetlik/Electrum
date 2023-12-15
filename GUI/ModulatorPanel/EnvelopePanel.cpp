@@ -21,7 +21,8 @@ void EnvelopeLabel::resized() { label.setBounds(getLocalBounds()); }
 
 void EnvelopeLabel::parameterChanged(const String &id, float value)
 {
-  if (id == paramID) {
+  if (id == paramID)
+  {
     label.setText(labelTextForParam(value, id), juce::dontSendNotification);
   }
 }
@@ -29,28 +30,32 @@ void EnvelopeLabel::parameterChanged(const String &id, float value)
 String EnvelopeLabel::labelTextForParam(float value, const String &param)
 {
   //  DLog::log("Computing string for value: " + String(value));
-  if (param.contains(IDs::attackMs.toString())) {
+  if (param.contains(IDs::attackMs.toString()))
+  {
     String str(value);
     if (str.length() < 2)
       str += ".0";
     else if (str.length() > 6)
       str = str.substring(0, 6);
     return str;
-  } else if (param.contains(IDs::holdMs.toString())) {
+  } else if (param.contains(IDs::holdMs.toString()))
+  {
     String str(value);
     if (str.length() < 2)
       str += ".0";
     else if (str.length() > 6)
       str = str.substring(0, 6);
     return str;
-  } else if (param.contains(IDs::decayMs.toString())) {
+  } else if (param.contains(IDs::decayMs.toString()))
+  {
     String str(value);
     if (str.length() < 2)
       str += ".0";
     else if (str.length() > 6)
       str = str.substring(0, 6);
     return str;
-  } else if (param.contains(IDs::sustainLevel.toString())) {
+  } else if (param.contains(IDs::sustainLevel.toString()))
+  {
     if (value == 1.0f)
       return "1.0";
     else if (value == 0.0f)
@@ -66,15 +71,19 @@ String EnvelopeLabel::labelTextForParam(float value, const String &param)
 
 void EnvelopeLabel::labelTextChanged(Label *l)
 {
-  if (l == &label) {
+  if (l == &label)
+  {
     auto str = label.getText(false);
     auto paramRange = state->getAPVTS()->getParameterRange(paramID);
     float value = std::stof(str.toStdString());
-    if (!paramRange.getRange().contains(value)) {
+    if (!paramRange.getRange().contains(value))
+    {
       DLog::log("Out of range value " + str + " for parameter " + paramID);
-    } else {
+    } else
+    {
       auto param = state->getFloatParamPtr(paramID);
-      if (param != nullptr) {
+      if (param != nullptr)
+      {
         *param = value;
         updater->triggerAsyncUpdate();
       }
@@ -85,9 +94,7 @@ void EnvelopeLabel::labelTextChanged(Label *l)
 //==================================================================
 EnvelopePanel::EnvelopePanel(EVT *tree, int idx)
     : state(tree), graph(state, idx),
-      trackingSlider(tree, IDs::velocityTracking.toString() + String(idx),
-                     true),
-      index(idx)
+      trackingSlider(tree, IDs::velocityTracking.toString() + String(idx), true), index(idx)
 {
   addAndMakeVisible(&graph);
   addAndMakeVisible(&trackingSlider);

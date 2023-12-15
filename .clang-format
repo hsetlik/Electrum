@@ -5,5 +5,7 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: true
   AfterClass: true
+  AfterStruct: true
   AfterEnum: true
   AfterControlStatement: Always
+ColumnLimit: 100

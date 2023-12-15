@@ -9,7 +9,8 @@
 class ElectrumEngine
 {
 private:
-  struct TimestampedMidiMessage {
+  struct TimestampedMidiMessage
+  {
     int timestamp;
     MidiMessage message;
   };
