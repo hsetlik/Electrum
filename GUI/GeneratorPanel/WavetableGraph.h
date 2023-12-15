@@ -34,6 +34,7 @@ private:
 
   GLUtil::UniformWrapper projectionMatrix{"projectionMatrix"};
   GLUtil::UniformWrapper viewMatrix{"viewMatrix"};
+  GLUtil::UniformWrapper wavePosition{"wavePosition"};
 
   GLuint VAO, VBO, IBO;
   std::vector<Vector3D<GLfloat>> vertices;

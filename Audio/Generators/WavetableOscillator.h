@@ -12,6 +12,7 @@ private:
   float basePan;
   float baseCoarseTune;
   float baseFineTune;
+  float lastPositionFinal;
 
 public:
   WavetableOscillator(EVT *t, int idx);
@@ -38,4 +39,5 @@ public:
   {
     return IDs::oscillatorLevel.toString() + String(index);
   }
+  float getLastPosition() { return lastPositionFinal; }
 };

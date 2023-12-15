@@ -172,6 +172,10 @@ void ElectrumVoice::updateForBlock()
     {
       state->setLeadingVoiceEnvLevel(i, envs[i]->getCurrentSample());
     }
+    for (int i = 0; i < NUM_OSCILLATORS; i++)
+    {
+      state->setLeadingVoiceOscPosition(i, oscs[i]->getLastPosition());
+    }
   }
 }
 

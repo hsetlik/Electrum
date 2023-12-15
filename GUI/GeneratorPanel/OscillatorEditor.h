@@ -5,7 +5,7 @@
 #include "WavetableGraph.h"
 #include <FontBinaries.h>
 
-class OscillatorEditor : public Component
+class OscillatorEditor : public Component, public Timer
 {
 private:
   EVT *state;
@@ -25,4 +25,5 @@ public:
   ~OscillatorEditor() override;
   void resized() override;
   void paint(Graphics &g) override;
+  void timerCallback() override;
 };

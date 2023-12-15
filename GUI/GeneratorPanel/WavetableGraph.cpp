@@ -20,7 +20,7 @@ void WavetableGraph::paint(Graphics &) {}
 
 void WavetableGraph::resized() {}
 // AsyncUpdater override
-void WavetableGraph::handleAsyncUpdate() {}
+void WavetableGraph::handleAsyncUpdate() { repaint(); }
 
 // shader loading
 void WavetableGraph::compileShaders()
@@ -34,11 +34,14 @@ void WavetableGraph::compileShaders()
   {
     projectionMatrix.disconnectFromShaderProgram();
     viewMatrix.disconnectFromShaderProgram();
+    wavePosition.disconnectFromShaderProgram();
 
     shaderProgram.reset(shaderProgramAttempt.release());
 
     projectionMatrix.connectToShaderProgram(glContext, *shaderProgram);
     viewMatrix.connectToShaderProgram(glContext, *shaderProgram);
+    wavePosition.connectToShaderProgram(glContext, *shaderProgram);
+
   } else
   {
     DLog::log("Failed to compile shaders!");
@@ -98,6 +101,11 @@ void WavetableGraph::renderOpenGL()
     projectionMatrix->setMatrix4(calculateProjectionMatrix().mat, 1, false);
   if (viewMatrix)
     viewMatrix->setMatrix4(calculateViewMatrix().mat, 1, false);
+  if (wavePosition)
+  {
+    GLfloat val = (GLfloat)state->getLeadingVoiceOscPosition(index);
+    wavePosition->set(val);
+  }
 
   // Draw Vertices
   glContext.extensions.glBindVertexArray(VAO);

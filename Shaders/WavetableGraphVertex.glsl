@@ -1,6 +1,5 @@
 // this shader's job is to project 3D mesh points through the view and projection matrices to a 2D image. or whatever
-#version 330 core
-layout (location = 0) 
+#version 150 
 in vec3 position;
 
 uniform mat4 projectionMatrix;

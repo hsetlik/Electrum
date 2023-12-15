@@ -1,7 +1,8 @@
 #include "WavetableOscillator.h"
 
 WavetableOscillator::WavetableOscillator(EVT *t, int idx)
-    : state(t), index(idx), baseWavetablePos(0.0f), baseLevel(1.0f)
+    : state(t), index(idx), baseWavetablePos(0.0f), baseLevel(1.0f),
+      lastPositionFinal(0.0f)
 {
 }
 
@@ -51,10 +52,9 @@ void WavetableOscillator::renderSampleStereo(int midiNote, double sampleRate,
       Math::bipolarFlerp(FINE_TUNE_MIN, FINE_TUNE_MAX, baseFineTune, fineMod);
   auto freq = Math::midiToHz(midiNote, coarse, fine);
   phase = std::fmod(phase + (float)(freq / sampleRate), 1.0f);
-  float mono = state->getOscillatorValue(
-                   index, phase,
-                   Math::bipolarFlerp(0.0f, 1.0f, baseWavetablePos, posMod),
-                   freq, sampleRate) *
+  lastPositionFinal = Math::bipolarFlerp(0.0f, 1.0f, baseWavetablePos, posMod);
+  float mono = state->getOscillatorValue(index, phase, lastPositionFinal, freq,
+                                         sampleRate) *
                Math::bipolarFlerp(0.0f, 1.0f, baseLevel, levelMod);
   auto pan = Math::bipolarFlerp(0.0f, 1.0f, basePan, panMod);
 
