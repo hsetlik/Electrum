@@ -136,47 +136,29 @@ void EnvelopeGraphCore::drawEnvelopeGraph(Rectangle<float> &bounds, Graphics &g)
     float fY = bounds.getBottom() - 5.0f -
                Math::onEasingCurve(0.0f, yMax - attackCurve.getY(), yMax, t);
     fY = std::max({fY, 5.0f});
-    if (std::isnan(fX) || std::isnan(fY))
-    {
-      DLog::log("NAN coords on attack curve at point: " + String(i));
-    } else
-      p.lineTo(fX, fY);
+    p.lineTo(fX, fY);
   }
 
-  if (std::isnan(attackEnd.getX()) || std::isnan(attackEnd.getY()))
-  {
-    DLog::log("NAN coords at attack end!");
-  } else
-    p.lineTo(attackEnd.getX(), attackEnd.getY());
+  p.lineTo(attackEnd.getX(), attackEnd.getY());
 
-  if (std::isnan(holdEnd.getX()) || std::isnan(holdEnd.getY()))
-  {
-    DLog::log("NAN coords at hold end!");
-  } else
-    p.lineTo(holdEnd.getX(), holdEnd.getY());
+  p.lineTo(holdEnd.getX(), holdEnd.getY());
 
   for (int i = 0; i < curvePoints; i++)
   {
     float t = ((float)i / (float)curvePoints);
     float fX = Math::flerp(holdEnd.getX(), decayEnd.getX(), t);
-    if (std::isnan(decayEnd.getX()))
-    {
-      DLog::log("decayEnd has invalid X!");
-    }
-    if (std::isnan(decayEnd.getY()))
-    {
-      DLog::log("decayEnd has invalid Y!");
-    }
-    if (decayCurve.getY() > decayEnd.getY())
-    {
-      DLog::log("curve point is above end point!");
-    }
     float fY = decayEnd.getY() -
                Math::onEasingCurve(0.0f, decayEnd.getY() - decayCurve.getY(),
                                    decayEnd.getY(), 1.0f - t);
     if (std::isnan(fY))
     {
-      DLog::log("fY is invalid!");
+      // we'll fix this by brute force by just getting the sustain value from
+      // the state
+      const float bottom = state->getFloatParamValue(
+                               IDs::sustainLevel.toString() + String(index)) *
+                           bounds.getHeight();
+      fY = bottom - Math::onEasingCurve(0.0f, bottom - decayCurve.getY(),
+                                        bottom, 1.0f - t);
     }
     fY = std::max(fY, holdEnd.getY());
     if (std::isnan(fX) || std::isnan(fY))
@@ -196,11 +178,7 @@ void EnvelopeGraphCore::drawEnvelopeGraph(Rectangle<float> &bounds, Graphics &g)
     float height = bottom - sustainEnd.getY();
     float yCurve = bottom - releaseCurve.getY();
     float fY = bottom - Math::onEasingCurve(0.0f, yCurve, height, 1.0f - t);
-    if (std::isnan(fX) || std::isnan(fY))
-    {
-      DLog::log("NAN coords on release curve at point: " + String(i));
-    } else
-      p.lineTo(fX, fY);
+    p.lineTo(fX, fY);
   }
   p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::brightYellow);
@@ -298,10 +276,9 @@ Point<float> EnvelopeGraphCore::getPosFromParam(const String &paramID,
     float x1 = decayEnd.getX();
     float y1 = decayEnd.getY();
     float yPos = Math::flerp(y1, y0, value);
-    if (std::isnan(yPos))
+    if (std::isnan(yPos) || std::isnan(x0) || std::isnan(x1))
     {
-      DLog::log("Y position not valid from: " + String(y1) + ", " + String(y0) +
-                ", " + String(value));
+      DLog::log("DECAY CURVE HAS INVALID LOCATION!");
     }
     return {Math::flerp(x0, x1, 0.5f), yPos};
   } else if (paramID.contains(IDs::decayMs.toString()))
