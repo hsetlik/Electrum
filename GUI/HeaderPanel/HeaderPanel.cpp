@@ -1,25 +1,20 @@
 #include "HeaderPanel.h"
-HeaderLabel::HeaderLabel()
+HeaderPanel::HeaderPanel(EVT *tree)
+    : state(tree), nameFont(Fonts::getTypeface(Fonts::AcierDisplayNoir))
 {
-  setText("Electrum", juce::dontSendNotification);
-  Font f(Fonts::getTypeface(Fonts::FuturaBoldOblique));
-  setFont(f.withHeight(HEADER_FONT_PX));
-  setBorderSize(BorderSize<int>(5));
-  setJustificationType(Justification::centred);
 }
 
-HeaderPanel::HeaderPanel(EVT *tree) : state(tree) { addAndMakeVisible(&label); }
-
-void HeaderPanel::resized()
-{
-  auto fBounds = getLocalBounds().toFloat();
-  auto labelBounds =
-      fBounds.removeFromTop(HEADER_FONT_PX + (float)label.getBorderSize().getTopAndBottom());
-  label.setBounds(labelBounds.toNearestInt());
-}
+void HeaderPanel::resized() {}
 
 void HeaderPanel::paint(Graphics &g)
 {
   auto bg = getLookAndFeel().findColour(Label::ColourIds::backgroundColourId);
   g.fillAll(bg);
+  auto fBounds = getLocalBounds().toFloat();
+  auto textBounds = fBounds.removeFromTop(fBounds.getHeight() * 0.26f).toNearestInt();
+  auto textColor = getLookAndFeel().findColour(Label::ColourIds::textColourId);
+
+  g.setColour(textColor);
+  g.setFont(nameFont.withHeight((float)(textBounds.getHeight() - 5)));
+  g.drawFittedText("Electrum", textBounds, Justification::centredLeft, 1);
 }

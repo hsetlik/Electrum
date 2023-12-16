@@ -5,18 +5,11 @@
 
 #define HEADER_FONT_PX 26.0f
 
-class HeaderLabel : public Label
-{
-public:
-  HeaderLabel();
-};
-
 class HeaderPanel : public Component
 {
 private:
   EVT *const state;
-
-  HeaderLabel label;
+  Font nameFont;
 
 public:
   HeaderPanel(EVT *tree);

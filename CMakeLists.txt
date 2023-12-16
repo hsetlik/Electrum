@@ -33,7 +33,9 @@ set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaBoldOblique.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaMediumOblique.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaLightCondensed.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/AcierDisplayNoir.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Futura.ttf")
 
 set(SOURCES

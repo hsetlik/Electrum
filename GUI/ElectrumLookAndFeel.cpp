@@ -3,7 +3,7 @@
 #include "Fonts.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
-    : labelFont(Fonts::getTypeface(Fonts::FuturaLightCondensed))
+    : labelFont(Fonts::getTypeface(Fonts::FuturaMediumOblique))
 {
   setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::FuturaLightCondensed));
 }
@@ -52,5 +52,5 @@ void ElectrumLookAndFeel::drawLabel(Graphics &g, Label &l)
   // draw the text
   auto textBounds = b.subtractedFrom(l.getLocalBounds());
   g.setColour(findColour(Label::ColourIds::textColourId));
-  g.drawFittedText(l.getText(true), textBounds, Justification::centred, 1);
+  g.drawFittedText(l.getText(true), textBounds, l.getJustificationType(), 1);
 }

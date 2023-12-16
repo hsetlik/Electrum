@@ -10,7 +10,9 @@ enum Name
   HelveticaNeueRegular,
   FuturaRegular,
   FuturaBoldOblique,
-  FuturaLightCondensed
+  FuturaLightCondensed,
+  FuturaMediumOblique,
+  AcierDisplayNoir
 };
 
 inline Typeface::Ptr getTypeface(Name n)
@@ -32,6 +34,12 @@ inline Typeface::Ptr getTypeface(Name n)
   case FuturaLightCondensed:
     return Typeface::createSystemTypefaceFor(FontBinaries::FuturaLightCondensed_otf,
                                              FontBinaries::FuturaLightCondensed_otfSize);
+  case FuturaMediumOblique:
+    return Typeface::createSystemTypefaceFor(FontBinaries::FuturaMediumOblique_otf,
+                                             FontBinaries::FuturaMediumOblique_otfSize);
+  case AcierDisplayNoir:
+    return Typeface::createSystemTypefaceFor(FontBinaries::AcierDisplayNoir_otf,
+                                             FontBinaries::AcierDisplayNoir_otfSize);
   default:
     return Typeface::createSystemTypefaceFor(FontBinaries::Futura_ttf,
                                              FontBinaries::Futura_ttfSize);
