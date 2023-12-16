@@ -35,4 +35,35 @@ void Saturation::processStereo(float &left, float &right, SaturationType type, f
 }
 
 //===========================================================================
-SaturationProcessor::SaturationProcessor(EVT *tree) : state(tree) {}
+SaturationProcessor::SaturationProcessor(EVT *tree) : state(tree)
+{
+  currentType = SaturationType::soft1;
+  baseCoeff = SAT_COEFF_DEFAULT;
+  baseDrive = SAT_DRIVE_DEFAULT;
+  baseWetDry = 0.5f;
+}
+
+void SaturationProcessor::updateBaseParams()
+{
+  // grip values to stack variables
+  const SaturationType t =
+      (SaturationType)state->getChoiceParamValue(IDs::saturationType.toString());
+  const float c = state->getFloatParamValue(IDs::saturationCoeff.toString());
+  const float d = state->getFloatParamValue(IDs::saturationDrive.toString());
+  const float mix = state->getFloatParamValue(IDs::saturationMix.toString());
+  // assign after
+  currentType = t;
+  baseCoeff = c;
+  baseDrive = d;
+  baseWetDry = mix;
+}
+
+void SaturationProcessor::processStereo(float &left, float &right, float coeffMod, float driveMod,
+                                        float mixMod)
+{
+  return Saturation::processStereo(
+      left, right, currentType,
+      Math::bipolarFlerp(SAT_COEFF_MIN, SAT_COEFF_MAX, baseCoeff, coeffMod),
+      Math::bipolarFlerp(SAT_DRIVE_MIN, SAT_DRIVE_MAX, baseDrive, driveMod),
+      Math::bipolarFlerp(0.0f, 1.0f, baseWetDry, mixMod));
+}

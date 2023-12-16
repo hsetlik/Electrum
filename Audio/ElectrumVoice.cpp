@@ -2,7 +2,8 @@
 
 ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
     : state(tree), modMap(map), index(idx), currentNote(-1), currentNoteVelocity(0.0f), gate(false),
-      vge(this), filter(tree, idx), inQuickKill(false), queuedNote(0), queuedVelocity(0.0f)
+      vge(this), sat(tree), filter(tree, idx), inQuickKill(false), queuedNote(0),
+      queuedVelocity(0.0f)
 {
   for (int i = 0; i < NUM_OSCILLATORS; i++)
   {
@@ -133,6 +134,7 @@ void ElectrumVoice::renderNextSample(float &left, float &right, bool updateDests
 
 void ElectrumVoice::updateForBlock()
 {
+  // update oscs
   for (auto o : oscs)
   {
     o->updateBasePos();
@@ -141,11 +143,14 @@ void ElectrumVoice::updateForBlock()
     o->updateBaseCoarse();
     o->updateBaseFine();
   }
+  // update filter
   baseFilterCutoff = state->getFloatParamValue(IDs::filterCutoff.toString());
   baseFilterRes = state->getFloatParamValue(IDs::filterResonance.toString());
   baseFilterMix = state->getFloatParamValue(IDs::filterMix.toString());
   baseFilterTracking = state->getFloatParamValue(IDs::filterTracking.toString());
   baseFilterType = state->getCurrentFilterType();
+  // update saturation
+  sat.updateBaseParams();
   // if this is currently the newest voice, update levels for the graphics side
   if (state->currentNewestVoice() == index && state->isEditorOpen())
   {

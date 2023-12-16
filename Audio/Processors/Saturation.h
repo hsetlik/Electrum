@@ -30,4 +30,5 @@ private:
 public:
   SaturationProcessor(EVT *tree);
   void updateBaseParams();
+  void processStereo(float &left, float &right, float coeffMod, float driveMod, float mixMod);
 };

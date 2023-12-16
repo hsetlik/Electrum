@@ -184,7 +184,7 @@ const std::vector<Identifier> DestinationIDs = {
     filterTracking,     saturationCoeff, saturationDrive, saturationMix};
 #undef DECLARE_ID
 
-#define NUM_DESTINATIONS 19
+#define NUM_DESTINATIONS 22
 
 const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 const StringArray satTypes = {"Soft 1", "Soft 2", "Soft 3", "Soft 4"};

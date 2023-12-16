@@ -5,6 +5,7 @@
 #include "Modulators/AHDSREnvelope.h"
 #include "Modulators/Oscillator.h"
 #include "Processors/FilterProcessor.h"
+#include "Processors/Saturation.h"
 
 // forward declaration for the envelope
 class ElectrumVoice;
@@ -48,7 +49,13 @@ private:
     float coarseMod;
     float fineMod;
   };
-
+  // same idea but for saturation
+  struct SaturationModValues
+  {
+    float coeffMod;
+    float driveMod;
+    float mixMod;
+  };
   EVT *const state;
   ModDestMap *const modMap;
   const int index;
@@ -57,10 +64,17 @@ private:
   bool gate;
   VoiceGateEnvelope vge;
   PlaceholderOsc osc;
+
   OwnedArray<WavetableOscillator> oscs;
   OscModValues oscState[NUM_OSCILLATORS];
+
+  SaturationProcessor sat;
+  SaturationModValues sMod;
+
   OwnedArray<AHDSREnvelope> envs;
+
   SynthFilter filter;
+
   float baseFilterCutoff;
   float currentCutoff;
   float baseFilterRes;

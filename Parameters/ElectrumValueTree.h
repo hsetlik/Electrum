@@ -12,7 +12,8 @@
  * This represents a single modulation with a sourceID string and a depth value
  * in the range -1.0-1.0
  * */
-struct Modulation {
+struct Modulation
+{
   String sourceID;
   float depth;
   Modulation(const String &s, float d) : sourceID(s), depth(d) {}
@@ -60,8 +61,7 @@ private:
     ValueTree tree(IDs::ELECTRUM_MODULATIONS);
     return tree;
   }
-  static ValueTree createModulationTree(const String &source,
-                                        const String &dest, float depth)
+  static ValueTree createModulationTree(const String &source, const String &dest, float depth)
   {
     ValueTree tree(IDs::MODULATION);
     tree.setProperty(IDs::modulationSource, source, nullptr);
@@ -100,10 +100,9 @@ private:
 public:
   EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType)
       : audioData(std::make_unique<ElectrumAudioData>()),
-        coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()),
-        sustainPedalOn(false), modWheelValue(0.0f), pitchBendValue(0.0f),
-        envsInUse(0), lastPerlinVal(0.0f), editorOpen(false), voicesState(0),
-        newestVoice(-1)
+        coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()), sustainPedalOn(false),
+        modWheelValue(0.0f), pitchBendValue(0.0f), envsInUse(0), lastPerlinVal(0.0f),
+        editorOpen(false), voicesState(0), newestVoice(-1)
   {
     coreTree.addParameterListener(IDs::filterType.toString(), this);
     coreTree.state.addListener(&paramWatcher);
@@ -128,8 +127,7 @@ public:
   // helper functions for accesing the underlying atomic values. unchecked!
   float getFloatParamValue(const String &id)
   {
-    if (auto param =
-            dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
+    if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
     {
       return param->get();
     } else
@@ -140,8 +138,7 @@ public:
   }
   int getIntParamValue(const String &id)
   {
-    if (auto param =
-            dynamic_cast<AudioParameterInt *>(coreTree.getParameter(id)))
+    if (auto param = dynamic_cast<AudioParameterInt *>(coreTree.getParameter(id)))
     {
       return param->get();
     } else
@@ -150,10 +147,20 @@ public:
       return -1;
     }
   }
+  int getChoiceParamValue(const String &id)
+  {
+    if (auto param = dynamic_cast<AudioParameterChoice *>(coreTree.getParameter(id)))
+    {
+      return param->getIndex();
+    } else
+    {
+      DLog::log("Could not get int parameter with ID: " + id);
+      return -1;
+    }
+  }
   AudioParameterFloat *getFloatParamPtr(const String &id)
   {
-    if (auto param =
-            dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
+    if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
     {
       return param;
     } else
@@ -176,11 +183,9 @@ public:
   // gets the current output of the perlin generator
   float perlinValue() const { return lastPerlinVal.load(); }
 
-  float getOscillatorValue(int idx, float phase, float tablePos, double freq,
-                           double sampleRate)
+  float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate)
   {
-    return audioData->getOscillatorValue(idx, phase, tablePos, freq,
-                                         sampleRate);
+    return audioData->getOscillatorValue(idx, phase, tablePos, freq, sampleRate);
   }
   APVTS *getAPVTS() { return &coreTree; }
   // Modulation info stuff
@@ -248,10 +253,7 @@ public:
   }
   int currentNewestVoice() { return newestVoice.load(); }
 
-  void setLeadingVoiceEnvLevel(int idx, float value)
-  {
-    newestEnvLevels[(size_t)idx] = value;
-  }
+  void setLeadingVoiceEnvLevel(int idx, float value) { newestEnvLevels[(size_t)idx] = value; }
 
   float getLeadingVoiceEnvLevel(int idx)
   {
@@ -260,12 +262,6 @@ public:
     return 0.0f;
   }
 
-  void setLeadingVoiceOscPosition(int idx, float value)
-  {
-    newestOscPositions[(size_t)idx] = value;
-  }
-  float getLeadingVoiceOscPosition(int idx)
-  {
-    return newestOscPositions[(size_t)idx].load();
-  }
+  void setLeadingVoiceOscPosition(int idx, float value) { newestOscPositions[(size_t)idx] = value; }
+  float getLeadingVoiceOscPosition(int idx) { return newestOscPositions[(size_t)idx].load(); }
 };
