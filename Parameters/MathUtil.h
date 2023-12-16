@@ -6,30 +6,35 @@
 namespace Math {
 // interpolate between a and b where t is in the range 0, 1
 inline float flerp(float a, float b, float t) { return a + ((b - a) * t); }
-inline float bipolarFlerp(float min, float max, float current, float t) {
+inline float bipolarFlerp(float min, float max, float current, float t)
+{
   if (t > 0.0f)
     return flerp(current, max, t);
   return flerp(min, current, 1.0f - std::fabs(t));
 }
 inline double dlerp(double a, double b, double t) { return a + ((b - a) * t); }
-inline Colour clerp(const Colour &a, const Colour &b, float t) {
+inline Colour clerp(const Colour &a, const Colour &b, float t)
+{
   return Colour::fromHSV(flerp(a.getHue(), b.getHue(), t),
                          flerp(a.getSaturation(), b.getSaturation(), t),
                          flerp(a.getBrightness(), b.getBrightness(), t),
                          flerp(a.getFloatAlpha(), b.getFloatAlpha(), t));
 }
 // get the fundamental frequency in hertz for a midi note
-inline double midiToHz(int midiNum, float semitones = 0.0f,
-                       float cents = 0.0f) {
+inline double midiToHz(int midiNum, float semitones = 0.0f, float cents = 0.0f)
+{
   float fNote = (float)midiNum - 69.0f;
   fNote += semitones + (cents / 100.0f);
   return 440.0f * std::pow(SEMITONE_RATIO, fNote);
 }
-inline float fconstrain(float min, float max, float value) {
+inline float fconstrain(float min, float max, float value)
+{
   return std::min(std::max(value, min), max);
 }
+inline float fsign(float input) { return input / std::fabs(input); }
 // convert an int in the range 0, 16383 into a float in the range -1.0, 1.0
-inline float toPitchBendValue(int val) {
+inline float toPitchBendValue(int val)
+{
   // make sure we're getting a valid value
   jassert(val < 16384);
   return jmap((float)val, 0.0f, 16383.0f, -1.0f, 1.0f);
@@ -64,8 +69,8 @@ inline float toPitchBendValue(int val) {
  * @param pY Distance point Y
  * @return the minimum distance
  */
-inline float perpindicularDistance(float x1, float y1, float x2, float y2,
-                                   float pX, float pY) {
+inline float perpindicularDistance(float x1, float y1, float x2, float y2, float pX, float pY)
+{
   float m = (y2 - y1) / (x2 - x1);
   // the original line:
   // point slope: y - y1 = m(x - x1)
@@ -77,15 +82,16 @@ inline float perpindicularDistance(float x1, float y1, float x2, float y2,
   return std::fabs((m * pX) + (-1.0f * pY) + yInt) / std::sqrt((m * m) + 1.0f);
 }
 
-inline size_t fastFloor(float fp) {
+inline size_t fastFloor(float fp)
+{
   size_t i = static_cast<size_t>(fp);
   return (fp < i) ? (i - 1) : (i);
 }
 
-inline float onEasingCurve(float y0, float y1, float y2, float x) {
-  float yM =
-      jmap(y1, y0, y2, 0.0f, 1.0f); // normalize y1 between 0 and 1 to use the
-                                    // exponential parent function
+inline float onEasingCurve(float y0, float y1, float y2, float x)
+{
+  float yM = jmap(y1, y0, y2, 0.0f, 1.0f); // normalize y1 between 0 and 1 to use the
+                                           // exponential parent function
   // this is a basic exponential function where we know that:
   //     f(x) = x^t
   //     f(0.5) = yM
@@ -98,7 +104,8 @@ inline float onEasingCurve(float y0, float y1, float y2, float x) {
 }
 } // namespace Math
 
-struct FFT {
+struct FFT
+{
   static void runFloat(int N, float *ar, float *ai)
   /*
    in-place complex fft
@@ -125,8 +132,10 @@ struct FFT {
       ++M;
     /* shuffle */
     j = 1;
-    for (i = 1; i <= NM1; i++) {
-      if (i < j) { /* swap a[i] and a[j] */
+    for (i = 1; i <= NM1; i++)
+    {
+      if (i < j)
+      { /* swap a[i] and a[j] */
         t = ar[j - 1];
         ar[j - 1] = ar[i - 1];
         ar[i - 1] = t;
@@ -135,22 +144,26 @@ struct FFT {
         ai[i - 1] = t;
       }
       k = NV2; /* bit-reversed counter */
-      while (k < j) {
+      while (k < j)
+      {
         j -= k;
         k /= 2;
       }
       j += k;
     }
     LE = 1.0f;
-    for (L = 1; L <= M; L++) { // stage L
-      LE1 = LE;                // (LE1 = LE/2)
-      LE *= 2;                 // (LE = 2^L)
+    for (L = 1; L <= M; L++)
+    {           // stage L
+      LE1 = LE; // (LE1 = LE/2)
+      LE *= 2;  // (LE = 2^L)
       Ur = 1.0f;
       Ui = 0.0f;
       Wr = cos(M_PI / (float)LE1);
       Wi = -sin(M_PI / (float)LE1); // Cooley, Lewis, and Welch have "+" here
-      for (j = 1; j <= LE1; j++) {
-        for (i = j; i <= N; i += LE) { // butterfly
+      for (j = 1; j <= LE1; j++)
+      {
+        for (i = j; i <= N; i += LE)
+        { // butterfly
           ip = i + LE1;
           Tr = ar[ip - 1] * Ur - ai[ip - 1] * Ui;
           Ti = ar[ip - 1] * Ui + ai[ip - 1] * Ur;
