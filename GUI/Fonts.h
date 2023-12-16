@@ -8,6 +8,7 @@ enum Name
 {
   RobotoMediumItalic,
   HelveticaNeueRegular,
+  HelveticaNeueMedium,
   FuturaRegular,
   FuturaBoldOblique,
   FuturaLightCondensed,
@@ -25,6 +26,9 @@ inline Typeface::Ptr getTypeface(Name n)
   case HelveticaNeueRegular:
     return Typeface::createSystemTypefaceFor(FontBinaries::HelveticaNeueRegular_otf,
                                              FontBinaries::HelveticaNeueRegular_otfSize);
+  case HelveticaNeueMedium:
+    return Typeface::createSystemTypefaceFor(FontBinaries::HelveticaNeueMedium_otf,
+                                             FontBinaries::HelveticaNeueMedium_otfSize);
   case FuturaRegular:
     return Typeface::createSystemTypefaceFor(FontBinaries::Futura_ttf,
                                              FontBinaries::Futura_ttfSize);

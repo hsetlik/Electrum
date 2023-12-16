@@ -147,7 +147,7 @@ void EnvelopeGraphCore::drawEnvelopeGraph(Rectangle<float> &bounds, Graphics &g)
     p.lineTo(fX, fY);
   }
   p.lineTo(bounds.getRight(), bounds.getBottom());
-  g.setColour(Color::brightYellow);
+  g.setColour(Color::paleOrange);
   PathStrokeType pst(1.2f);
   g.strokePath(p, pst);
 
@@ -499,7 +499,7 @@ void EnvelopeGraphCore::drawHandle(Graphics &g, Point<float> center, float radiu
 {
   Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
   bounds = bounds.withCentre(center);
-  g.setColour(Color::brightYellow);
+  g.setColour(Color::paleOrange);
   if (fill)
   {
     g.fillEllipse(bounds);

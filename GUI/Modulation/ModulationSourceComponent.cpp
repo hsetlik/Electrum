@@ -1,23 +1,20 @@
 #include "ModulationSourceComponent.h"
 
-ModulationSourceComponent::ModulationSourceComponent(EVT* tree, const String& id) :
-state (tree),
-sourceID(id)
+ModulationSourceComponent::ModulationSourceComponent(EVT *tree, const String &id)
+    : state(tree), sourceID(id)
 {
-
 }
 
-void ModulationSourceComponent::paint(Graphics& g) 
+void ModulationSourceComponent::paint(Graphics &g)
 {
-    auto lBounds = getLocalBounds().toFloat();
-    g.setColour(Color::getColorForModSource(sourceID));
-    g.fillEllipse(lBounds);
-    g.setColour(Color::darkSlateGray);
-    g.fillEllipse(lBounds.reduced(3.0f));
+  auto lBounds = getLocalBounds().toFloat();
+  g.setColour(Color::getColorForModSource(sourceID));
+  g.fillEllipse(lBounds);
+  g.setColour(Color::darkBkgnd);
+  g.fillEllipse(lBounds.reduced(3.0f));
 }
 
-    
-void ModulationSourceComponent::mouseDown(const juce::MouseEvent&) 
+void ModulationSourceComponent::mouseDown(const juce::MouseEvent &)
 {
-    DragAndDropContainer::findParentDragContainerFor(this)->startDragging(sourceID, this);
+  DragAndDropContainer::findParentDragContainerFor(this)->startDragging(sourceID, this);
 }

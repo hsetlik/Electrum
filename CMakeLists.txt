@@ -32,6 +32,7 @@ FetchContent_MakeAvailable(Catch2)
 set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Medium.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaBoldOblique.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaMediumOblique.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaLightCondensed.otf"
@@ -135,10 +136,13 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.cpp"
+    # /GUI/ProcessorPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/SaturationPanel.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/SaturationPanel.cpp"
     # /GUI/HeaderPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.cpp")

@@ -12,16 +12,16 @@ FilterPanel::FilterPanel(EVT *tree)
   addAndMakeVisible(sMix);
   addAndMakeVisible(sTracking);
 
-  sCutoff.setTextColor(Color::ghostWhite);
-  sRes.setTextColor(Color::ghostWhite);
-  sTracking.setTextColor(Color::ghostWhite);
-  sMix.setTextColor(Color::ghostWhite);
+  sCutoff.setTextColor(Color::offWhite);
+  sRes.setTextColor(Color::offWhite);
+  sTracking.setTextColor(Color::offWhite);
+  sMix.setTextColor(Color::offWhite);
   //
   bFilterType.addItemList(IDs::filterTypes, 1);
   addAndMakeVisible(&bFilterType);
   bFilterType.setSelectedItemIndex(0);
-  typeAttach.reset(new APVTS::ComboBoxAttachment(
-      *state->getAPVTS(), IDs::filterType.toString(), bFilterType));
+  typeAttach.reset(
+      new APVTS::ComboBoxAttachment(*state->getAPVTS(), IDs::filterType.toString(), bFilterType));
 }
 
 void FilterPanel::resized()
@@ -34,7 +34,6 @@ void FilterPanel::resized()
   const float cushion = 6.0f;
   sCutoff.setBounds(fBounds.removeFromLeft(dX).reduced(cushion).toNearestInt());
   sRes.setBounds(fBounds.removeFromLeft(dX).reduced(cushion).toNearestInt());
-  sTracking.setBounds(
-      fBounds.removeFromLeft(dX).reduced(cushion).toNearestInt());
+  sTracking.setBounds(fBounds.removeFromLeft(dX).reduced(cushion).toNearestInt());
   sMix.setBounds(fBounds.reduced(cushion).toNearestInt());
 }
