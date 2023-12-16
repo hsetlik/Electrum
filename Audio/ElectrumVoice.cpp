@@ -121,6 +121,14 @@ void ElectrumVoice::renderNextSample(float &left, float &right, bool updateDests
   }
   // jassert(output <= 1.0f);
   filterSampleStereo(voiceLeft, voiceRight, updateDests);
+  // proces the saturation
+  if (updateDests)
+  {
+    sMod.coeffMod = getCurrentModDestValue(IDs::saturationCoeff.toString());
+    sMod.driveMod = getCurrentModDestValue(IDs::saturationDrive.toString());
+    sMod.mixMod = getCurrentModDestValue(IDs::saturationMix.toString());
+  }
+  sat.processStereo(voiceLeft, voiceRight, sMod.coeffMod, sMod.driveMod, sMod.mixMod);
   left += voiceLeft * vge.getCurrentSample();
   right += voiceRight * vge.getCurrentSample();
   // now we need to handle if this voice has been quick-killed and needs to
