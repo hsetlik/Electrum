@@ -26,3 +26,13 @@ float Saturation::process(SaturationType type, float input, float k)
     return input;
   }
 }
+
+void Saturation::processStereo(float &left, float &right, SaturationType type, float coeff,
+                               float drive, float wetDry)
+{
+  left = Math::flerp(left, process(type, left * drive, coeff) / drive, wetDry);
+  right = Math::flerp(right, process(type, right * drive, coeff) / drive, wetDry);
+}
+
+//===========================================================================
+SaturationProcessor::SaturationProcessor(EVT *tree) : state(tree) {}
