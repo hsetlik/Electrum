@@ -7,6 +7,7 @@ LabeledMDS::LabeledMDS(EVT *tree, const String &id, const String &labelText)
 {
   label.setText(text, juce::dontSendNotification);
   label.setJustificationType(Justification::centred);
+  label.setBorderSize(BorderSize<int>(3));
   addAndMakeVisible(&label);
   addAndMakeVisible(mds.get());
 }

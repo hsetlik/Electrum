@@ -3,8 +3,9 @@
 #include "Fonts.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
+    : labelFont(Fonts::getTypeface(Fonts::FuturaLightCondensed))
 {
-  setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::Futura));
+  setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::FuturaLightCondensed));
 }
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                                            float sliderPosProportional, float rotaryStartAngle,
@@ -33,4 +34,23 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
   auto thumbColor = findColour(Slider::ColourIds::thumbColourId);
   g.setColour(thumbColor);
   g.fillPath(thumb);
+}
+
+Font ElectrumLookAndFeel::getLabelFont(Label &l)
+{
+  return labelFont.withHeight((float)(l.getHeight() - l.getBorderSize().getTopAndBottom()));
+}
+
+void ElectrumLookAndFeel::drawLabel(Graphics &g, Label &l)
+{
+  auto f = getLabelFont(l);
+  g.setFont(f);
+  auto b = l.getBorderSize();
+  // fill the background
+  g.setColour(findColour(Label::ColourIds::backgroundColourId));
+  g.fillRoundedRectangle(l.getLocalBounds().toFloat(), 8.0f);
+  // draw the text
+  auto textBounds = b.subtractedFrom(l.getLocalBounds());
+  g.setColour(findColour(Label::ColourIds::textColourId));
+  g.drawFittedText(l.getText(true), textBounds, Justification::centred, 1);
 }

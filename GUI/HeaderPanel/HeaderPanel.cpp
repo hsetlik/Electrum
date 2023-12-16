@@ -4,6 +4,7 @@ HeaderLabel::HeaderLabel()
   setText("Electrum", juce::dontSendNotification);
   Font f(Fonts::getTypeface(Fonts::FuturaBoldOblique));
   setFont(f.withHeight(HEADER_FONT_PX));
+  setBorderSize(BorderSize<int>(5));
   setJustificationType(Justification::centred);
 }
 

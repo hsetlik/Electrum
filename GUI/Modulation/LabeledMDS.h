@@ -7,6 +7,7 @@ class LabeledMDS : public Component
 {
 public:
   LabeledMDS(EVT *tree, const String &paramID, const String &labelText);
+  ~LabeledMDS() override { setLookAndFeel(nullptr); }
   void resized() override;
   void setTextColor(const Colour &c) { textColor = c; }
 
