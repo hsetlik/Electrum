@@ -7,13 +7,9 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
       sLevel(state, IDs::oscillatorLevel.toString() + String(idx), "Level"),
       sPos(state, IDs::oscillatorPos.toString() + String(idx), "Position"),
       sPan(state, IDs::oscillatorPan.toString() + String(idx), "Pan"),
-      sCoarse(state, IDs::oscillatorCoarseTune.toString() + String(idx),
-              "Coarse"),
+      sCoarse(state, IDs::oscillatorCoarseTune.toString() + String(idx), "Coarse"),
       sFine(state, IDs::oscillatorFineTune.toString() + String(idx), "Fine"),
-      label("oscLabel" + String(idx), "Oscillator " + String(idx)),
-      graph(tree, idx), noodle(Typeface::createSystemTypefaceFor(
-                            FontBinaries::big_noodle_titling_ttf,
-                            FontBinaries::big_noodle_titling_ttfSize))
+      label("oscLabel" + String(idx), "Oscillator " + String(idx)), graph(tree, idx)
 {
   //  addAndMakeVisible(&label);
   addAndMakeVisible(sLevel);
@@ -56,12 +52,9 @@ void OscillatorEditor::paint(Graphics &g)
   const String labelText = "Oscillator " + String(index + 1);
   float dX = (float)getWidth() / 14.0f;
   Rectangle<float> labelBounds(0.0f, 0.0f, 9.0f * dX, 2.0f * dX);
-  g.setFont(Font(noodle));
-  auto bgColor =
-      getLookAndFeel().findColour(Label::ColourIds::backgroundColourId);
+  auto bgColor = getLookAndFeel().findColour(Label::ColourIds::backgroundColourId);
   g.fillAll(bgColor);
   auto textColor = getLookAndFeel().findColour(Label::ColourIds::textColourId);
   g.setColour(textColor);
-  g.drawFittedText(labelText, labelBounds.toNearestInt(),
-                   Justification::centred, 1);
+  g.drawFittedText(labelText, labelBounds.toNearestInt(), Justification::centred, 1);
 }

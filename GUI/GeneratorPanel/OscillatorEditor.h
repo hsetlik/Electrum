@@ -15,10 +15,8 @@ private:
   LabeledMDS sPan;
   LabeledMDS sCoarse;
   LabeledMDS sFine;
-  // TODO: replace this with just drawing the text
   Label label;
   WavetableGraph graph;
-  Typeface::Ptr noodle;
 
 public:
   OscillatorEditor(EVT *tree, int idx);

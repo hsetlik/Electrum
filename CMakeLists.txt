@@ -31,11 +31,9 @@ FetchContent_MakeAvailable(Catch2)
 
 set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothic.ttf"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/big_noodle_titling.ttf"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HighwayGothicWide.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Light.otf")
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaBoldOblique.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Futura.ttf")
 
 set(SOURCES
     # /Core
@@ -89,6 +87,7 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ElectrumLookAndFeel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Color.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts.h"
     # /GUI/Utility
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GUIUtil.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GLUtil.h"
@@ -134,7 +133,10 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.h"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.cpp")
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.cpp"
+    # /GUI/HeaderPanel
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.cpp")
 
 # make a binary target to grip the shader files
 juce_add_binary_data(
@@ -189,8 +191,6 @@ juce_add_plugin(
   "${FORMATS}"
   PRODUCT_NAME
   "${PROJECT_NAME}")
-
-juce_enable_copy_plugin_step("${PROJECT_NAME}")
 
 target_sources("${PROJECT_NAME}" PRIVATE "${SOURCES}")
 

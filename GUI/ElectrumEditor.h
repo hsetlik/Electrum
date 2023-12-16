@@ -2,6 +2,7 @@
 #include "../Parameters/ElectrumValueTree.h"
 #include "ElectrumLookAndFeel.h"
 #include "GeneratorPanel/OscillatorEditor.h"
+#include "HeaderPanel/HeaderPanel.h"
 #include "ModulatorPanel/EnvelopeTabbedComponent.h"
 #include "ModulatorPanel/ModMacroPanel.h"
 #include "ProcessorPanel/ProcessorPanel.h"
@@ -15,6 +16,7 @@ private:
   ElectrumLookAndFeel lnf;
   EnvelopeTabbedComponent envPanel;
   ProcessorPanel procPanel;
+  HeaderPanel headerPanel;
 
 public:
   ElectrumEditor(EVT *tree);

@@ -1,13 +1,10 @@
 #include "ElectrumLookAndFeel.h"
 #include "FontBinaries.h"
+#include "Fonts.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
-    : helvetica(Typeface::createSystemTypefaceFor(FontBinaries::HelveticaNeueRegular_otf,
-                                                  FontBinaries::HelveticaNeueRegular_otfSize)),
-      robotoMediumItalic(Typeface::createSystemTypefaceFor(
-          FontBinaries::RobotoMediumItalic_ttf, FontBinaries::RobotoMediumItalic_ttfSize))
 {
-  setDefaultSansSerifTypeface(helvetica);
+  setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::Futura));
 }
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                                            float sliderPosProportional, float rotaryStartAngle,
@@ -36,12 +33,4 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
   auto thumbColor = findColour(Slider::ColourIds::thumbColourId);
   g.setColour(thumbColor);
   g.fillPath(thumb);
-}
-
-Font ElectrumLookAndFeel::getLabelFont(Label &l)
-{
-  Font f(robotoMediumItalic);
-  auto lFont = l.getFont();
-  f = f.withHeight(lFont.getHeight());
-  return f;
 }
