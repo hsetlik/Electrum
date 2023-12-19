@@ -8,6 +8,7 @@ class FilterPanel : public Component
 public:
   EVT *const state;
   FilterPanel(EVT *tree);
+  ~FilterPanel() override;
   void resized() override;
 
 private:

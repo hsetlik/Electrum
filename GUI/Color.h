@@ -29,6 +29,7 @@ DECLARE_COLOR(brightSeafoam, 94, 196, 169)
 DECLARE_COLOR(deepPink, 236, 100, 118)
 DECLARE_COLOR(sandyYellow, 230, 197, 148)
 DECLARE_COLOR(mediumGray, 127, 142, 143)
+DECLARE_COLOR(lavendar, 191, 150, 228)
 
 #undef DECLARE_COLOR
 

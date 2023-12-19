@@ -24,6 +24,8 @@ FilterPanel::FilterPanel(EVT *tree)
       new APVTS::ComboBoxAttachment(*state->getAPVTS(), IDs::filterType.toString(), bFilterType));
 }
 
+FilterPanel::~FilterPanel() { setLookAndFeel(nullptr); }
+
 void FilterPanel::resized()
 {
   auto fBounds = getLocalBounds().toFloat();

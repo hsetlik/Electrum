@@ -1,6 +1,16 @@
 #include "WavetableGraph.h"
 #include "juce_opengl/opengl/juce_gl.h"
-
+//============================================================================
+void Texture::setPixel(char *buffer, int x, int y, const Colour &color)
+{
+  // get the position of the first byte of this color
+  const int idx = ((y * TEXTURE_W) + x) * 4;
+  buffer[idx] = (char)color.getRed();
+  buffer[idx + 1] = (char)color.getGreen();
+  buffer[idx + 2] = (char)color.getBlue();
+  buffer[idx + 3] = (char)color.getAlpha();
+}
+//============================================================================
 WavetableGraph::WavetableGraph(EVT *tree, int idx) : state(tree), index(idx)
 {
   glContext.setOpenGLVersionRequired(juce::OpenGLContext::OpenGLVersion::openGL3_2);
@@ -13,6 +23,7 @@ WavetableGraph::~WavetableGraph()
 {
   glContext.setContinuousRepainting(false);
   glContext.detach();
+  glDeleteTextures(1, &TEX);
 }
 // component overrides
 void WavetableGraph::paint(Graphics &) {}
@@ -44,6 +55,28 @@ void WavetableGraph::compileShaders()
     DLog::log("Failed to compile shaders!");
   }
 }
+//=================================================
+char *WavetableGraph::generateTexture()
+{
+  // each pixel is 4 bytes ordered RGBA
+  unsigned long size = TEXTURE_H * TEXTURE_W * 4;
+  // NOTE: this must be manually freed after the call to `glTexImage2D`
+  char *buffer = new char[size];
+  // now the actual logic of the texture colors
+  float xPhase, yPhase;
+  for (int x = 0; x < TEXTURE_W; x++)
+  {
+    xPhase = (float)x / (float)TEXTURE_W;
+    auto c1 = Math::clerp(Color::darkBkgnd, Color::offWhite, xPhase);
+    for (int y = 0; y < TEXTURE_H; y++)
+    {
+      yPhase = (float)y / (float)TEXTURE_H;
+      auto c2 = Math::clerp(Color::deepPink, c1, yPhase);
+      Texture::setPixel(buffer, x, y, c2);
+    }
+  }
+  return buffer;
+}
 
 //==========GL overrides===========
 
@@ -57,6 +90,21 @@ void WavetableGraph::newOpenGLContextCreated()
   glContext.extensions.glGenVertexArrays(1, &VAO); // Vertex Array Object
   glContext.extensions.glGenBuffers(1, &VBO);      // Vertex Buffer Object
   glContext.extensions.glGenBuffers(1, &IBO);      // Index Buffer Object
+  // set up texture stuff
+  glGenTextures(1, &TEX);
+  glBindTexture(GL_TEXTURE_2D, TEX);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  // now generate the actual texture bytes
+  auto buf = generateTexture();
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, TEXTURE_W, TEXTURE_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  delete[] buf;
+  // bind the texture
+  glActiveTexture(GL_TEXTURE0 + (GLuint)index);
+  glBindTexture(GL_TEXTURE_2D, TEX);
 
   glContext.extensions.glBindVertexArray(VAO);
 
