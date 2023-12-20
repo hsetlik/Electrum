@@ -3,6 +3,7 @@
 #include "../../Parameters/Identifiers.h"
 #include "../Color.h"
 #include "../Utility/GLUtil.h"
+#include "juce_opengl/opengl/juce_gl.h"
 #define WAVE_GRAPH_WIDTH 256
 #define WAVE_GRAPH_HEIGHT 256
 #define WAVE_GRAPH_POINTS 128
@@ -58,6 +59,15 @@ private:
   // projection matrix stuff
   Matrix3D<GLfloat> calculateProjectionMatrix();
   Matrix3D<GLfloat> calculateViewMatrix();
+  // helper function to figure out what's going on
+  void checkGLError(const String &prefix = "Failed")
+  {
+    auto err = glGetError();
+    if (err != GL_NO_ERROR)
+    {
+      DLog::log(prefix + " with error: " + String(err));
+    }
+  }
 };
 //=Some stuff to make texture colors easier================
 namespace Texture {

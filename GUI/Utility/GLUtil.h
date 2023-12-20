@@ -1,8 +1,8 @@
 #pragma once
 #ifndef GL_UTIL
 #define GL_UTIL
+#include "../../Parameters/DLog.h"
 #include "../../Parameters/MathUtil.h"
-
 namespace GLUtil {
 // OpenGL Uniform & Attribute Helpers ==========================================
 /** Fail-safe method for creating an OpenGLShaderProgram::Uniform.
@@ -29,7 +29,10 @@ createUniform(OpenGLContext &context, OpenGLShaderProgram &shaderProgram, const 
 #endif
 
   if (!uniformNameFoundInShaderProgram)
+  {
+    DLog::log("Failed to find uniform with name: " + uniformName);
     return nullptr;
+  }
 
   return new OpenGLShaderProgram::Uniform(shaderProgram, uniformName.toRawUTF8());
 }

@@ -13,7 +13,7 @@ void Texture::setPixel(TexBuffer &buffer, int x, int y, const Colour &color)
 WavetableGraph::WavetableGraph(EVT *tree, int idx) : state(tree), index(idx)
 {
   glContext.setOpenGLVersionRequired(juce::OpenGLContext::OpenGLVersion::openGL3_2);
-  // glContext.setRenderer(this);
+  glContext.setRenderer(this);
   glContext.attachTo(*this);
   glContext.setContinuousRepainting(true);
 }
@@ -78,6 +78,9 @@ void WavetableGraph::newOpenGLContextCreated()
   compileShaders();
   updateVertices();
 
+  double languageVersion = OpenGLShaderProgram::getLanguageVersion();
+  DLog::log("Using GLSL version: " + String(languageVersion));
+
   // Generate opengl vertex and index objects
   // ==========================================
   glContext.extensions.glGenVertexArrays(1, &VAO); // Vertex Array Object
@@ -85,36 +88,55 @@ void WavetableGraph::newOpenGLContextCreated()
   glContext.extensions.glGenBuffers(1, &IBO);      // Index Buffer Object
   // set up texture stuff
   glGenTextures(1, &TEX);
+  checkGLError("Failed to generate textures");
   glBindTexture(GL_TEXTURE_2D, TEX);
+  checkGLError("Failed to bind texture");
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  checkGLError("Failed to set texture filters");
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  checkGLError("Failed to set texture wrap");
   // now generate the actual texture bytes
   generateTexture(currentTexture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, TEXTURE_W, TEXTURE_H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                currentTexture);
+  checkGLError("Failed glTexImage2D");
   glBindTexture(GL_TEXTURE_2D, 0);
-  // bind the texture
-  glContext.extensions.glActiveTexture(GL_TEXTURE0 + (GLuint)index);
-  glBindTexture(GL_TEXTURE_2D, TEX);
+  checkGLError("Failed to bind texture 0");
 
+  // bind the texture
+  // glBindTexture(GL_TEXTURE_2D, TEX);
+  glContext.extensions.glActiveTexture(GL_TEXTURE0 + (GLuint)index);
+
+  checkGLError("Failed to set active texture");
   glContext.extensions.glBindVertexArray(VAO);
+  checkGLError("Failed to bind vertex array");
 
   // Fill VBO buffer with vertices array
   glContext.extensions.glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  checkGLError("Failed to bind vertex buffer");
   glContext.extensions.glBufferData(GL_ARRAY_BUFFER, (long)sizeof(GLfloat) * (long)vData.size() * 5,
                                     vData.data(), GL_DYNAMIC_DRAW);
+
+  checkGLError("Failed to set vertex buffer data");
   // fill IBO buffer with indeces array
   glContext.extensions.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+  checkGLError("Failed to bind index buffer");
   glContext.extensions.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                                     (long)sizeof(GLuint) * (long)indeces.size(), indeces.data(),
                                     GL_DYNAMIC_DRAW);
-  // Define that our vertices are laid out as groups of 3 GLfloats
-  glContext.extensions.glVertexAttribPointer(0, 5, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), NULL);
-  glContext.extensions.glEnableVertexAttribArray(0);
 
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Show wireframe
+  checkGLError("Failed to set index buffer data");
+  // Define that our vertices are laid out as groups of 3 GLfloats
+  glContext.extensions.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPoint),
+                                             nullptr);
+  glContext.extensions.glEnableVertexAttribArray(0);
+  checkGLError("Failed position glVertexAttribPointer");
+  glContext.extensions.glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPoint),
+                                             nullptr);
+  glContext.extensions.glEnableVertexAttribArray(1);
+  checkGLError("Failed texture coordinate glVertexAttribPointer");
 }
 
 void WavetableGraph::openGLContextClosing() {}
