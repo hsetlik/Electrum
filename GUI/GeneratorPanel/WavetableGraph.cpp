@@ -1,9 +1,8 @@
 #include "WavetableGraph.h"
 #include "juce_opengl/opengl/juce_gl.h"
 //============================================================================
-void Texture::setPixel(char *buffer, int x, int y, const Colour &color)
+void Texture::setPixel(TexBuffer &buffer, int x, int y, const Colour &color)
 {
-  // get the position of the first byte of this color
   const int idx = ((y * TEXTURE_W) + x) * 4;
   buffer[idx] = (char)color.getRed();
   buffer[idx + 1] = (char)color.getGreen();
@@ -14,7 +13,7 @@ void Texture::setPixel(char *buffer, int x, int y, const Colour &color)
 WavetableGraph::WavetableGraph(EVT *tree, int idx) : state(tree), index(idx)
 {
   glContext.setOpenGLVersionRequired(juce::OpenGLContext::OpenGLVersion::openGL3_2);
-  glContext.setRenderer(this);
+  // glContext.setRenderer(this);
   glContext.attachTo(*this);
   glContext.setContinuousRepainting(true);
 }
@@ -23,7 +22,7 @@ WavetableGraph::~WavetableGraph()
 {
   glContext.setContinuousRepainting(false);
   glContext.detach();
-  glDeleteTextures(1, &TEX);
+  // glDeleteTextures(1, &TEX);
 }
 // component overrides
 void WavetableGraph::paint(Graphics &) {}
@@ -56,13 +55,8 @@ void WavetableGraph::compileShaders()
   }
 }
 //=================================================
-char *WavetableGraph::generateTexture()
+void WavetableGraph::generateTexture(TexBuffer &buffer)
 {
-  // each pixel is 4 bytes ordered RGBA
-  unsigned long size = TEXTURE_H * TEXTURE_W * 4;
-  // NOTE: this must be manually freed after the call to `glTexImage2D`
-  char *buffer = new char[size];
-  // now the actual logic of the texture colors
   float xPhase, yPhase;
   for (int x = 0; x < TEXTURE_W; x++)
   {
@@ -71,11 +65,10 @@ char *WavetableGraph::generateTexture()
     for (int y = 0; y < TEXTURE_H; y++)
     {
       yPhase = (float)y / (float)TEXTURE_H;
-      auto c2 = Math::clerp(Color::deepPink, c1, yPhase);
+      auto c2 = Math::clerp(Color::darkSeaGreen, c1, yPhase);
       Texture::setPixel(buffer, x, y, c2);
     }
   }
-  return buffer;
 }
 
 //==========GL overrides===========
@@ -98,28 +91,27 @@ void WavetableGraph::newOpenGLContextCreated()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
   // now generate the actual texture bytes
-  auto buf = generateTexture();
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, TEXTURE_W, TEXTURE_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+  generateTexture(currentTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, TEXTURE_W, TEXTURE_H, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               currentTexture);
   glBindTexture(GL_TEXTURE_2D, 0);
-  delete[] buf;
   // bind the texture
-  glActiveTexture(GL_TEXTURE0 + (GLuint)index);
+  glContext.extensions.glActiveTexture(GL_TEXTURE0 + (GLuint)index);
   glBindTexture(GL_TEXTURE_2D, TEX);
 
   glContext.extensions.glBindVertexArray(VAO);
 
   // Fill VBO buffer with vertices array
   glContext.extensions.glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glContext.extensions.glBufferData(GL_ARRAY_BUFFER,
-                                    (long)sizeof(GLfloat) * (long)vertices.size() * 3,
-                                    vertices.data(), GL_DYNAMIC_DRAW);
+  glContext.extensions.glBufferData(GL_ARRAY_BUFFER, (long)sizeof(GLfloat) * (long)vData.size() * 5,
+                                    vData.data(), GL_DYNAMIC_DRAW);
   // fill IBO buffer with indeces array
   glContext.extensions.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
   glContext.extensions.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                                     (long)sizeof(GLuint) * (long)indeces.size(), indeces.data(),
                                     GL_DYNAMIC_DRAW);
   // Define that our vertices are laid out as groups of 3 GLfloats
-  glContext.extensions.glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+  glContext.extensions.glVertexAttribPointer(0, 5, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), NULL);
   glContext.extensions.glEnableVertexAttribArray(0);
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Show wireframe
@@ -148,6 +140,10 @@ void WavetableGraph::renderOpenGL()
   {
     GLfloat val = (GLfloat)state->getLeadingVoiceOscPosition(index);
     wavePosition->set(val);
+  }
+  if (texSlot)
+  {
+    texSlot->set(index);
   }
 
   // Draw Vertices
@@ -192,6 +188,13 @@ void WavetableGraph::updateVertices()
       //   String(yPos) + ", " + String(zPos));
       // }
       vertices.push_back({xPos, yPos, zPos});
+      VertexPoint p;
+      p[0] = xPos;
+      p[1] = yPos;
+      p[2] = zPos;
+      p[3] = xPos;
+      p[4] = yPos;
+      vData.push_back(p);
     }
   }
   // now time to figure out the indeces

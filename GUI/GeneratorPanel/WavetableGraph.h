@@ -10,6 +10,8 @@
 #define TEXTURE_W 512
 #define TEXTURE_H 512
 
+using TexBuffer = char[TEXTURE_W * TEXTURE_H * 4];
+using VertexPoint = std::array<GLfloat, 5>;
 using namespace juce::gl;
 class WavetableGraph : public Component, public OpenGLRenderer, public AsyncUpdater
 {
@@ -30,7 +32,8 @@ public:
 
 private:
   // helper function to generate the current texture
-  char *generateTexture();
+  TexBuffer currentTexture;
+  void generateTexture(TexBuffer &t);
   void compileShaders();
   OpenGLContext glContext;
   std::unique_ptr<juce::OpenGLShaderProgram> shaderProgram;
@@ -38,9 +41,11 @@ private:
   GLUtil::UniformWrapper projectionMatrix{"projectionMatrix"};
   GLUtil::UniformWrapper viewMatrix{"viewMatrix"};
   GLUtil::UniformWrapper wavePosition{"wavePosition"};
+  GLUtil::UniformWrapper texSlot{"u_Texture"};
 
   GLuint VAO, VBO, IBO, TEX;
   std::vector<Vector3D<GLfloat>> vertices;
+  std::vector<VertexPoint> vData;
   std::vector<GLuint> indeces;
   // this checks the state for the current data to be graphed and converts it to
   // vertices and indeces. Does the heavy lifting of the 3D logic.
@@ -56,5 +61,5 @@ private:
 };
 //=Some stuff to make texture colors easier================
 namespace Texture {
-void setPixel(char *buffer, int x, int y, const Colour &color);
-}
+void setPixel(TexBuffer &buffer, int x, int y, const Colour &color);
+} // namespace Texture

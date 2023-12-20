@@ -4,8 +4,8 @@
 EnvelopeLevelComponent::EnvelopeLevelComponent(EVT *tree, int idx) : state(tree), index(idx)
 {
   startTimerHz(LEVEL_UPDATE_HZ);
-  upper = Color::getColorForModSource(IDs::envSource.toString() + String(idx));
-  lower = upper.brighter();
+  lower = Color::getColorForModSource(IDs::envSource.toString() + String(idx));
+  upper = lower.darker();
 }
 
 void EnvelopeLevelComponent::paint(Graphics &g)
