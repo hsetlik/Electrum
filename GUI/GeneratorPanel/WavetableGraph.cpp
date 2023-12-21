@@ -80,15 +80,20 @@ void WavetableGraph::generateTexture(TexBuffer &buffer)
     waveCoords.push_back(uPos);
     uPos += spacing;
   }
-  const Colour bkgnd = Color::darkBkgnd.withAlpha(0.3f);
+  const Colour bkgnd = Color::black.withAlpha(0.3f);
   const Colour trace = Color::brightSeafoam.withAlpha(0.8f);
-  for (int u = 0; u < TEXTURE_W; u++)
+  for (int u = 0; u < TEXTURE_H; u++)
   {
     bool isTrace = isInRange(u, waveCoords, 2);
     auto col = isTrace ? trace : bkgnd;
-    for (int v = 0; v < TEXTURE_H; v++)
+    for (int v = 0; v < TEXTURE_W; v++)
     {
-      Texture::setPixel(buffer, v, u, col);
+      Texture::setPixel(buffer, u, v, col);
+      // draw a white outline around the edge of the texture
+      if (u == 0 || u == TEXTURE_H - 1 || v == 0 || v == TEXTURE_W - 1)
+      {
+        Texture::setPixel(buffer, u, v, Colours::white);
+      }
     }
   }
 }
@@ -289,22 +294,22 @@ void WavetableGraph::updateVertices()
 //===========Matrix generation======================
 Matrix3D<GLfloat> WavetableGraph::calculateProjectionMatrix()
 {
-  float w = 1.0f / 0.6f;
+  float w = 1.0f / 0.8f;
   float h = w * getLocalBounds().toFloat().getAspectRatio(false);
-
-  return Matrix3D<GLfloat>::fromFrustum(-w, w, -h, h, 4.0f, 20.0f);
+  float yDist = 20.0f;
+  return Matrix3D<GLfloat>::fromFrustum(-w, w, -h, h, 4.0f, yDist);
 }
 
 Matrix3D<GLfloat> WavetableGraph::calculateViewMatrix()
 {
-  float scaleFactor = 4.0f;
+  float scaleFactor = 3.0f;
   auto scale = Matrix3D<GLfloat>(AffineTransform::scale(scaleFactor, scaleFactor));
   auto angleX = MathConstants<float>::pi * 0.0f;
   auto angleY = MathConstants<float>::pi * 0.0f;
   auto angleZ = MathConstants<float>::pi * 0.05f;
   auto rotation = Matrix3D<GLfloat>::rotation(
       Vector3D<GLfloat>(angleX / scaleFactor, angleY / scaleFactor, angleZ / scaleFactor));
-  auto translate = Matrix3D<GLfloat>::fromTranslation(Vector3D<GLfloat>(0.0f, -0.5f, -20.0f));
+  auto translate = Matrix3D<GLfloat>::fromTranslation(Vector3D<GLfloat>(-0.5, -0.8f, -20.0f));
   auto out = scale * rotation * translate;
   return out;
 }
