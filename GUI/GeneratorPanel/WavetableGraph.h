@@ -35,6 +35,7 @@ private:
   // helper function to generate the current texture
   TexBuffer currentTexture;
   void generateTexture(TexBuffer &t);
+  bool isInRange(int u, std::vector<int> &coords, int range);
   void compileShaders();
   OpenGLContext glContext;
   std::unique_ptr<juce::OpenGLShaderProgram> shaderProgram;
@@ -45,7 +46,6 @@ private:
   GLUtil::UniformWrapper texSlot{"u_Texture"};
 
   GLuint VAO, VBO, IBO, TEX;
-  std::vector<Vector3D<GLfloat>> vertices;
   std::vector<VertexPoint> vData;
   std::vector<GLuint> indeces;
   // this checks the state for the current data to be graphed and converts it to

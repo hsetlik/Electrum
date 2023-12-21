@@ -22,7 +22,6 @@ WavetableGraph::~WavetableGraph()
 {
   glContext.setContinuousRepainting(false);
   glContext.detach();
-  // glDeleteTextures(1, &TEX);
 }
 // component overrides
 void WavetableGraph::paint(Graphics &) {}
@@ -55,18 +54,41 @@ void WavetableGraph::compileShaders()
   }
 }
 //=================================================
+
+// this is just a helper function fot `generateTexture` that checks whether a given U coordinate is
+// in range of one of hte wave traces
+bool WavetableGraph::isInRange(int u, std::vector<int> &coords, int range)
+{
+  for (auto c : coords)
+  {
+    int dist = (int)std::abs(u - c);
+    if (dist <= range)
+      return true;
+  }
+  return false;
+}
+
 void WavetableGraph::generateTexture(TexBuffer &buffer)
 {
-  float xPhase, yPhase;
-  for (int x = 0; x < TEXTURE_W; x++)
+  // first we figure out what U coords should have wave outlines drawn
+  const int numWaves = (int)(vData.size() / WAVE_GRAPH_POINTS);
+  std::vector<int> waveCoords;
+  int uPos = 0;
+  const int spacing = (int)TEXTURE_H / numWaves;
+  while (uPos <= TEXTURE_H)
   {
-    xPhase = (float)x / (float)TEXTURE_W;
-    auto c1 = Math::clerp(Color::darkBkgnd, Color::offWhite, xPhase);
-    for (int y = 0; y < TEXTURE_H; y++)
+    waveCoords.push_back(uPos);
+    uPos += spacing;
+  }
+  const Colour bkgnd = Color::darkBkgnd.withAlpha(0.3f);
+  const Colour trace = Color::brightSeafoam.withAlpha(0.8f);
+  for (int u = 0; u < TEXTURE_W; u++)
+  {
+    bool isTrace = isInRange(u, waveCoords, 2);
+    auto col = isTrace ? trace : bkgnd;
+    for (int v = 0; v < TEXTURE_H; v++)
     {
-      yPhase = (float)y / (float)TEXTURE_H;
-      auto c2 = Math::clerp(Color::darkSeaGreen, c1, yPhase);
-      Texture::setPixel(buffer, x, y, c2);
+      Texture::setPixel(buffer, v, u, col);
     }
   }
 }
@@ -78,8 +100,8 @@ void WavetableGraph::newOpenGLContextCreated()
   compileShaders();
   updateVertices();
 
-  double languageVersion = OpenGLShaderProgram::getLanguageVersion();
-  DLog::log("Using GLSL version: " + String(languageVersion));
+  // double languageVersion = OpenGLShaderProgram::getLanguageVersion();
+  //  DLog::log("Using GLSL version: " + String(languageVersion));
 
   // Generate opengl vertex and index objects
   // ==========================================
@@ -103,10 +125,6 @@ void WavetableGraph::newOpenGLContextCreated()
                currentTexture);
   checkGLError("Failed glTexImage2D");
   glBindTexture(GL_TEXTURE_2D, 0);
-  checkGLError("Failed to bind texture 0");
-
-  // bind the texture
-  // glBindTexture(GL_TEXTURE_2D, TEX);
   glContext.extensions.glActiveTexture(GL_TEXTURE0 + (GLuint)index);
 
   checkGLError("Failed to set active texture");
@@ -139,39 +157,59 @@ void WavetableGraph::newOpenGLContextCreated()
   checkGLError("Failed texture coordinate glVertexAttribPointer");
 }
 
-void WavetableGraph::openGLContextClosing() {}
+void WavetableGraph::openGLContextClosing()
+{
+  // clean up the textures
+  glDeleteTextures(1, &TEX);
+}
 
 void WavetableGraph::renderOpenGL()
 {
   jassert(OpenGLHelpers::isContextActive());
-
   // Scale viewport
   const float renderingScale = (float)glContext.getRenderingScale();
   glViewport(0, 0, (int)renderingScale * getWidth(), (int)renderingScale * getHeight());
+  checkGLError("Failed to set viewport");
 
   // Set background color
   juce::OpenGLHelpers::clear(Color::maroon);
   // Select shader program
   shaderProgram->use();
+  checkGLError("Failed to select shader program");
   // Setup the Uniforms for use in the Shader
   if (projectionMatrix)
+  {
     projectionMatrix->setMatrix4(calculateProjectionMatrix().mat, 1, false);
+    checkGLError("Failed to set projection matrix");
+  }
   if (viewMatrix)
+  {
     viewMatrix->setMatrix4(calculateViewMatrix().mat, 1, false);
+    checkGLError("Failed to set view matrix");
+  }
   if (wavePosition)
   {
     GLfloat val = (GLfloat)state->getLeadingVoiceOscPosition(index);
     wavePosition->set(val);
+    checkGLError("Failed to set wave position");
   }
   if (texSlot)
   {
     texSlot->set(index);
+    checkGLError("Failed to set texture slot");
   }
-
+  glBindTexture(GL_TEXTURE_2D, TEX);
+  checkGLError("Failed to bind texture");
+  glContext.extensions.glActiveTexture(GL_TEXTURE0 + (GLuint)index);
+  checkGLError("Failed to set active texture");
   // Draw Vertices
   glContext.extensions.glBindVertexArray(VAO);
+  checkGLError("Failed to bind vertexArray");
   glDrawElements(GL_TRIANGLES, (GLsizei)indeces.size(), GL_UNSIGNED_INT, nullptr);
+  checkGLError("Failed to draw elements");
   glContext.extensions.glBindVertexArray(0);
+  checkGLError("Failed to unbind vertex array");
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 //===========Vertex generation======================
@@ -190,13 +228,13 @@ void WavetableGraph::updateVertices()
   const float yMin = 0.0f;
   const float zMax = 1.0f;
   const float zMin = 0.0f;
-  vertices.clear();
+  vData.clear();
   auto baseWaves = state->getAudioData()->getBaseWaves(index);
   // now add the vertices for each wave
   for (size_t w = 0; w < baseWaves.size(); w++)
   {
     auto &wave = baseWaves[w];
-    auto zPhase = (float)w / (float)vertices.size();
+    auto zPhase = (float)w / (float)vData.size();
     for (int s = 0; s < WAVE_GRAPH_POINTS; s++)
     {
       float xPhase = (float)s / (float)WAVE_GRAPH_POINTS;
@@ -209,7 +247,6 @@ void WavetableGraph::updateVertices()
       //   DLog::log("Point #" + String(s) + " is at: " + String(xPos) + ", " +
       //   String(yPos) + ", " + String(zPos));
       // }
-      vertices.push_back({xPos, yPos, zPos});
       VertexPoint p;
       p[0] = xPos;
       p[1] = yPos;
@@ -220,7 +257,7 @@ void WavetableGraph::updateVertices()
     }
   }
   // now time to figure out the indeces
-  const int numVertices = (int)vertices.size();
+  const int numVertices = (int)vData.size();
   indeces.clear();
   for (size_t w = 1; w < baseWaves.size(); w++)
   {
