@@ -1,32 +1,36 @@
 #pragma once
-#include "EnvelopePanel.h"
 #include "../Modulation/ModulationSourceComponent.h"
+#include "EnvelopePanel.h"
 
 class EnvelopeSourceComponent : public Component
 {
 public:
-    EnvelopeSourceComponent(EVT* tree);
-    void resized() override;
+  EnvelopeSourceComponent(EVT *tree);
+  void resized() override;
+
 private:
-    EVT* const state;
-    OwnedArray<ModulationSourceComponent> sources;
+  EVT *const state;
+  OwnedArray<ModulationSourceComponent> sources;
 };
 //==================================================
-class EnvelopeTabbedComponent : public Component
+class EnvelopeTabbedComponent : public TabbedComponent
 {
 private:
-    OwnedArray<EnvelopePanel> envs;
-    OwnedArray<TextButton> buttons;
-    int selectedEnvIndex;
-    void setSelectedIndex(int idx)
-    {
-        selectedEnvIndex = idx;
-        resized();
-    }
+  OwnedArray<EnvelopePanel> envs;
+
 public:
-    EVT* const state;
-    EnvelopeTabbedComponent(EVT* tree);
-    void resized() override;
+  EVT *const state;
+  EnvelopeTabbedComponent(EVT *tree);
+  void resized() override;
+};
+
+class EnvelopesComponent : public Component
+{
 private:
-    EnvelopeSourceComponent sources;
+  EnvelopeTabbedComponent tabs;
+  EnvelopeSourceComponent src;
+
+public:
+  EnvelopesComponent(EVT *tree);
+  void resized() override;
 };

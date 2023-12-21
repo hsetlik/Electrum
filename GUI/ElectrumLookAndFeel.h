@@ -13,6 +13,7 @@ public:
                         Slider &) override;
   Font getLabelFont(Label &) override;
   void drawLabel(Graphics &g, Label &l) override;
+  // tab button bar stuff
 
 private:
   // store these so we don't have to reload the ttf file every time we draw text

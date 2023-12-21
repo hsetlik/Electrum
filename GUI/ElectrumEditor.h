@@ -14,7 +14,7 @@ private:
   OwnedArray<OscillatorEditor> oscEditors;
   ModMacroPanel macro;
   ElectrumLookAndFeel lnf;
-  EnvelopeTabbedComponent envPanel;
+  EnvelopesComponent envPanel;
   ProcessorPanel procPanel;
   HeaderPanel headerPanel;
 
