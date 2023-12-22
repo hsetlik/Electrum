@@ -1,6 +1,7 @@
 #pragma once
 #include "../Parameters/ElectrumValueTree.h"
 
+// a few utilities
 namespace Audio {
 inline std::vector<size_t> getZeroCrossings(float *arr, size_t length, size_t offset = 0)
 {
