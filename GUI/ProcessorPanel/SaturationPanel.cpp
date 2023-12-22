@@ -16,6 +16,8 @@ SaturationPanel::SaturationPanel(EVT *tree)
       new APVTS::ComboBoxAttachment(*state->getAPVTS(), IDs::saturationType.toString(), bSatType));
 }
 
+SaturationPanel::~SaturationPanel() { setLookAndFeel(nullptr); }
+
 void SaturationPanel::resized()
 {
   auto fBounds = getLocalBounds().toFloat();
@@ -24,6 +26,8 @@ void SaturationPanel::resized()
   sCoeff.setBounds(knobBounds.removeFromTop(knobHeight).toNearestInt());
   sDrive.setBounds(knobBounds.removeFromTop(knobHeight).toNearestInt());
   sMix.setBounds(knobBounds.toNearestInt());
+  auto boxBounds = fBounds.removeFromTop(fBounds.getHeight() / 7.0f).reduced(8.0f).toNearestInt();
+  bSatType.setBounds(boxBounds);
 }
 
 void SaturationPanel::paint(Graphics &g) {}

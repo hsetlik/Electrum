@@ -1,11 +1,11 @@
 #include "ProcessorPanel.h"
+#include <memory>
 
-ProcessorPanel::ProcessorPanel(EVT* tree) : filterPanel(tree)
+ProcessorPanel::ProcessorPanel(EVT *tree)
+    : TabbedComponent(TabbedButtonBar::Orientation::TabsAtLeft),
+      filterPanel(std::make_unique<FilterPanel>(tree)),
+      satPanel(std::make_unique<SaturationPanel>(tree))
 {
-  addAndMakeVisible(&filterPanel);
-}
-
-void ProcessorPanel::resized()
-{
-  filterPanel.setBounds(getLocalBounds());
+  addTab("Filter", Color::darkBkgnd, filterPanel.get(), true);
+  addTab("Saturation", Color::darkBkgnd, satPanel.get(), true);
 }

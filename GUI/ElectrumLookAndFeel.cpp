@@ -73,3 +73,75 @@ void ElectrumLookAndFeel::drawLabel(Graphics &g, Label &l)
   g.setColour(findColour(Label::ColourIds::textColourId));
   g.drawFittedText(l.getText(true), textBounds, l.getJustificationType(), 1);
 }
+//=======================================================================================
+void ElectrumLookAndFeel::drawTabButton(TabBarButton &button, Graphics &g, bool isMouseOver,
+                                        bool isMouseDown)
+{
+  Path tabShape;
+  createTabButtonShape(button, tabShape, isMouseOver, isMouseDown);
+
+  auto activeArea = button.getActiveArea();
+  tabShape.applyTransform(
+      AffineTransform::translation((float)activeArea.getX(), (float)activeArea.getY()));
+
+  DropShadow(Colours::black.withAlpha(0.5f), 2, Point<int>(0, 1)).drawForPath(g, tabShape);
+
+  fillTabButtonShape(button, g, tabShape, isMouseOver, isMouseDown);
+  drawTabButtonText(button, g, isMouseOver, isMouseDown);
+}
+
+Font ElectrumLookAndFeel::getTabButtonFont(TabBarButton &, float height)
+{
+  return tabButtonFont.withHeight(height * 0.6f);
+}
+void ElectrumLookAndFeel::drawTabButtonText(TabBarButton &button, Graphics &g, bool isMouseOver,
+                                            bool isMouseDown)
+{
+  auto area = button.getTextArea().toFloat();
+
+  auto length = area.getWidth();
+  auto depth = area.getHeight();
+
+  if (button.getTabbedButtonBar().isVertical())
+    std::swap(length, depth);
+
+  Font font(getTabButtonFont(button, depth));
+  font.setUnderline(button.hasKeyboardFocus(false));
+
+  AffineTransform t;
+
+  switch (button.getTabbedButtonBar().getOrientation())
+  {
+  case TabbedButtonBar::TabsAtLeft:
+    t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
+    break;
+  case TabbedButtonBar::TabsAtRight:
+    t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
+    break;
+  case TabbedButtonBar::TabsAtTop:
+  case TabbedButtonBar::TabsAtBottom:
+    t = t.translated(area.getX(), area.getY());
+    break;
+  default:
+    jassertfalse;
+    break;
+  }
+  Colour col;
+  if (button.isFrontTab() && (button.isColourSpecified(TabbedButtonBar::frontTextColourId) ||
+                              isColourSpecified(TabbedButtonBar::frontTextColourId)))
+    col = findColour(TabbedButtonBar::frontTextColourId);
+  else if (button.isColourSpecified(TabbedButtonBar::tabTextColourId) ||
+           isColourSpecified(TabbedButtonBar::tabTextColourId))
+    col = findColour(TabbedButtonBar::tabTextColourId);
+  else
+    col = button.getTabBackgroundColour().contrasting();
+
+  auto alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
+
+  g.setColour(col.withMultipliedAlpha(alpha));
+  g.setFont(font);
+  g.addTransform(t);
+
+  g.drawFittedText(button.getButtonText().trim(), 0, 0, (int)length, (int)depth,
+                   Justification::centred, jmax(1, ((int)depth) / 12));
+}
