@@ -13,7 +13,7 @@ enum SaturationType
 namespace Saturation {
 // the core logic of the saturation
 float process(SaturationType type, float input, float coeff);
-// a more useful version
+// a more useful version for stereo use
 void processStereo(float &l, float &r, SaturationType type, float coeff, float gain, float wetDry);
 
 } // namespace Saturation

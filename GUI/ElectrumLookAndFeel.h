@@ -11,6 +11,7 @@ public:
   void drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                         float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle,
                         Slider &) override;
+  // label stuff
   Font getLabelFont(Label &) override;
   void drawLabel(Graphics &g, Label &l) override;
   // tab button bar stuff
@@ -19,10 +20,22 @@ public:
   void drawTabButtonText(TabBarButton &b, Graphics &g, bool isMouseOver, bool isMouseDown) override;
   void createTabButtonShape(TabBarButton &, Path &path, bool isMouseOver,
                             bool isMouseDown) override;
+  int getTabButtonBestWidth(TabBarButton &button, int tabDepth) override;
+  void fillTabButtonShape(TabBarButton &button, Graphics &g, const Path &path, bool isMouseOver,
+                          bool isMouseDown) override;
+  void drawTabbedButtonBarBackground(TabbedButtonBar &bar, Graphics &g) override;
+  void drawTabAreaBehindFrontButton(TabbedButtonBar &, Graphics &, int w, int h) override;
+  // combo box stuff
+  void drawComboBox(Graphics &g, int width, int height, bool isButtonDown, int buttonX, int buttonY,
+                    int buttonW, int buttonH, ComboBox &box) override;
+  Font getComboBoxFont(ComboBox &) override;
+  Label *createComboBoxTextBox(ComboBox &) override;
+  void positionComboBoxText(ComboBox &box, Label &labelToPosition) override;
 
 private:
   // store these so we don't have to reload the ttf file every time we draw text
   Font labelFont;
   Font tabButtonFont;
+  Font comboBoxFont;
 };
 #endif

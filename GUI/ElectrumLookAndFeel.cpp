@@ -5,7 +5,8 @@
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
     : labelFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium)),
-      tabButtonFont(Fonts::getTypeface(Fonts::FuturaBoldOblique))
+      tabButtonFont(Fonts::getTypeface(Fonts::FuturaBoldOblique)),
+      comboBoxFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium))
 {
   setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::HelveticaNeueMedium));
   /* We set colors up here so that we can use the 'ColourIds' in the rest of the code*/
@@ -204,4 +205,133 @@ void ElectrumLookAndFeel::createTabButtonShape(TabBarButton &button, Path &p, bo
   }
   p.closeSubPath();
   p = p.createPathWithRoundedCorners(3.0f);
+}
+
+int ElectrumLookAndFeel::getTabButtonBestWidth(TabBarButton &button, int depth)
+{
+  int width = getTabButtonFont(button, (float)depth).getStringWidth(button.getButtonText().trim()) +
+              getTabButtonOverlap(depth) * 2;
+
+  if (auto *extraComponent = button.getExtraComponent())
+    width += button.getTabbedButtonBar().isVertical() ? extraComponent->getHeight()
+                                                      : extraComponent->getWidth();
+
+  return jlimit(depth * 2, depth * 10, width);
+}
+
+void ElectrumLookAndFeel::fillTabButtonShape(TabBarButton &button, Graphics &g, const Path &path,
+                                             bool isMouseOver, bool isMouseDown)
+{
+  auto tabBackground = button.getTabBackgroundColour();
+  const bool isFrontTab = button.isFrontTab() || isMouseDown;
+
+  g.setColour(isFrontTab ? tabBackground : tabBackground.withMultipliedAlpha(0.9f));
+
+  g.fillPath(path);
+
+  g.setColour(button
+                  .findColour(isFrontTab ? TabbedButtonBar::frontOutlineColourId
+                                         : TabbedButtonBar::tabOutlineColourId,
+                              false)
+                  .withMultipliedAlpha((button.isEnabled() || isMouseOver) ? 1.0f : 0.5f));
+
+  g.strokePath(path, PathStrokeType(isFrontTab ? 1.0f : 0.5f));
+}
+void ElectrumLookAndFeel::drawTabbedButtonBarBackground(TabbedButtonBar &, Graphics &) {}
+
+void ElectrumLookAndFeel::drawTabAreaBehindFrontButton(TabbedButtonBar &bar, Graphics &g, int w,
+                                                       int h)
+{
+  const float shadowSize = 0.15f;
+
+  Rectangle<int> shadowRect, line;
+  ColourGradient gradient(Colours::black.withAlpha(bar.isEnabled() ? 0.08f : 0.04f), 0, 0,
+                          Colours::transparentBlack, 0, 0, false);
+
+  switch (bar.getOrientation())
+  {
+  case TabbedButtonBar::TabsAtLeft:
+    gradient.point1.x = (float)w;
+    gradient.point2.x = (float)w * (1.0f - shadowSize);
+    shadowRect.setBounds((int)gradient.point2.x, 0, w - (int)gradient.point2.x, h);
+    line.setBounds(w - 1, 0, 1, h);
+    break;
+
+  case TabbedButtonBar::TabsAtRight:
+    gradient.point2.x = (float)w * shadowSize;
+    shadowRect.setBounds(0, 0, (int)gradient.point2.x, h);
+    line.setBounds(0, 0, 1, h);
+    break;
+
+  case TabbedButtonBar::TabsAtTop:
+    gradient.point1.y = (float)h;
+    gradient.point2.y = (float)h * (1.0f - shadowSize);
+    shadowRect.setBounds(0, (int)gradient.point2.y, w, h - (int)gradient.point2.y);
+    line.setBounds(0, h - 1, w, 1);
+    break;
+
+  case TabbedButtonBar::TabsAtBottom:
+    gradient.point2.y = (float)h * shadowSize;
+    shadowRect.setBounds(0, 0, w, (int)gradient.point2.y);
+    line.setBounds(0, 0, w, 1);
+    break;
+
+  default:
+    break;
+  }
+  g.setGradientFill(gradient);
+  g.fillRect(shadowRect.expanded(2, 2));
+  g.setColour(bar.findColour(TabbedButtonBar::tabOutlineColourId));
+  g.fillRect(line);
+}
+//==================================================================================================
+void ElectrumLookAndFeel::drawComboBox(Graphics &g, int width, int height, bool isButtonDown,
+                                       int buttonX, int buttonY, int buttonW, int buttonH,
+                                       ComboBox &box)
+{
+  g.fillAll(box.findColour(ComboBox::backgroundColourId));
+
+  if (box.isEnabled() && box.hasKeyboardFocus(false))
+  {
+    g.setColour(box.findColour(ComboBox::focusedOutlineColourId));
+    g.drawRect(0, 0, width, height, 2);
+  } else
+  {
+    g.setColour(box.findColour(ComboBox::outlineColourId));
+    g.drawRect(0, 0, width, height);
+  }
+
+  const float arrowX = 0.3f;
+  const float arrowH = 0.2f;
+
+  const auto x = (float)buttonX;
+  const auto y = (float)buttonY;
+  const auto w = (float)buttonW;
+  const auto h = (float)buttonH;
+
+  Path p;
+  p.addTriangle(x + w * 0.5f, y + h * (0.45f - arrowH), x + w * (1.0f - arrowX), y + h * 0.45f,
+                x + w * arrowX, y + h * 0.45f);
+
+  p.addTriangle(x + w * 0.5f, y + h * (0.55f + arrowH), x + w * (1.0f - arrowX), y + h * 0.55f,
+                x + w * arrowX, y + h * 0.55f);
+
+  g.setColour(
+      box.findColour(ComboBox::arrowColourId).withMultipliedAlpha(box.isEnabled() ? 1.0f : 0.3f));
+  g.fillPath(p);
+}
+
+Font ElectrumLookAndFeel::getComboBoxFont(ComboBox &box)
+{
+  float h = jmin(16.0f, (float)box.getHeight() * 0.85f);
+  return comboBoxFont.withHeight(h);
+}
+Label *ElectrumLookAndFeel::createComboBoxTextBox(ComboBox &)
+{
+  return new Label(String(), String());
+}
+void ElectrumLookAndFeel::positionComboBoxText(ComboBox &box, Label &label)
+{
+  label.setBounds(1, 1, box.getWidth() + 3 - box.getHeight(), box.getHeight() - 2);
+  label.setFont(getComboBoxFont(box));
 }
