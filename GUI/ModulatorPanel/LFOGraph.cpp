@@ -3,7 +3,26 @@
 LFOGraphCore::LFOGraphCore(EVT *tree, int i)
     : state(tree), index(i), curveA(this), center(this), curveB(this)
 {
+  syncWithState();
   String iStr(index);
+  String aID = IDs::lfoMidpointA.toString() + iStr;
+  String centerID = IDs::lfoCenterX.toString() + iStr;
+  String bID = IDs::lfoMidpointB.toString() + iStr;
+
+  curveAAttach.reset(new DragPointAttachment(
+      state, aID, &curveA,
+      [this, aID](Point<float> pt) { return getParamFromPos(aID, &curveA, pt); },
+      [this, aID](float val) { return getPosFromParam(aID, &curveA, val); }));
+
+  centerAttach.reset(new DragPointAttachment(
+      state, centerID, &center,
+      [this, centerID](Point<float> pt) { return getParamFromPos(centerID, &center, pt); },
+      [this, centerID](float val) { return getPosFromParam(centerID, &center, val); }));
+
+  curveBAttach.reset(new DragPointAttachment(
+      state, bID, &curveB,
+      [this, bID](Point<float> pt) { return getParamFromPos(bID, &curveB, pt); },
+      [this, bID](float val) { return getPosFromParam(bID, &curveB, val); }));
 }
 
 DragPoint *LFOGraphCore::getPointWithinRadius(const MouseEvent &e, float radius)
@@ -97,6 +116,7 @@ void LFOGraphCore::syncWithState()
   auto newAPos = getPosFromParam(aID, &curveA, aVal);
   if (newAPos != curveA.getPos())
     curveA.moveTo(newAPos);
+
   auto newBPos = getPosFromParam(bID, &curveB, bVal);
   if (newBPos != curveB.getPos())
     curveB.moveTo(newBPos);
