@@ -4,7 +4,8 @@
 #include "Fonts.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
-    : labelFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium))
+    : labelFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium)),
+      tabButtonFont(Fonts::getTypeface(Fonts::FuturaBoldOblique))
 {
   setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::HelveticaNeueMedium));
   /* We set colors up here so that we can use the 'ColourIds' in the rest of the code*/
@@ -97,6 +98,7 @@ Font ElectrumLookAndFeel::getTabButtonFont(TabBarButton &, float height)
 void ElectrumLookAndFeel::drawTabButtonText(TabBarButton &button, Graphics &g, bool isMouseOver,
                                             bool isMouseDown)
 {
+  //  DLog::log("Drawing custom tab button text");
   auto area = button.getTextArea().toFloat();
 
   auto length = area.getWidth();
@@ -144,4 +146,62 @@ void ElectrumLookAndFeel::drawTabButtonText(TabBarButton &button, Graphics &g, b
 
   g.drawFittedText(button.getButtonText().trim(), 0, 0, (int)length, (int)depth,
                    Justification::centred, jmax(1, ((int)depth) / 12));
+}
+void ElectrumLookAndFeel::createTabButtonShape(TabBarButton &button, Path &p, bool /*mouseOver*/,
+                                               bool /*mouseDown*/)
+{
+  auto activeArea = button.getActiveArea();
+  auto w = (float)activeArea.getWidth();
+  auto h = (float)activeArea.getHeight();
+
+  auto length = w;
+  auto depth = h;
+
+  if (button.getTabbedButtonBar().isVertical())
+    std::swap(length, depth);
+
+  const float indent = (float)getTabButtonOverlap((int)depth);
+  const float overhang = 4.0f;
+
+  switch (button.getTabbedButtonBar().getOrientation())
+  {
+  case TabbedButtonBar::TabsAtLeft:
+    p.startNewSubPath(w, 0.0f);
+    p.lineTo(0.0f, indent);
+    p.lineTo(0.0f, h - indent);
+    p.lineTo(w, h);
+    p.lineTo(w + overhang, h + overhang);
+    p.lineTo(w + overhang, -overhang);
+    break;
+
+  case TabbedButtonBar::TabsAtRight:
+    p.startNewSubPath(0.0f, 0.0f);
+    p.lineTo(w, indent);
+    p.lineTo(w, h - indent);
+    p.lineTo(0.0f, h);
+    p.lineTo(-overhang, h + overhang);
+    p.lineTo(-overhang, -overhang);
+    break;
+
+  case TabbedButtonBar::TabsAtBottom:
+    p.startNewSubPath(0.0f, 0.0f);
+    p.lineTo(indent, h);
+    p.lineTo(w - indent, h);
+    p.lineTo(w, 0.0f);
+    p.lineTo(w + overhang, -overhang);
+    p.lineTo(-overhang, -overhang);
+    break;
+
+  case TabbedButtonBar::TabsAtTop:
+  default:
+    p.startNewSubPath(0.0f, h);
+    p.lineTo(indent, 0.0f);
+    p.lineTo(w - indent, 0.0f);
+    p.lineTo(w, h);
+    p.lineTo(w + overhang, h + overhang);
+    p.lineTo(-overhang, h + overhang);
+    break;
+  }
+  p.closeSubPath();
+  p = p.createPathWithRoundedCorners(3.0f);
 }
