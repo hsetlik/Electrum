@@ -3,13 +3,7 @@
 #include "../Color.h"
 #include "../Utility/DragPoint.h"
 #include "EnvelopeLevelComponent.h"
-/*
-Current todo for this:
-1. fix the issue with out-of-range conversions between FATTACK etc. type scaling and the actual
-APVTS range skews
-2. wire up the three curve points to their parameters
-3. draw the appropriate exponential curves on the graph
-*/
+
 #define FATTACK 0.2f
 #define FHOLD 0.1f
 #define FDECAY 0.3f

@@ -41,6 +41,9 @@ const std::unordered_map<String, Colour> modSourceColors = {
     {IDs::envSource.toString() + "0", salmon},
     {IDs::envSource.toString() + "1", lightSteelBlue},
     {IDs::envSource.toString() + "2", darkSeaGreen},
+    {IDs::lfoSource.toString() + "0", lavendar},
+    {IDs::lfoSource.toString() + "1", paleOrange},
+    {IDs::lfoSource.toString() + "2", sandyYellow},
 };
 
 inline Colour getColorForModSource(const String &srcID)
