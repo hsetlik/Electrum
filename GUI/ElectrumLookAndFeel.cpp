@@ -10,12 +10,18 @@ ElectrumLookAndFeel::ElectrumLookAndFeel()
 {
   setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::HelveticaNeueMedium));
   /* We set colors up here so that we can use the 'ColourIds' in the rest of the code*/
+  // label colors
   setColour(Label::backgroundColourId, Color::darkBkgnd);
   setColour(Label::textColourId, Color::offWhite);
 
+  // slider colors
   setColour(Slider::backgroundColourId, Color::darkBkgnd);
   setColour(Slider::trackColourId, Color::paleOrange);
   setColour(Slider::thumbColourId, Color::brightSeafoam);
+
+  // combo box colors
+  setColour(ComboBox::backgroundColourId, Color::darkBkgnd);
+  setColour(ComboBox::textColourId, Color::offWhite);
 }
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                                            float sliderPosProportional, float rotaryStartAngle,

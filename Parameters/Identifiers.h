@@ -6,9 +6,19 @@
 // Every Identifier for every parameter should be in here
 #define NUM_OSCILLATORS 3
 #define NUM_ENVELOPES 3
+#define NUM_LFOS 3
+
+// oscillator
 #define OSC_POS_DEFAULT 0.1f
 #define OSC_LEVEL_DEFAULT 0.25f
 
+#define COARSE_TUNE_MIN -36.0f
+#define COARSE_TUNE_MAX 36.0f
+
+#define FINE_TUNE_MIN -100.0f
+#define FINE_TUNE_MAX 100.0f
+
+// envelope
 #define ENV_CURVE_MIN 0.0f
 #define ENV_CURVE_MAX 1.0f
 #define ENV_CURVE_DEFAULT 0.5f
@@ -38,11 +48,22 @@
 
 #define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
 
-#define COARSE_TUNE_MIN -36.0f
-#define COARSE_TUNE_MAX 36.0f
+// LFO
 
-#define FINE_TUNE_MIN -100.0f
-#define FINE_TUNE_MAX 100.0f
+#define LFO_HZ_MIN 0.01f
+#define LFO_HZ_MAX 25.0f
+#define LFO_HZ_CENTER 3.0f
+#define LFO_HZ_DEFAULT 1.0f
+
+#define LFO_CENTER_MIN 0.01f
+#define LFO_CENTER_MAX 0.98f
+#define LFO_CENTER_DEFAULT 0.5f
+
+#define LFO_MIDPOINT_MIN 0.01f
+#define LFO_MIDPOINT_MAX 0.95f
+#define LFO_MIDPOINT_DEFAULT 0.5f
+
+// filter
 
 #define CUTOFF_HZ_MIN 20.0f
 #define CUTOFF_HZ_MAX 20000.0f
@@ -53,6 +74,8 @@
 #define RESONANCE_MAX 10.0f
 #define RESONANCE_CENTER 1.0f
 #define RESONANCE_DEFAULT 0.5f
+
+// saturation
 
 #define SAT_COEFF_MIN 1.0f
 #define SAT_COEFF_MAX 20.0f
@@ -96,6 +119,13 @@ DECLARE_ID(velocityTracking)
 DECLARE_ID(releaseMs)
 DECLARE_ID(releaseCurve)
 
+// LFO
+DECLARE_ID(lfoFreq)
+DECLARE_ID(lfoCenterX)
+DECLARE_ID(lfoMidpointA)
+DECLARE_ID(lfoMidpointB)
+DECLARE_ID(lfoGateTrigger)
+
 // filter
 DECLARE_ID(filterType)
 DECLARE_ID(filterCutoff)
@@ -130,6 +160,7 @@ DECLARE_ID(modWheelSource)
 DECLARE_ID(pitchWheelSource)
 DECLARE_ID(perlinSource)
 DECLARE_ID(envSource)
+DECLARE_ID(lfoSource)
 
 const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
                                              oscillatorLevel,
@@ -149,6 +180,11 @@ const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
 
                                              releaseMs,
                                              releaseCurve,
+                                             lfoFreq,
+                                             lfoCenterX,
+                                             lfoMidpointA,
+                                             lfoMidpointB,
+                                             lfoGateTrigger,
 
                                              filterType,
                                              filterCutoff,
@@ -231,7 +267,6 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
      {"Hold", "Peak hold time",
       "Hold: the number of miliseconds for which the envelope with rest at max "
       "lever after the attack phase is over"}},
-
     {decayMs.toString(),
      {"Decay", "Envelope decay time",
       "Decay: time from the envelope hitting its peak and reaching its sustain "
@@ -259,6 +294,17 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
      {"RlsCrv", "Envelope release curve",
       "Release curve: this value corresponds to the level of the curve's "
       "midpoint"}},
+    // LFO
+    {lfoFreq.toString(), {"Freq", "LFO Frequency", "The speed of this LFO"}},
+    {lfoCenterX.toString(),
+     {"Center", "LFO peak point",
+      "The phase in the LFO's cycle at which it reaches its peak level"}},
+    {lfoMidpointA.toString(),
+     {"A. Curve", "LFO attack curve", "The curve at which this LFO approaches its peak"}},
+    {lfoMidpointB.toString(),
+     {"R. Curve", "LFO release curve", "The curve at which this LFO approaches  zero"}},
+    {lfoGateTrigger.toString(),
+     {"Trig.", "LFO trigger", "Whether this LFO shoud be restarted by the MIDI gate"}},
     // Filter
     {filterType.toString(),
      {"Type", "Filter type", "Filter type: the type of filter for the main synth voices"}},
@@ -341,6 +387,13 @@ inline frange getResonanceRange()
 {
   frange range(RESONANCE_MIN, RESONANCE_MAX, 0.00001f);
   range.setSkewForCentre(RESONANCE_CENTER);
+  return range;
+}
+
+inline frange getLfoFreqRange()
+{
+  frange range(LFO_HZ_MIN, LFO_HZ_MAX, 0.0001f);
+  range.setSkewForCentre(LFO_HZ_CENTER);
   return range;
 }
 
@@ -431,6 +484,31 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     layout.add(std::make_unique<AudioParameterFloat>(rCurveID, getParamName(rCurveID, true),
                                                      curveRange, ENV_CURVE_DEFAULT));
   }
+  // LFOs
+  frange lfoFreqRange = getLfoFreqRange();
+  frange centerRange(LFO_CENTER_MIN, LFO_CENTER_MAX, 0.001f);
+  frange midpointRange(LFO_MIDPOINT_MIN, LFO_MIDPOINT_MAX, 0.001f);
+  for (int i = 0; i < NUM_LFOS; i++)
+  {
+    String iStr(i);
+    String freqID = lfoFreq.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterFloat>(freqID, getParamName(freqID, true),
+                                                     lfoFreqRange, LFO_HZ_DEFAULT));
+
+    String centerID = lfoCenterX.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterFloat>(centerID, getParamName(centerID, true),
+                                                     centerRange, LFO_CENTER_DEFAULT));
+
+    String aID = lfoMidpointA.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterFloat>(aID, getParamName(aID, true), midpointRange,
+                                                     LFO_MIDPOINT_DEFAULT));
+    String bID = lfoMidpointB.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterFloat>(bID, getParamName(bID, true), midpointRange,
+                                                     LFO_MIDPOINT_DEFAULT));
+    String trigID = lfoGateTrigger.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterBool>(trigID, getParamName(trigID, true), false));
+  }
+
   // filter params
   String fTypeID = filterType.toString();
   layout.add(
