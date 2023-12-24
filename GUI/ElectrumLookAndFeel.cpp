@@ -63,6 +63,30 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
   g.setColour(thumbColor);
   g.fillPath(thumb);
 }
+
+void ElectrumLookAndFeel::createThumbPath(Rectangle<float> &bounds, Path &path)
+{
+  path.clear();
+  const float taper = bounds.getWidth() / 6.0f;
+  path.startNewSubPath(bounds.getX(), bounds.getY());
+  path.lineTo(bounds.getRight(), bounds.getY());
+  path.lineTo(bounds.getRight() - taper, bounds.getBottom());
+  path.lineTo(bounds.getX() + taper, bounds.getBottom());
+  path.closeSubPath();
+  path = path.createPathWithRoundedCorners(3.0f);
+}
+void ElectrumLookAndFeel::drawSliderThumb(Graphics &g, float x, float y, float diameter,
+                                          const Colour &color, float strokeThickness)
+{
+  Rectangle<float> limits(x, y, diameter, diameter * 0.65f);
+  Path p;
+  createThumbPath(limits, p);
+  g.setColour(color);
+  g.fillPath(p);
+  PathStrokeType pst(strokeThickness);
+  g.setColour(color.darker());
+  g.strokePath(p, pst);
+}
 void ElectrumLookAndFeel::drawLinearSliderThumb(Graphics &g, int x, int y, int width, int height,
                                                 float sliderPos, float minSliderPos,
                                                 float maxSliderPos, const Slider::SliderStyle style,
@@ -88,17 +112,17 @@ void ElectrumLookAndFeel::drawLinearSliderThumb(Graphics &g, int x, int y, int w
       ky = (float)y + (float)height * 0.5f;
     }
 
-    drawGlassSphere(g, kx - sliderRadius, ky - sliderRadius, sliderRadius * 2.0f, knobColour,
+    drawSliderThumb(g, kx - sliderRadius, ky - sliderRadius, sliderRadius * 2.0f, knobColour,
                     outlineThickness);
   } else
   {
     if (style == Slider::ThreeValueVertical)
     {
-      drawGlassSphere(g, (float)x + (float)width * 0.5f - sliderRadius, sliderPos - sliderRadius,
+      drawSliderThumb(g, (float)x + (float)width * 0.5f - sliderRadius, sliderPos - sliderRadius,
                       sliderRadius * 2.0f, knobColour, outlineThickness);
     } else if (style == Slider::ThreeValueHorizontal)
     {
-      drawGlassSphere(g, sliderPos - sliderRadius, (float)y + (float)height * 0.5f - sliderRadius,
+      drawSliderThumb(g, sliderPos - sliderRadius, (float)y + (float)height * 0.5f - sliderRadius,
                       sliderRadius * 2.0f, knobColour, outlineThickness);
     }
 
@@ -106,25 +130,25 @@ void ElectrumLookAndFeel::drawLinearSliderThumb(Graphics &g, int x, int y, int w
     {
       auto sr = jmin(sliderRadius, (float)width * 0.4f);
 
-      drawGlassPointer(g, jmax(0.0f, (float)x + (float)width * 0.5f - sliderRadius * 2.0f),
-                       minSliderPos - sliderRadius, sliderRadius * 2.0f, knobColour,
-                       outlineThickness, 1);
+      drawSliderThumb(g, jmax(0.0f, (float)x + (float)width * 0.5f - sliderRadius * 2.0f),
+                      minSliderPos - sliderRadius, sliderRadius * 2.0f, knobColour,
+                      outlineThickness);
 
-      drawGlassPointer(
+      drawSliderThumb(
           g, jmin((float)x + (float)width - sliderRadius * 2.0f, (float)x + (float)width * 0.5f),
-          maxSliderPos - sr, sliderRadius * 2.0f, knobColour, outlineThickness, 3);
+          maxSliderPos - sr, sliderRadius * 2.0f, knobColour, outlineThickness);
     } else if (style == Slider::TwoValueHorizontal || style == Slider::ThreeValueHorizontal)
     {
       auto sr = jmin(sliderRadius, (float)height * 0.4f);
 
-      drawGlassPointer(g, minSliderPos - sr,
-                       jmax(0.0f, (float)y + (float)height * 0.5f - sliderRadius * 2.0f),
-                       sliderRadius * 2.0f, knobColour, outlineThickness, 2);
+      drawSliderThumb(g, minSliderPos - sr,
+                      jmax(0.0f, (float)y + (float)height * 0.5f - sliderRadius * 2.0f),
+                      sliderRadius * 2.0f, knobColour, outlineThickness);
 
-      drawGlassPointer(
+      drawSliderThumb(
           g, maxSliderPos - sliderRadius,
           jmin((float)y + (float)height - sliderRadius * 2.0f, (float)y + (float)height * 0.5f),
-          sliderRadius * 2.0f, knobColour, outlineThickness, 4);
+          sliderRadius * 2.0f, knobColour, outlineThickness);
     }
   }
 }

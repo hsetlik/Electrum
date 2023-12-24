@@ -43,6 +43,10 @@ public:
   void positionComboBoxText(ComboBox &box, Label &labelToPosition) override;
 
 private:
+  // helper functions for the linear slider thumb
+  void createThumbPath(Rectangle<float> &bounds, Path &path);
+  void drawSliderThumb(Graphics &g, float x, float y, float diameter, const Colour &color,
+                       float strokeThickness);
   // store these so we don't have to reload the ttf file every time we draw text
   Font labelFont;
   Font tabButtonFont;
