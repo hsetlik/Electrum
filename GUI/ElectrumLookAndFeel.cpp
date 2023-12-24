@@ -15,7 +15,7 @@ ElectrumLookAndFeel::ElectrumLookAndFeel()
   setColour(Label::textColourId, Color::offWhite);
 
   // slider colors
-  setColour(Slider::backgroundColourId, Color::darkBkgnd);
+  setColour(Slider::backgroundColourId, Color::mediumGray);
   setColour(Slider::trackColourId, Color::paleOrange);
   setColour(Slider::thumbColourId, Color::brightSeafoam);
 
@@ -23,6 +23,7 @@ ElectrumLookAndFeel::ElectrumLookAndFeel()
   setColour(ComboBox::backgroundColourId, Color::darkBkgnd);
   setColour(ComboBox::textColourId, Color::offWhite);
 }
+//====================================================================================================
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                                            float sliderPosProportional, float rotaryStartAngle,
                                            float rotaryEndAngle, Slider &)
@@ -62,7 +63,152 @@ void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width,
   g.setColour(thumbColor);
   g.fillPath(thumb);
 }
+void ElectrumLookAndFeel::drawLinearSliderThumb(Graphics &g, int x, int y, int width, int height,
+                                                float sliderPos, float minSliderPos,
+                                                float maxSliderPos, const Slider::SliderStyle style,
+                                                Slider &slider)
+{
+  auto sliderRadius = (float)(getSliderThumbRadius(slider) - 2);
 
+  auto knobColour = findColour(Slider::thumbColourId);
+
+  const float outlineThickness = slider.isEnabled() ? 0.8f : 0.3f;
+
+  if (style == Slider::LinearHorizontal || style == Slider::LinearVertical)
+  {
+    float kx, ky;
+
+    if (style == Slider::LinearVertical)
+    {
+      kx = (float)x + (float)width * 0.5f;
+      ky = sliderPos;
+    } else
+    {
+      kx = sliderPos;
+      ky = (float)y + (float)height * 0.5f;
+    }
+
+    drawGlassSphere(g, kx - sliderRadius, ky - sliderRadius, sliderRadius * 2.0f, knobColour,
+                    outlineThickness);
+  } else
+  {
+    if (style == Slider::ThreeValueVertical)
+    {
+      drawGlassSphere(g, (float)x + (float)width * 0.5f - sliderRadius, sliderPos - sliderRadius,
+                      sliderRadius * 2.0f, knobColour, outlineThickness);
+    } else if (style == Slider::ThreeValueHorizontal)
+    {
+      drawGlassSphere(g, sliderPos - sliderRadius, (float)y + (float)height * 0.5f - sliderRadius,
+                      sliderRadius * 2.0f, knobColour, outlineThickness);
+    }
+
+    if (style == Slider::TwoValueVertical || style == Slider::ThreeValueVertical)
+    {
+      auto sr = jmin(sliderRadius, (float)width * 0.4f);
+
+      drawGlassPointer(g, jmax(0.0f, (float)x + (float)width * 0.5f - sliderRadius * 2.0f),
+                       minSliderPos - sliderRadius, sliderRadius * 2.0f, knobColour,
+                       outlineThickness, 1);
+
+      drawGlassPointer(
+          g, jmin((float)x + (float)width - sliderRadius * 2.0f, (float)x + (float)width * 0.5f),
+          maxSliderPos - sr, sliderRadius * 2.0f, knobColour, outlineThickness, 3);
+    } else if (style == Slider::TwoValueHorizontal || style == Slider::ThreeValueHorizontal)
+    {
+      auto sr = jmin(sliderRadius, (float)height * 0.4f);
+
+      drawGlassPointer(g, minSliderPos - sr,
+                       jmax(0.0f, (float)y + (float)height * 0.5f - sliderRadius * 2.0f),
+                       sliderRadius * 2.0f, knobColour, outlineThickness, 2);
+
+      drawGlassPointer(
+          g, maxSliderPos - sliderRadius,
+          jmin((float)y + (float)height - sliderRadius * 2.0f, (float)y + (float)height * 0.5f),
+          sliderRadius * 2.0f, knobColour, outlineThickness, 4);
+    }
+  }
+}
+void ElectrumLookAndFeel::drawLinearSlider(Graphics &g, int x, int y, int width, int height,
+                                           float sliderPos, float minSliderPos, float maxSliderPos,
+                                           Slider::SliderStyle style, Slider &slider)
+{
+  g.fillAll(slider.findColour(Slider::backgroundColourId));
+
+  if (style == Slider::LinearBar || style == Slider::LinearBarVertical)
+  {
+    const float fx = (float)x, fy = (float)y, fw = (float)width, fh = (float)height;
+
+    Path p;
+
+    if (style == Slider::LinearBarVertical)
+      p.addRectangle(fx, sliderPos, fw, 1.0f + fh - sliderPos);
+    else
+      p.addRectangle(fx, fy, sliderPos - fx, fh);
+
+    auto baseColour = slider.findColour(Slider::thumbColourId)
+                          .withMultipliedSaturation(slider.isEnabled() ? 1.0f : 0.5f)
+                          .withMultipliedAlpha(0.8f);
+
+    g.setGradientFill(ColourGradient::vertical(baseColour.brighter(0.08f), 0.0f,
+                                               baseColour.darker(0.08f), (float)height));
+    g.fillPath(p);
+
+    g.setColour(baseColour.darker(0.2f));
+
+    if (style == Slider::LinearBarVertical)
+      g.fillRect(fx, sliderPos, fw, 1.0f);
+    else
+      g.fillRect(sliderPos, fy, 1.0f, fh);
+
+    drawLinearSliderOutline(g, x, y, width, height, style, slider);
+  } else
+  {
+    drawLinearSliderBackground(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style,
+                               slider);
+    drawLinearSliderThumb(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style,
+                          slider);
+  }
+}
+
+void ElectrumLookAndFeel::drawLinearSliderBackground(Graphics &g, int x, int y, int width,
+                                                     int height, float /*sliderPos*/,
+                                                     float /*minSliderPos*/, float /*maxSliderPos*/,
+                                                     const Slider::SliderStyle /*style*/,
+                                                     Slider &slider)
+{
+  const float sliderRadius = (float)(getSliderThumbRadius(slider) - 2);
+
+  const Colour trackColour(slider.findColour(Slider::trackColourId));
+  const Colour gradCol1(
+      trackColour.overlaidWith(Colour(slider.isEnabled() ? 0x13000000 : 0x09000000)));
+  const Colour gradCol2(trackColour.overlaidWith(Colour(0x06000000)));
+  Path indent;
+
+  if (slider.isHorizontal())
+  {
+    auto iy = (float)y + (float)height * 0.5f - sliderRadius * 0.5f;
+
+    g.setGradientFill(ColourGradient::vertical(gradCol1, iy, gradCol2, iy + sliderRadius));
+
+    indent.addRoundedRectangle((float)x - sliderRadius * 0.5f, iy, (float)width + sliderRadius,
+                               sliderRadius, 5.0f);
+  } else
+  {
+    auto ix = (float)x + (float)width * 0.5f - sliderRadius * 0.5f;
+
+    g.setGradientFill(ColourGradient::horizontal(gradCol1, ix, gradCol2, ix + sliderRadius));
+
+    indent.addRoundedRectangle(ix, (float)y - sliderRadius * 0.5f, sliderRadius,
+                               (float)height + sliderRadius, 5.0f);
+  }
+
+  g.fillPath(indent);
+
+  g.setColour(trackColour.contrasting(0.5f));
+  g.strokePath(indent, PathStrokeType(0.5f));
+}
+
+//==========================================================================================
 Font ElectrumLookAndFeel::getLabelFont(Label &l)
 {
   return l.getFont().withHeight((float)(l.getHeight() - l.getBorderSize().getTopAndBottom()));

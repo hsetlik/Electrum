@@ -8,9 +8,19 @@ class ElectrumLookAndFeel : public LookAndFeel_V4
 {
 public:
   ElectrumLookAndFeel();
+  // slider stuff
   void drawRotarySlider(Graphics &g, int x, int y, int width, int height,
                         float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle,
                         Slider &) override;
+  void drawLinearSliderThumb(Graphics &, int x, int y, int width, int height, float sliderPos,
+                             float minSliderPos, float maxSliderPos, Slider::SliderStyle style,
+                             Slider &s) override;
+  void drawLinearSlider(Graphics &, int x, int y, int width, int height, float sliderPos,
+                        float minSliderPos, float maxSliderPos, Slider::SliderStyle style,
+                        Slider &slider) override;
+  void drawLinearSliderBackground(Graphics &g, int x, int y, int width, int height, float sliderPos,
+                                  float minSliderPos, float maxSliderPos, Slider::SliderStyle style,
+                                  Slider &slider) override;
   // label stuff
   Font getLabelFont(Label &) override;
   void drawLabel(Graphics &g, Label &l) override;

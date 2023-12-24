@@ -238,9 +238,22 @@ void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
   drawHandle(g, curveB.getPos(), 3.0f, selectedPoint != &curveB);
 }
 //============================================================================================
-LFOPanel::LFOPanel(EVT *tree, int i) : state(tree), index(i), graph(tree, i)
+LFOPanel::LFOPanel(EVT *tree, int i)
+    : state(tree), index(i), graph(tree, i),
+      freqSlider(tree, IDs::lfoFreq.toString() + String(i), "Freq.", true),
+      srcComp(tree, IDs::lfoSource.toString() + String(i))
 {
   addAndMakeVisible(&graph);
+  addAndMakeVisible(&srcComp);
+  addAndMakeVisible(&freqSlider);
 }
 
-void LFOPanel::resized() { graph.setBounds(getLocalBounds().reduced(5)); }
+void LFOPanel::resized()
+{
+  auto fBounds = getLocalBounds().toFloat();
+  auto sliderArea = fBounds.removeFromLeft(fBounds.getWidth() / 6.0f);
+  auto srcArea = sliderArea.removeFromTop(sliderArea.getWidth());
+  srcComp.setBounds(srcArea.toNearestInt());
+  freqSlider.setBounds(sliderArea.toNearestInt());
+  graph.setBounds(fBounds.toNearestInt());
+}

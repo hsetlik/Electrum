@@ -1,4 +1,6 @@
 #pragma once
+#include "../Modulation/LabeledSPS.h"
+#include "../Modulation/ModulationSourceComponent.h"
 #include "EnvelopeGraph.h"
 
 class LFOGraph : public Component, public AsyncUpdater
@@ -51,6 +53,8 @@ private:
   EVT *const state;
   const int index;
   LFOGraph graph;
+  LabeledSPS freqSlider;
+  ModulationSourceComponent srcComp;
 
 public:
   LFOPanel(EVT *tree, int i);
