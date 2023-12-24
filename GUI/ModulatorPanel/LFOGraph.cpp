@@ -121,3 +121,107 @@ void LFOGraphCore::syncWithState()
   if (newBPos != curveB.getPos())
     curveB.moveTo(newBPos);
 }
+//============================================================================================
+
+void EnvelopeGraphCore::mouseDown(const MouseEvent &e)
+{
+  for (auto *p : points)
+  {
+    if (p->isWithin(e, 3.0f))
+    {
+      selectedPoint = p;
+      return;
+    }
+  }
+  selectedPoint = nullptr;
+  isMoving = false;
+}
+
+void LFOGraphCore::mouseDrag(const MouseEvent &e)
+{
+  if (selectedPoint != nullptr)
+  {
+    if (!isMoving)
+    {
+      isMoving = true;
+      selectedPoint->startMove();
+    }
+    auto destPos = constrainPositionFor(selectedPoint, e.position);
+    selectedPoint->movePoint(destPos.x, destPos.y);
+    triggerAsyncUpdate();
+  } else
+    isMoving = false;
+}
+
+void LFOGraphCore::mouseUp(const MouseEvent &)
+{
+  if (selectedPoint != nullptr)
+  {
+    selectedPoint->endMove();
+    triggerAsyncUpdate();
+  }
+  selectedPoint = nullptr;
+}
+
+void LFOGraphCore::paint(Graphics &g)
+{
+  auto fBounds = getLocalBounds().toFloat();
+  drawLFOGraph(fBounds, g);
+}
+
+void LFOGraphCore::handleAsyncUpdate()
+{
+  syncWithState();
+  repaint();
+}
+
+//============================================================================================
+void LFOGraphCore::drawHandle(Graphics &g, Point<float> center, float radius, bool fill)
+{
+  Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
+  bounds = bounds.withCentre(center);
+  g.setColour(Color::brightSeafoam);
+  if (fill)
+  {
+    g.fillEllipse(bounds);
+  } else
+  {
+    g.drawEllipse(bounds, HANDLE_STROKE);
+  }
+}
+
+void LFOGraphCore::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
+{
+  const int curvePoints = 60;
+  const float yMax = bounds.getHeight() - 5.0f;
+  if (bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f)
+  {
+    return;
+  }
+  // draw the path
+  Path p;
+  p.startNewSubPath(bounds.getX(), bounds.getBottom());
+  for (int i = 0; i < curvePoints; i++)
+  {
+    float t = ((float)i / (float)curvePoints);
+    float fX = t * center.getX();
+    float fY = bounds.getBottom() - 5.0f - Math::onEasingCurve(0.0f, yMax - curveA.getY(), yMax, t);
+    fY = std::max({fY, 5.0f});
+    p.lineTo(fX, fY);
+  }
+  p.lineTo(center.getX(), center.getY());
+  for (int i = 0; i < curvePoints; i++)
+  {
+    float t = ((float)i / (float)curvePoints);
+    float fX = Math::flerp(center.getX(), bounds.getRight(), t);
+    float fY = yMax - Math::onEasingCurve(0.0f, yMax - curveB.getY(), yMax, 1.0f - t);
+    p.lineTo(fX, fY);
+  }
+  g.setColour(Color::brightSeafoam);
+  PathStrokeType pst(1.2f);
+  g.strokePath(p, pst);
+
+  drawHandle(g, curveA.getPos(), 3.0f, selectedPoint != &curveA);
+  drawHandle(g, center.getPos(), 3.0f, selectedPoint != &center);
+  drawHandle(g, curveB.getPos(), 3.0f, selectedPoint != &curveB);
+}
