@@ -56,7 +56,7 @@
 #define LFO_HZ_DEFAULT 1.0f
 
 #define LFO_CENTER_MIN 0.01f
-#define LFO_CENTER_MAX 0.98f
+#define LFO_CENTER_MAX 0.99f
 #define LFO_CENTER_DEFAULT 0.5f
 
 #define LFO_MIDPOINT_MIN 0.01f

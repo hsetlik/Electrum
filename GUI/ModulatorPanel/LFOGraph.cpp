@@ -23,6 +23,7 @@ LFOGraph::LFOGraph(EVT *tree, int i)
       state, bID, &curveB,
       [this, bID](Point<float> pt) { return getParamFromPos(bID, &curveB, pt); },
       [this, bID](float val) { return getPosFromParam(bID, &curveB, val); }));
+  triggerAsyncUpdate();
 }
 
 DragPoint *LFOGraph::getPointWithinRadius(const MouseEvent &e, float radius)
@@ -35,41 +36,51 @@ DragPoint *LFOGraph::getPointWithinRadius(const MouseEvent &e, float radius)
   return nullptr;
 }
 
-Point<float> LFOGraph::getPosFromParam(const String &paramID, DragPoint *, float value)
+Point<float> LFOGraph::getPosFromParam(const String &paramID, DragPoint *p, float value)
 {
-  auto fBounds = getLocalBounds().toFloat();
-  const float yTop = fBounds.getY() + 5.0f;
-  if (paramID.contains(IDs::lfoCenterX.toString()))
+  auto range = state->getAPVTS()->getParameterRange(paramID);
+  if (!range.getRange().contains(value))
   {
-    auto range = state->getAPVTS()->getParameterRange(paramID);
-    auto xPos = range.convertTo0to1(value) * fBounds.getWidth();
-    return {xPos, yTop};
-  } else if (paramID.contains(IDs::lfoMidpointA.toString()))
+    // DLog::log("Warning: out of range parameter " + paramID);
+    value = range.snapToLegalValue(value);
+  }
+  float vNorm = range.convertTo0to1(value);
+  auto limits = getLimitsFor(p);
+  if (p == &center)
   {
-    float xPos = Math::flerp(0.0f, center.getX(), 0.5f);
-    float yPos = Math::flerp(fBounds.getBottom() - 5.0f, yTop, value);
+    float yPos = limits.getY();
+    float xPos = Math::flerp(limits.getX(), limits.getRight(), vNorm);
     return {xPos, yPos};
   } else
   {
-    float xPos = Math::flerp(center.getX(), fBounds.getWidth(), 0.5f);
-    float yPos = Math::flerp(fBounds.getBottom() - 5.0f, yTop, value);
+    float xPos = Math::flerp(limits.getX(), limits.getRight(), 0.5f);
+    float yPos = Math::flerp(limits.getY(), limits.getBottom(), vNorm);
     return {xPos, yPos};
   }
 }
+
 float LFOGraph::getParamFromPos(const String &paramID, DragPoint *point, Point<float> pos)
 {
   auto range = state->getAPVTS()->getParameterRange(paramID);
-  auto fBounds = getLocalBounds().toFloat();
-  const float yTop = fBounds.getY() + 5.0f;
-  if (point == &curveA || point == &curveB)
+  auto limits = getLimitsFor(point);
+  if (!limits.contains(pos))
   {
-    float pVal = ((fBounds.getBottom() - 5.0f) - yTop) / pos.y;
-    return range.convertFrom0to1(pVal);
+    // DLog::log("Warning: Point for " + paramID + " is out of limits!");
+    pos = limits.getConstrainedPoint(pos);
+  }
+  if (point == &center)
+  {
+    float vNorm = (pos.x - limits.getX()) / limits.getWidth();
+    jassert(vNorm >= 0.0f && vNorm <= 1.0f);
+    return range.convertFrom0to1(vNorm);
   } else
   {
-    return range.convertFrom0to1(pos.x / fBounds.getWidth());
+    float vNorm = (pos.y - limits.getY()) / limits.getHeight();
+    jassert(vNorm >= 0.0f && vNorm <= 1.0f);
+    return range.convertFrom0to1(vNorm);
   }
 }
+
 Point<float> LFOGraph::constrainPositionFor(DragPoint *point, Point<float> pos)
 {
   auto bounds = getLimitsFor(point);
@@ -83,18 +94,18 @@ Rectangle<float> LFOGraph::getLimitsFor(DragPoint *pt)
   auto yBottom = fBounds.getBottom() - 5.0f;
   float yHeight = yBottom - yTop;
   const float xMin = 1.0f;
-  const float xMax = fBounds.getWidth() - xMin;
+  const float centerMin = 2.5f;
   if (pt == &curveA)
   {
     float width = (center.getX() - xMin) - xMin;
     return {xMin, yTop, width, yHeight};
   } else if (pt == &center)
   {
-    return {xMin, yTop, fBounds.getWidth() - (xMin * 2.0f), 0.0f};
+    return {centerMin, yTop, fBounds.getWidth() - (centerMin * 2.0f), 0.0f};
   } else
   {
-    float x = center.getX() + xMin;
-    return {x, yTop, xMax - x, yHeight};
+    float width = (fBounds.getRight() - xMin) - (center.getX() + xMin);
+    return {center.getX() + xMin, yTop, width, yHeight};
   }
 }
 
@@ -165,7 +176,7 @@ void LFOGraph::mouseUp(const MouseEvent &)
 
 void LFOGraph::paint(Graphics &g)
 {
-  auto fBounds = getLocalBounds().toFloat();
+  auto fBounds = getLocalBounds().toFloat().reduced(2.0f);
   drawLFOGraph(fBounds, g);
 }
 
@@ -193,7 +204,7 @@ void LFOGraph::drawHandle(Graphics &g, Point<float> center, float radius, bool f
 void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
 {
   const int curvePoints = 60;
-  const float yMax = bounds.getHeight() - 5.0f;
+  const float yMax = bounds.getBottom() - 3.0f;
   if (bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f)
   {
     return;
@@ -205,8 +216,7 @@ void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
   {
     float t = ((float)i / (float)curvePoints);
     float fX = t * center.getX();
-    float fY = bounds.getBottom() - 5.0f - Math::onEasingCurve(0.0f, yMax - curveA.getY(), yMax, t);
-    fY = std::max({fY, 5.0f});
+    float fY = yMax - Math::onEasingCurve(0.0f, yMax - curveA.getY(), yMax - center.getY(), t);
     p.lineTo(fX, fY);
   }
   p.lineTo(center.getX(), center.getY());
@@ -214,9 +224,11 @@ void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
   {
     float t = ((float)i / (float)curvePoints);
     float fX = Math::flerp(center.getX(), bounds.getRight(), t);
-    float fY = yMax - Math::onEasingCurve(0.0f, yMax - curveB.getY(), yMax, 1.0f - t);
+    float fY =
+        yMax - Math::onEasingCurve(0.0f, yMax - curveB.getY(), yMax - center.getY(), 1.0f - t);
     p.lineTo(fX, fY);
   }
+  p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::brightSeafoam);
   PathStrokeType pst(1.2f);
   g.strokePath(p, pst);
@@ -231,4 +243,4 @@ LFOPanel::LFOPanel(EVT *tree, int i) : state(tree), index(i), graph(tree, i)
   addAndMakeVisible(&graph);
 }
 
-void LFOPanel::resized() { graph.setBounds(getLocalBounds()); }
+void LFOPanel::resized() { graph.setBounds(getLocalBounds().reduced(5)); }

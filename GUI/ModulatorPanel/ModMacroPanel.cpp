@@ -7,12 +7,7 @@ ModMacroPanel::ModMacroPanel(EVT *tree) : pitch(tree), mod(tree), lfos(tree)
   addAndMakeVisible(&lfos);
 }
 ModMacroPanel::~ModMacroPanel() {}
-void ModMacroPanel::paint(Graphics &g)
-{
-  auto b = getLocalBounds().toFloat();
-  g.setColour(Colours::black);
-  g.fillRect(b);
-}
+
 void ModMacroPanel::resized()
 {
   // the aspect ratio of this component is fixed at 1:2

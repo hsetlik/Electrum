@@ -90,6 +90,7 @@ inline size_t fastFloor(float fp)
 
 inline float onEasingCurve(float y0, float y1, float y2, float x)
 {
+  //  jassert(y0 < y1 && y1 < y2);
   float yM = jmap(y1, y0, y2, 0.0f, 1.0f); // normalize y1 between 0 and 1 to use the
                                            // exponential parent function
   // this is a basic exponential function where we know that:

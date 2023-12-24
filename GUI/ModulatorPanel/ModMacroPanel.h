@@ -9,7 +9,6 @@ class ModMacroPanel : public Component
 public:
   ModMacroPanel(EVT *tree);
   ~ModMacroPanel() override;
-  void paint(Graphics &g) override;
   void resized() override;
 
 private:
