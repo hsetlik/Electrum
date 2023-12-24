@@ -1,7 +1,7 @@
 #pragma once
 #include "EnvelopeGraph.h"
 
-class LFOGraphCore : public Component, public AsyncUpdater
+class LFOGraph : public Component, public AsyncUpdater
 {
 private:
   void drawLFOGraph(Rectangle<float> &bounds, Graphics &g);
@@ -9,7 +9,7 @@ private:
 
 public:
   const int index;
-  LFOGraphCore(EVT *tree, int i);
+  LFOGraph(EVT *tree, int i);
   void paint(Graphics &g) override;
   void handleAsyncUpdate() override;
   // mouse callbacks
@@ -43,4 +43,16 @@ private:
   void syncWithState();
   // helper for drawing handles
   static void drawHandle(Graphics &g, Point<float> center, float radius, bool fill);
+};
+//=======================================================================================
+class LFOPanel : public Component
+{
+private:
+  EVT *const state;
+  const int index;
+  LFOGraph graph;
+
+public:
+  LFOPanel(EVT *tree, int i);
+  void resized() override;
 };

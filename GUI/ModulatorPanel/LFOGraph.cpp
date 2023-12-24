@@ -1,6 +1,6 @@
 #include "LFOGraph.h"
 
-LFOGraphCore::LFOGraphCore(EVT *tree, int i)
+LFOGraph::LFOGraph(EVT *tree, int i)
     : state(tree), index(i), curveA(this), center(this), curveB(this)
 {
   syncWithState();
@@ -25,7 +25,7 @@ LFOGraphCore::LFOGraphCore(EVT *tree, int i)
       [this, bID](float val) { return getPosFromParam(bID, &curveB, val); }));
 }
 
-DragPoint *LFOGraphCore::getPointWithinRadius(const MouseEvent &e, float radius)
+DragPoint *LFOGraph::getPointWithinRadius(const MouseEvent &e, float radius)
 {
   for (auto p : points)
   {
@@ -35,7 +35,7 @@ DragPoint *LFOGraphCore::getPointWithinRadius(const MouseEvent &e, float radius)
   return nullptr;
 }
 
-Point<float> LFOGraphCore::getPosFromParam(const String &paramID, DragPoint *, float value)
+Point<float> LFOGraph::getPosFromParam(const String &paramID, DragPoint *, float value)
 {
   auto fBounds = getLocalBounds().toFloat();
   const float yTop = fBounds.getY() + 5.0f;
@@ -56,7 +56,7 @@ Point<float> LFOGraphCore::getPosFromParam(const String &paramID, DragPoint *, f
     return {xPos, yPos};
   }
 }
-float LFOGraphCore::getParamFromPos(const String &paramID, DragPoint *point, Point<float> pos)
+float LFOGraph::getParamFromPos(const String &paramID, DragPoint *point, Point<float> pos)
 {
   auto range = state->getAPVTS()->getParameterRange(paramID);
   auto fBounds = getLocalBounds().toFloat();
@@ -70,13 +70,13 @@ float LFOGraphCore::getParamFromPos(const String &paramID, DragPoint *point, Poi
     return range.convertFrom0to1(pos.x / fBounds.getWidth());
   }
 }
-Point<float> LFOGraphCore::constrainPositionFor(DragPoint *point, Point<float> pos)
+Point<float> LFOGraph::constrainPositionFor(DragPoint *point, Point<float> pos)
 {
   auto bounds = getLimitsFor(point);
   return bounds.getConstrainedPoint(pos);
 }
 
-Rectangle<float> LFOGraphCore::getLimitsFor(DragPoint *pt)
+Rectangle<float> LFOGraph::getLimitsFor(DragPoint *pt)
 {
   auto fBounds = getLocalBounds().toFloat();
   auto yTop = fBounds.getY() + 5.0f;
@@ -98,7 +98,7 @@ Rectangle<float> LFOGraphCore::getLimitsFor(DragPoint *pt)
   }
 }
 
-void LFOGraphCore::syncWithState()
+void LFOGraph::syncWithState()
 {
   String iStr(index);
   auto centerID = IDs::lfoCenterX.toString() + iStr;
@@ -123,7 +123,7 @@ void LFOGraphCore::syncWithState()
 }
 //============================================================================================
 
-void EnvelopeGraphCore::mouseDown(const MouseEvent &e)
+void LFOGraph::mouseDown(const MouseEvent &e)
 {
   for (auto *p : points)
   {
@@ -137,7 +137,7 @@ void EnvelopeGraphCore::mouseDown(const MouseEvent &e)
   isMoving = false;
 }
 
-void LFOGraphCore::mouseDrag(const MouseEvent &e)
+void LFOGraph::mouseDrag(const MouseEvent &e)
 {
   if (selectedPoint != nullptr)
   {
@@ -153,7 +153,7 @@ void LFOGraphCore::mouseDrag(const MouseEvent &e)
     isMoving = false;
 }
 
-void LFOGraphCore::mouseUp(const MouseEvent &)
+void LFOGraph::mouseUp(const MouseEvent &)
 {
   if (selectedPoint != nullptr)
   {
@@ -163,20 +163,20 @@ void LFOGraphCore::mouseUp(const MouseEvent &)
   selectedPoint = nullptr;
 }
 
-void LFOGraphCore::paint(Graphics &g)
+void LFOGraph::paint(Graphics &g)
 {
   auto fBounds = getLocalBounds().toFloat();
   drawLFOGraph(fBounds, g);
 }
 
-void LFOGraphCore::handleAsyncUpdate()
+void LFOGraph::handleAsyncUpdate()
 {
   syncWithState();
   repaint();
 }
 
 //============================================================================================
-void LFOGraphCore::drawHandle(Graphics &g, Point<float> center, float radius, bool fill)
+void LFOGraph::drawHandle(Graphics &g, Point<float> center, float radius, bool fill)
 {
   Rectangle<float> bounds(radius * 2.0f, radius * 2.0f);
   bounds = bounds.withCentre(center);
@@ -190,7 +190,7 @@ void LFOGraphCore::drawHandle(Graphics &g, Point<float> center, float radius, bo
   }
 }
 
-void LFOGraphCore::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
+void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
 {
   const int curvePoints = 60;
   const float yMax = bounds.getHeight() - 5.0f;
@@ -225,3 +225,10 @@ void LFOGraphCore::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
   drawHandle(g, center.getPos(), 3.0f, selectedPoint != &center);
   drawHandle(g, curveB.getPos(), 3.0f, selectedPoint != &curveB);
 }
+//============================================================================================
+LFOPanel::LFOPanel(EVT *tree, int i) : state(tree), index(i), graph(tree, i)
+{
+  addAndMakeVisible(&graph);
+}
+
+void LFOPanel::resized() { graph.setBounds(getLocalBounds()); }

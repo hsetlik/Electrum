@@ -1,3 +1,4 @@
+#include "Color.h"
 #include "ElectrumEditor.h"
 
 ElectrumEditor::ElectrumEditor(EVT *tree)
@@ -17,7 +18,20 @@ ElectrumEditor::ElectrumEditor(EVT *tree)
 }
 ElectrumEditor::~ElectrumEditor() { setLookAndFeel(nullptr); }
 
-void ElectrumEditor::paint(Graphics &) {}
+void ElectrumEditor::paint(Graphics &g)
+{
+  auto fBounds = getLocalBounds().toFloat();
+  auto dX = fBounds.getWidth() / 36.0f;
+  auto modArea = fBounds.removeFromLeft(dX * 8.0f);
+
+  // TODO: this is where the header and patch selector should eventually go
+  auto headerArea = modArea.removeFromTop(dX * 8.0f);
+  g.setColour(Color::chartreuse);
+  g.fillRect(modArea);
+  g.setColour(Color::mediumSeaGreen);
+  g.fillRect(headerArea);
+  // auto oscArea = fBounds.removeFromTop(dX * 14);
+}
 void ElectrumEditor::resized()
 {
   auto lBounds = getLocalBounds().toFloat();
