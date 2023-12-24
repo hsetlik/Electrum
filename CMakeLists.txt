@@ -116,6 +116,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/WedgeButton.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/SourceParamSlider.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/SourceParamSlider.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/LabeledSPS.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/LabeledSPS.cpp"
     # /GUI/ModulatorPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/ModWheelSource.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ModulatorPanel/PitchWheelSource.h"

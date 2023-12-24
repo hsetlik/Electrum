@@ -1,10 +1,10 @@
 #include "ModMacroPanel.h"
 
-ModMacroPanel::ModMacroPanel(EVT *tree) : pitch(tree), mod(tree), perlin(tree)
+ModMacroPanel::ModMacroPanel(EVT *tree) : pitch(tree), mod(tree), lfos(tree)
 {
   addAndMakeVisible(&pitch);
   addAndMakeVisible(&mod);
-  addAndMakeVisible(&perlin);
+  addAndMakeVisible(&lfos);
 }
 ModMacroPanel::~ModMacroPanel() {}
 void ModMacroPanel::paint(Graphics &g)
@@ -22,7 +22,6 @@ void ModMacroPanel::resized()
   pitch.setBounds(modArea.removeFromLeft(modWidth).toNearestInt());
   mod.setBounds(modArea.toNearestInt());
   // we should have room for one more mod source on the right side here
-  auto perlinArea = lBounds.removeFromTop(lBounds.getWidth());
-  perlin.setBounds(perlinArea.toNearestInt());
-  // NOTE: how much space do we have under this?
+  auto lfoArea = lBounds.removeFromTop(lBounds.getWidth());
+  lfos.setBounds(lfoArea.toNearestInt());
 }

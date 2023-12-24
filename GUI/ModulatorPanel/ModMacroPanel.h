@@ -1,7 +1,7 @@
 #pragma once
 #include "../ElectrumLookAndFeel.h"
+#include "LFOTabbedComponent.h"
 #include "ModWheelSource.h"
-#include "PerlinPanel.h"
 #include "PitchWheelSource.h"
 
 class ModMacroPanel : public Component
@@ -15,5 +15,5 @@ public:
 private:
   PitchWheelSource pitch;
   ModWheelSource mod;
-  PerlinPanel perlin;
+  LFOTabbedComponent lfos;
 };
