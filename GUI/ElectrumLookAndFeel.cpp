@@ -78,7 +78,7 @@ void ElectrumLookAndFeel::createThumbPath(Rectangle<float> &bounds, Path &path)
 void ElectrumLookAndFeel::drawSliderThumb(Graphics &g, float x, float y, float diameter,
                                           const Colour &color, float strokeThickness)
 {
-  Rectangle<float> limits(x, y, diameter, diameter * 0.65f);
+  Rectangle<float> limits(x, y, diameter, diameter * 0.55f);
   Path p;
   createThumbPath(limits, p);
   g.setColour(color);

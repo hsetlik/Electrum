@@ -95,6 +95,7 @@ private:
   std::atomic<int> newestVoice;
   std::array<std::atomic<float>, NUM_ENVELOPES> newestEnvLevels;
   std::array<std::atomic<float>, NUM_OSCILLATORS> newestOscPositions;
+  std::array<std::atomic<float>, NUM_LFOS> newestLFOLevels;
   std::stack<int> voiceIndeces;
 
 public:
@@ -200,6 +201,8 @@ public:
   // updates the AudioData with the current envelope parameters
   void updateEnvelopesForBlock();
 
+  void updateLFOsForBlock();
+
   bool envIsInUse(int idx) { return envsInUse & (1 << idx); }
 
   void setSustainPedal(bool shouldBeOn) { sustainPedalOn = shouldBeOn; }
@@ -255,12 +258,16 @@ public:
 
   void setLeadingVoiceEnvLevel(int idx, float value) { newestEnvLevels[(size_t)idx] = value; }
 
-  float getLeadingVoiceEnvLevel(int idx)
+  float getLeadingVoiceEnvLevel(int idx) { return newestEnvLevels[(size_t)idx].load(); }
+
+  float getLeadingVoiceLFOLevel(int idx)
   {
     if (anyVoicesActive())
-      return newestEnvLevels[(size_t)idx].load();
+      return newestLFOLevels[(size_t)idx].load();
     return 0.0f;
   }
+
+  void setLeadingVoiceLFOLevel(int idx, float value) { newestLFOLevels[(size_t)idx] = value; }
 
   void setLeadingVoiceOscPosition(int idx, float value) { newestOscPositions[(size_t)idx] = value; }
   float getLeadingVoiceOscPosition(int idx) { return newestOscPositions[(size_t)idx].load(); }

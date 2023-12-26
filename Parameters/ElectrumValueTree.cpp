@@ -263,6 +263,24 @@ void EVT::updateEnvelopesForBlock()
   }
 }
 
+void EVT::updateLFOsForBlock()
+{
+  for (int i = 0; i < NUM_LFOS; i++)
+  {
+    String iStr(i);
+    const float freq = getFloatParamValue(IDs::lfoFreq.toString() + iStr);
+    const float curveA = getFloatParamValue(IDs::lfoMidpointA.toString() + iStr);
+    const float center = getFloatParamValue(IDs::lfoCenterX.toString() + iStr);
+    const float curveB = getFloatParamValue(IDs::lfoMidpointB.toString() + iStr);
+
+    auto data = audioData->getLFOData(i);
+    data->frequency = freq;
+    data->curveA = curveA;
+    data->center = center;
+    data->curveB = curveB;
+  }
+}
+
 void EVT::parameterChanged(const String &paramID, float value)
 {
   if (paramID == IDs::filterType.toString())

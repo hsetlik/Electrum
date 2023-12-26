@@ -71,6 +71,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/AHDSREnvelope.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/LFO.h"
     "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/LFO.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/VoiceLFO.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/VoiceLFO.cpp"
     # /Audio
     "${CMAKE_CURRENT_LIST_DIR}/Audio/AudioUtil.h"
     "${CMAKE_CURRENT_LIST_DIR}/Audio/ElectrumEngine.h"

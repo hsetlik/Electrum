@@ -125,6 +125,7 @@ void ElectrumEngine::updateParamsForBlock()
 {
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
+  state->updateLFOsForBlock();
   // check to update state for voices that have trailed off
   for (int i = 0; i < NUM_VOICES; i++)
   {
