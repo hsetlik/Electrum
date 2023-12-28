@@ -108,6 +108,7 @@ void ElectrumVoice::renderNextSample(float &left, float &right, bool updateDests
   {
     envs[i]->tick();
   }
+
   for (int i = 0; i < NUM_LFOS; i++)
   {
     lfos[i]->tick();
@@ -180,6 +181,10 @@ void ElectrumVoice::updateForBlock()
     for (int i = 0; i < NUM_OSCILLATORS; i++)
     {
       state->setLeadingVoiceOscPosition(i, oscs[i]->getLastPosition());
+    }
+    for (int i = 0; i < NUM_LFOS; i++)
+    {
+      state->setLeadingVoiceLFOLevel(i, lfos[i]->getCurrentValue());
     }
   }
 }

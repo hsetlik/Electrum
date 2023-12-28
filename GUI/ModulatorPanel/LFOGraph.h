@@ -47,12 +47,28 @@ private:
   static void drawHandle(Graphics &g, Point<float> center, float radius, bool fill);
 };
 //=======================================================================================
+class LFOLevelComponent : public Component, public Timer
+{
+public:
+  EVT *const state;
+  const int index;
+  LFOLevelComponent(EVT *tree, int idx);
+  void timerCallback() override;
+  void paint(Graphics &g) override;
+
+private:
+  Colour upper;
+  Colour lower;
+  float lastLevel;
+};
+//=======================================================================================
 class LFOPanel : public Component
 {
 private:
   EVT *const state;
   const int index;
   LFOGraph graph;
+  LFOLevelComponent level;
   LabeledSPS freqSlider;
   ModulationSourceComponent srcComp;
 

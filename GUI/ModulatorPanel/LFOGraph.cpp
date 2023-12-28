@@ -238,11 +238,39 @@ void LFOGraph::drawLFOGraph(Rectangle<float> &bounds, Graphics &g)
   drawHandle(g, curveB.getPos(), 3.0f, selectedPoint != &curveB);
 }
 //============================================================================================
+LFOLevelComponent::LFOLevelComponent(EVT *tree, int idx) : state(tree), index(idx), lastLevel(0.0f)
+{
+  startTimerHz(24);
+  lower = Color::getColorForModSource(IDs::envSource.toString() + String(idx));
+  upper = lower.darker();
+}
+
+void LFOLevelComponent::paint(Graphics &g)
+{
+  auto fBounds = getLocalBounds().toFloat();
+  float yMin = fBounds.getHeight() * lastLevel;
+  g.setColour(lower);
+  g.fillRect(fBounds);
+  g.setColour(upper);
+  g.fillRect(fBounds.removeFromTop(yMin));
+}
+
+void LFOLevelComponent::timerCallback()
+{
+  float level = 1.0f - state->getLeadingVoiceLFOLevel(index);
+  if (level != lastLevel)
+  {
+    lastLevel = level;
+    repaint();
+  }
+}
+//============================================================================================
 LFOPanel::LFOPanel(EVT *tree, int i)
-    : state(tree), index(i), graph(tree, i),
+    : state(tree), index(i), graph(tree, i), level(tree, i),
       freqSlider(tree, IDs::lfoFreq.toString() + String(i), "Freq.", true),
       srcComp(tree, IDs::lfoSource.toString() + String(i))
 {
+  addAndMakeVisible(&level);
   addAndMakeVisible(&graph);
   addAndMakeVisible(&srcComp);
   addAndMakeVisible(&freqSlider);
@@ -251,6 +279,7 @@ LFOPanel::LFOPanel(EVT *tree, int i)
 void LFOPanel::resized()
 {
   auto fBounds = getLocalBounds().toFloat();
+  level.setBounds(fBounds.toNearestInt());
   auto sliderArea = fBounds.removeFromLeft(fBounds.getWidth() / 6.0f);
   auto srcArea = sliderArea.removeFromTop(sliderArea.getWidth());
   srcComp.setBounds(srcArea.toNearestInt());
