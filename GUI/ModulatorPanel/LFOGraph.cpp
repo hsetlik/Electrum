@@ -274,6 +274,12 @@ LFOPanel::LFOPanel(EVT *tree, int i)
   addAndMakeVisible(&graph);
   addAndMakeVisible(&srcComp);
   addAndMakeVisible(&freqSlider);
+
+  bTriggerMode.addItemList(IDs::triggerModes, 1);
+  addAndMakeVisible(&bTriggerMode);
+  bTriggerMode.setSelectedItemIndex(0);
+  triggerModeAttach.reset(new APVTS::ComboBoxAttachment(
+      *state->getAPVTS(), IDs::lfoTriggerMode.toString() + String(index), bTriggerMode));
 }
 
 void LFOPanel::resized()
@@ -282,7 +288,9 @@ void LFOPanel::resized()
   level.setBounds(fBounds.toNearestInt());
   auto sliderArea = fBounds.removeFromLeft(fBounds.getWidth() / 6.0f);
   auto srcArea = sliderArea.removeFromTop(sliderArea.getWidth());
+  auto boxArea = sliderArea.removeFromTop(sliderArea.getWidth() / 3.0f);
   srcComp.setBounds(srcArea.toNearestInt());
   freqSlider.setBounds(sliderArea.toNearestInt());
   graph.setBounds(fBounds.toNearestInt());
+  bTriggerMode.setBounds(boxArea.toNearestInt());
 }

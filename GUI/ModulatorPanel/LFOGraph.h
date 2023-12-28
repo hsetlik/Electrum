@@ -71,6 +71,8 @@ private:
   LFOLevelComponent level;
   LabeledSPS freqSlider;
   ModulationSourceComponent srcComp;
+  ComboBox bTriggerMode;
+  std::unique_ptr<APVTS::ComboBoxAttachment> triggerModeAttach;
 
 public:
   LFOPanel(EVT *tree, int i);

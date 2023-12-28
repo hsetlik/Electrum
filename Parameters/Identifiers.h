@@ -124,7 +124,7 @@ DECLARE_ID(lfoFreq)
 DECLARE_ID(lfoCenterX)
 DECLARE_ID(lfoMidpointA)
 DECLARE_ID(lfoMidpointB)
-DECLARE_ID(lfoGateTrigger)
+DECLARE_ID(lfoTriggerMode)
 
 // filter
 DECLARE_ID(filterType)
@@ -184,7 +184,7 @@ const std::vector<Identifier> ElectrumIDs = {oscillatorPos,
                                              lfoCenterX,
                                              lfoMidpointA,
                                              lfoMidpointB,
-                                             lfoGateTrigger,
+                                             lfoTriggerMode,
 
                                              filterType,
                                              filterCutoff,
@@ -224,6 +224,7 @@ const std::vector<Identifier> DestinationIDs = {
 
 const StringArray filterTypes = {"Low Pass 12", "High Pass 12"};
 const StringArray satTypes = {"Soft 1", "Soft 2", "Soft 3", "Soft 4"};
+const StringArray triggerModes = {"Loop", "Retrig"};
 struct ParamInfoStrings
 {
   String shortName;
@@ -303,8 +304,8 @@ const std::unordered_map<String, ParamInfoStrings> paramDisplayNames = {
      {"A. Curve", "LFO attack curve", "The curve at which this LFO approaches its peak"}},
     {lfoMidpointB.toString(),
      {"R. Curve", "LFO release curve", "The curve at which this LFO approaches  zero"}},
-    {lfoGateTrigger.toString(),
-     {"Trig.", "LFO trigger", "Whether this LFO shoud be restarted by the MIDI gate"}},
+    {lfoTriggerMode.toString(),
+     {"Trig. Mode", "LFO trigger mode", "Whether this LFO shoud be restarted by the MIDI gate"}},
     // Filter
     {filterType.toString(),
      {"Type", "Filter type", "Filter type: the type of filter for the main synth voices"}},
@@ -505,8 +506,9 @@ inline AudioProcessorValueTreeState::ParameterLayout createElectrumLayout()
     String bID = lfoMidpointB.toString() + iStr;
     layout.add(std::make_unique<AudioParameterFloat>(bID, getParamName(bID, true), midpointRange,
                                                      LFO_MIDPOINT_DEFAULT));
-    String trigID = lfoGateTrigger.toString() + iStr;
-    layout.add(std::make_unique<AudioParameterBool>(trigID, getParamName(trigID, true), false));
+    String trigID = lfoTriggerMode.toString() + iStr;
+    layout.add(std::make_unique<AudioParameterChoice>(trigID, getParamName(trigID, true),
+                                                      triggerModes, 0));
   }
 
   // filter params
