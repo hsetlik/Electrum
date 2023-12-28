@@ -22,6 +22,9 @@ ElectrumLookAndFeel::ElectrumLookAndFeel()
   // combo box colors
   setColour(ComboBox::backgroundColourId, Color::darkBkgnd);
   setColour(ComboBox::textColourId, Color::offWhite);
+  // tooltip colors
+  setColour(TooltipWindow::backgroundColourId, Color::darkBkgnd.withAlpha(0.75f));
+  setColour(TooltipWindow::textColourId, Color::offWhite);
 }
 //====================================================================================================
 void ElectrumLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int width, int height,
@@ -512,4 +515,46 @@ void ElectrumLookAndFeel::positionComboBoxText(ComboBox &box, Label &label)
 {
   label.setBounds(1, 1, box.getWidth() + 3 - box.getHeight(), box.getHeight() - 2);
   label.setFont(getComboBoxFont(box));
+}
+//====================================================================================================
+Rectangle<int> ElectrumLookAndFeel::getTooltipBounds(const String &text, Point<int> screenPos,
+                                                     Rectangle<int> parentArea)
+{
+  const TextLayout tl(makeTooltipLayout(text, Colours::black));
+
+  auto w = (int)(tl.getWidth() + 14.0f);
+  auto h = (int)(tl.getHeight() + 6.0f);
+
+  return Rectangle<int>(
+             screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
+             screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6, w, h)
+      .constrainedWithin(parentArea);
+}
+
+TextLayout ElectrumLookAndFeel::makeTooltipLayout(const String &text, Colour colour)
+{
+  const float tooltipFontSize = 13.0f;
+  const int maxToolTipWidth = 400;
+
+  AttributedString s;
+  s.setJustification(Justification::centred);
+  s.append(text, Font(tooltipFontSize, Font::bold), colour);
+
+  TextLayout tl;
+  tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
+  return tl;
+}
+void ElectrumLookAndFeel::drawTooltip(Graphics &g, const String &text, int width, int height)
+{
+  Rectangle<int> bounds(width, height);
+  auto cornerSize = 5.0f;
+
+  g.setColour(findColour(TooltipWindow::backgroundColourId));
+  g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
+
+  g.setColour(findColour(TooltipWindow::outlineColourId));
+  g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
+
+  makeTooltipLayout(text, findColour(TooltipWindow::textColourId))
+      .draw(g, {static_cast<float>(width), static_cast<float>(height)});
 }

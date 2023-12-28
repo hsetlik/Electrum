@@ -343,7 +343,17 @@ inline String getParamName(const String &paramID, bool longName = false)
   DLog::log("Warning! No name info found for parameter: " + safeParamID);
   return "";
 }
-
+inline String getParamDesc(const String &paramID)
+{
+  String safeParamID = StringUtil::removeTrailingNumbers(paramID);
+  auto it = paramDisplayNames.find(safeParamID);
+  if (it != paramDisplayNames.end())
+  {
+    return it->second.desc;
+  }
+  DLog::log("Warning! No name info found for parameter: " + safeParamID);
+  return "";
+}
 inline frange getAttackRange()
 {
   frange range(ATTACK_MS_MIN, ATTACK_MS_MAX, 0.0001f);

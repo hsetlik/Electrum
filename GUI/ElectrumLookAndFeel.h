@@ -42,12 +42,18 @@ public:
   Font getComboBoxFont(ComboBox &) override;
   Label *createComboBoxTextBox(ComboBox &) override;
   void positionComboBoxText(ComboBox &box, Label &labelToPosition) override;
+  // tooltip stuff
+  Rectangle<int> getTooltipBounds(const String &tipText, Point<int> screenPos,
+                                  Rectangle<int> parentArea) override;
+  void drawTooltip(Graphics &, const String &text, int width, int height) override;
 
 private:
   // helper functions for the linear slider thumb
   void createThumbPath(Rectangle<float> &bounds, Path &path);
   void drawSliderThumb(Graphics &g, float x, float y, float diameter, const Colour &color,
                        float strokeThickness);
+  static TextLayout makeTooltipLayout(const String &text, Colour colour);
+
   // store these so we don't have to reload the ttf file every time we draw text
   Font labelFont;
   Font tabButtonFont;

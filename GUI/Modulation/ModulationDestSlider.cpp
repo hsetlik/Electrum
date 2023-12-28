@@ -3,6 +3,8 @@
 ModulationDestSlider::ModulationDestSlider(EVT *tree, const String &id)
     : state(tree), paramID(id), stack(tree, id)
 {
+  auto tooltip = IDs::getParamDesc(id);
+  paramSlider.setTooltip(tooltip);
   addAndMakeVisible(&stack);
   attach.reset(new sAttach(*state->getAPVTS(), paramID, paramSlider));
   paramSlider.setSliderStyle(Slider::SliderStyle::Rotary);

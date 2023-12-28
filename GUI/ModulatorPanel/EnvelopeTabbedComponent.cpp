@@ -7,6 +7,8 @@ EnvelopeSourceComponent::EnvelopeSourceComponent(EVT *tree) : state(tree)
     String id = IDs::envSource.toString() + String(i);
     sources.add(new ModulationSourceComponent(state, id));
     addAndMakeVisible(sources.getLast());
+    String tooltip = "Envelope " + String(i) + " source";
+    sources.getLast()->setTooltip(tooltip);
   }
 }
 
