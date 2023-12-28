@@ -17,6 +17,7 @@ private:
 public:
   const int index;
   VoiceLFO(EVT *tree, int idx);
+  ~VoiceLFO() {}
   void tick();
   float getCurrentValue() { return lastOutput; }
   void retrigger() { startQuickKill(); }

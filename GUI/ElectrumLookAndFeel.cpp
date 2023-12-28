@@ -383,16 +383,18 @@ void ElectrumLookAndFeel::createTabButtonShape(TabBarButton &button, Path &p, bo
   p = p.createPathWithRoundedCorners(3.0f);
 }
 
+int ElectrumLookAndFeel::getTabButtonOverlap(int depth) { return 1 + depth / 5; }
+
 int ElectrumLookAndFeel::getTabButtonBestWidth(TabBarButton &button, int depth)
 {
   int width = getTabButtonFont(button, (float)depth).getStringWidth(button.getButtonText().trim()) +
-              getTabButtonOverlap(depth) * 2;
+              (getTabButtonOverlap(depth) * 2);
 
   if (auto *extraComponent = button.getExtraComponent())
     width += button.getTabbedButtonBar().isVertical() ? extraComponent->getHeight()
                                                       : extraComponent->getWidth();
 
-  return jlimit(depth * 2, depth * 10, width);
+  return jlimit(depth * 2, depth * 15, width);
 }
 
 void ElectrumLookAndFeel::fillTabButtonShape(TabBarButton &button, Graphics &g, const Path &path,
@@ -401,7 +403,7 @@ void ElectrumLookAndFeel::fillTabButtonShape(TabBarButton &button, Graphics &g, 
   auto tabBackground = button.getTabBackgroundColour();
   const bool isFrontTab = button.isFrontTab() || isMouseDown;
 
-  g.setColour(isFrontTab ? tabBackground : tabBackground.withMultipliedAlpha(0.9f));
+  g.setColour(isFrontTab ? tabBackground.brighter() : tabBackground);
 
   g.fillPath(path);
 
@@ -409,9 +411,9 @@ void ElectrumLookAndFeel::fillTabButtonShape(TabBarButton &button, Graphics &g, 
                   .findColour(isFrontTab ? TabbedButtonBar::frontOutlineColourId
                                          : TabbedButtonBar::tabOutlineColourId,
                               false)
-                  .withMultipliedAlpha((button.isEnabled() || isMouseOver) ? 1.0f : 0.5f));
+                  .withMultipliedAlpha((button.isEnabled() || isMouseOver) ? 1.2f : 0.8f));
 
-  g.strokePath(path, PathStrokeType(isFrontTab ? 1.0f : 0.5f));
+  g.strokePath(path, PathStrokeType(isFrontTab ? 1.2f : 0.8f));
 }
 void ElectrumLookAndFeel::drawTabbedButtonBarBackground(TabbedButtonBar &, Graphics &) {}
 

@@ -31,6 +31,7 @@ public:
   void createTabButtonShape(TabBarButton &, Path &path, bool isMouseOver,
                             bool isMouseDown) override;
   int getTabButtonBestWidth(TabBarButton &button, int tabDepth) override;
+  int getTabButtonOverlap(int depth) override;
   void fillTabButtonShape(TabBarButton &button, Graphics &g, const Path &path, bool isMouseOver,
                           bool isMouseDown) override;
   void drawTabbedButtonBarBackground(TabbedButtonBar &bar, Graphics &g) override;

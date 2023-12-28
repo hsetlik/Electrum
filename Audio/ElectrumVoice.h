@@ -4,6 +4,7 @@
 #include "Generators/WavetableOscillator.h"
 #include "Modulators/AHDSREnvelope.h"
 #include "Modulators/Oscillator.h"
+#include "Modulators/VoiceLFO.h"
 #include "Processors/FilterProcessor.h"
 #include "Processors/Saturation.h"
 
@@ -72,6 +73,7 @@ private:
   SaturationModValues sMod;
 
   OwnedArray<AHDSREnvelope> envs;
+  OwnedArray<VoiceLFO> lfos;
 
   SynthFilter filter;
 

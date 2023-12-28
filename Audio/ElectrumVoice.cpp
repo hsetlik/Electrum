@@ -13,6 +13,10 @@ ElectrumVoice::ElectrumVoice(EVT *tree, ModDestMap *map, int idx)
   {
     envs.add(new AHDSREnvelope(state, i));
   }
+  for (int i = 0; i < NUM_LFOS; i++)
+  {
+    lfos.add(new VoiceLFO(state, i));
+  }
 }
 
 bool ElectrumVoice::isBusy() { return gate || (!vge.isFinished()); }
@@ -27,6 +31,8 @@ void ElectrumVoice::startNote(int note, float vel)
   {
     e->gateStart(vel);
   }
+  // TODO: we retrigger the LFO here if that setting is on
+
   state->startVoice(index);
 }
 
@@ -94,12 +100,17 @@ void ElectrumVoice::filterSampleStereo(float &left, float &right, bool updateDes
 
 void ElectrumVoice::renderNextSample(float &left, float &right, bool updateDests)
 {
+  // I'll try ticking every LFO even if the voice isn't being used just...because
   if (!isBusy())
     return;
   // tick the modulation sources before we calculate any mod values
   for (int i = 0; i < NUM_ENVELOPES; i++)
   {
     envs[i]->tick();
+  }
+  for (int i = 0; i < NUM_LFOS; i++)
+  {
+    lfos[i]->tick();
   }
   vge.tick();
   float voiceLeft = 0.0f;
@@ -188,6 +199,10 @@ float ElectrumVoice::getModValueForSample(const String &srcID)
   {
     int idx = srcID.getTrailingIntValue();
     return envs[idx]->getCurrentSample();
+  } else if (srcID.contains(IDs::lfoSource.toString()))
+  {
+    int idx = srcID.getTrailingIntValue();
+    return lfos[idx]->getCurrentValue();
   } else
   {
     return 0.0f;
