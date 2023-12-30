@@ -2,10 +2,9 @@
 
 SourceParamSlider::SourceParamSlider(EVT *tree, const String &ID, bool vertical)
     : state(tree), paramID(ID),
-      slider((vertical) ? Slider::LinearVertical : Slider::Rotary,
-             Slider::NoTextBox)
+      slider((vertical) ? Slider::LinearVertical : Slider::Rotary, Slider::NoTextBox)
 {
-  attach.reset(new sAttach(*state->getAPVTS(), paramID, slider));
+  slider.setTooltip(IDs::getParamDesc(paramID));
   addAndMakeVisible(&slider);
 }
 

@@ -146,7 +146,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/OscillatorEditor.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/WavetableGraph.cpp"
-    # /GUI/ProcessorPanel
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/BitmapWavetableGraph.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/GeneratorPanel/BitmapWavetableGraph.cpp" # /GUI/ProcessorPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/ProcessorPanel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/FilterPanel.h"
