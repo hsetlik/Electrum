@@ -227,12 +227,12 @@ GLuint WavetableGraph::indexOfVertex(size_t wave, size_t sample, int numVertices
 void WavetableGraph::updateVertices()
 {
   DLog::log("Updating vertices for graph #" + String(index + 1));
-  const float xMax = 1.5f;
-  const float xMin = -1.5f;
+  const float xMax = 1.0f;
+  const float xMin = -1.0f;
   const float yMax = 1.0f;
   const float yMin = 0.0f;
-  const float zMax = 1.0f;
-  const float zMin = 0.0f;
+  const float zMax = 2.0f;
+  const float zMin = 1.0f;
   vData.clear();
   auto baseWaves = state->getAudioData()->getBaseWaves(index);
   // now add the vertices for each wave

@@ -1,9 +1,62 @@
 #include "BitmapWavetableGraph.h"
 
+template <typename T> Mat3x3<float> Mat3x3<T>::getRotationMatrix(float x, float y, float z)
+{
+  Mat3x3<float> m1;
+
+  m1.data[0][0] = 1.0f;
+  m1.data[0][1] = 0.0f;
+  m1.data[0][2] = 0.0f;
+
+  m1.data[1][0] = 0.0f;
+  m1.data[1][1] = std::cosf(x);
+  m1.data[1][2] = std::sinf(x);
+
+  m1.data[2][0] = 0.0f;
+  m1.data[2][1] = std::sinf(x) * -1.0f;
+  m1.data[2][2] = std::cosf(x);
+
+  Mat3x3<float> m2;
+
+  m2.data[0][0] = std::cosf(y);
+  m2.data[0][1] = 0.0f;
+  m2.data[0][2] = std::sinf(y) * -1.0f;
+
+  m2.data[1][0] = 0.0f;
+  m2.data[1][1] = 1.0f;
+  m2.data[1][2] = 0.0f;
+
+  m2.data[2][0] = 0.0f;
+  m2.data[2][1] = std::sinf(x) * -1.0f;
+  m2.data[2][2] = std::cosf(x);
+
+  Mat3x3<float> m3;
+
+  m3.data[0][0] = std::cosf(z);
+  m3.data[0][1] = std::sinf(z);
+  m3.data[0][2] = 0.0f;
+
+  m3.data[1][0] = std::sinf(z) * -1.0f;
+  m3.data[1][1] = std::cosf(z);
+  m3.data[1][2] = 0.0f;
+
+  m3.data[2][0] = 0.0f;
+  m3.data[2][1] = 0.0f;
+  m3.data[2][2] = 1.0f;
+
+  return m1 * m3 * m3;
+}
+//==================================================================================
 BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
     : state(tree), index(idx), img(Image::ARGB, GRAPH_W, GRAPH_H, true), lastWavePos(0.0f),
       needsImgUpdate(false)
 {
+  // calculate our rotation matrix now bc it's math-intensive and won't change
+  const float xAngle = MathConstants<float>::pi * 0.125f;
+  const float yAngle = MathConstants<float>::pi * 0.0f;
+  const float zAngle = MathConstants<float>::pi * 0.0f;
+  rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
+  // start the timer
   startTimerHz(GRAPH_REFRESH_HZ);
 }
 
@@ -35,18 +88,27 @@ void BitmapWavetableGraph::updateImagePixels()
   {
     // calculate the vertices for this wave
     float zPos = (float)i / (float)waves.size();
-    auto waveVertices = createVerticesFor(waves[i], 128, zPos);
-    // divide the list of vertices into line segments and draw each
-    for (size_t v = 1; v < waveVertices.size(); v++)
-    {
-      auto first = waveVertices[v - 1];
-      auto second = waveVertices[v];
-    }
+    // check if it's time to draw the current pos line
+    auto waveVertices = createVerticesFor(waves[i], 128, zPos + Z_SETBACK);
   }
 }
-std::vector<Vertex> BitmapWavetableGraph::createVerticesFor(Wave &wave, int numPoints, float zPlane)
+
+Path BitmapWavetableGraph::convertToPath(std::vector<Vector3D<float>> &vertices)
 {
-  std::vector<Vertex> verts;
+  Path p;
+  p.startNewSubPath(projectToCanvas(vertices[0]));
+  for (size_t i = 1; i < vertices.size(); i++)
+  {
+    p.lineTo(projectToCanvas(vertices[i]));
+  }
+  p.closeSubPath();
+  return p;
+}
+
+std::vector<Vector3D<float>> BitmapWavetableGraph::createVerticesFor(Wave &wave, int numPoints,
+                                                                     float zPlane)
+{
+  std::vector<Vector3D<float>> verts;
   verts.push_back({0.0f, 0.0f, zPlane});
   for (int i = 0; i < numPoints; ++i)
   {
@@ -59,4 +121,17 @@ std::vector<Vertex> BitmapWavetableGraph::createVerticesFor(Wave &wave, int numP
   return verts;
 }
 
-Pixel BitmapWavetableGraph::projectVertex(const Vertex &v, int imgWidth, int imgHeight) {}
+Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
+{
+  Vector3D<float> c = {0.5f, 0.5f, 0.0f}; // represents the camera pinhole
+  Vector3D<float> e = {0.0f, 0.0f, 0.1f}; // represents the display surface relative to the camera
+  // correct for the camera pos
+  auto d = point - c;
+  // multiply by the rotation matrix
+  d = rotation * d;
+  // now convert to the 2d plane
+  float xPos = ((e.z / d.z) * d.x) + e.x;
+  float yPos = ((e.z / d.z) * d.y) + e.y;
+
+  return {xPos * (float)GRAPH_W, yPos * (float)GRAPH_H};
+}
