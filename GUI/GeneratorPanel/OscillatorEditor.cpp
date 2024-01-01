@@ -18,10 +18,7 @@ OscillatorEditor::OscillatorEditor(EVT *tree, int idx)
   addAndMakeVisible(sCoarse);
   addAndMakeVisible(sFine);
   addAndMakeVisible(&graph);
-  startTimerHz(24);
 }
-
-void OscillatorEditor::timerCallback() { graph.triggerAsyncUpdate(); }
 
 OscillatorEditor::~OscillatorEditor() { setLookAndFeel(nullptr); }
 

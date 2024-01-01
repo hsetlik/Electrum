@@ -24,7 +24,7 @@ template <typename T> struct Mat3x3
     {
       out.x = out.x + (vec.x * data[0][c]);
       out.y = out.y + (vec.y * data[1][c]);
-      out.z = out.r + (vec.z * data[2][c]);
+      out.z = out.z + (vec.z * data[2][c]);
     }
     return out;
   }
@@ -59,11 +59,12 @@ template <typename T> struct Mat3x3
   //==================================================================
   static Mat3x3<float> getRotationMatrix(float x, float y, float z);
 };
+
 #define GRAPH_REFRESH_HZ 24
 #define GRAPH_W 512
 #define GRAPH_H 512
 
-#define Z_SETBACK 1.5f
+#define Z_SETBACK 0.85f
 
 class BitmapWavetableGraph : public Component, public Timer
 {

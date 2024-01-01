@@ -44,7 +44,7 @@ template <typename T> Mat3x3<float> Mat3x3<T>::getRotationMatrix(float x, float 
   m3.data[2][1] = 0.0f;
   m3.data[2][2] = 1.0f;
 
-  return m1 * m3 * m3;
+  return m1 * m2 * m3;
 }
 //==================================================================================
 BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
@@ -52,8 +52,8 @@ BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
       needsImgUpdate(false)
 {
   // calculate our rotation matrix now bc it's math-intensive and won't change
-  const float xAngle = MathConstants<float>::pi * 0.125f;
-  const float yAngle = MathConstants<float>::pi * 0.0f;
+  const float xAngle = MathConstants<float>::pi * -0.03f;
+  const float yAngle = MathConstants<float>::pi * (-0.08f * (float)(index + 1));
   const float zAngle = MathConstants<float>::pi * 0.0f;
   rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
   // start the timer
@@ -82,14 +82,21 @@ void BitmapWavetableGraph::updateImagePixels()
 {
   // clear the image
   img.clear(img.getBounds(), Color::black);
+  Graphics g(img);
   // grip the wave shapes for the current oscillator
   auto waves = state->getAudioData()->getBaseWaves(index);
   for (size_t i = 0; i < waves.size(); i++)
   {
     // calculate the vertices for this wave
     float zPos = (float)i / (float)waves.size();
-    // check if it's time to draw the current pos line
-    auto waveVertices = createVerticesFor(waves[i], 128, zPos + Z_SETBACK);
+    auto w = createVerticesFor(waves[i], 128, zPos + Z_SETBACK);
+    // convert to a path and figure out the stroke
+    auto wavePath = convertToPath(w);
+    float strokeW = (1.8f * (1.0f - zPos));
+    PathStrokeType pst(strokeW);
+
+    g.setColour(Color::paleOrange.brighter());
+    g.strokePath(wavePath, pst);
   }
 }
 
@@ -123,8 +130,8 @@ std::vector<Vector3D<float>> BitmapWavetableGraph::createVerticesFor(Wave &wave,
 
 Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
 {
-  Vector3D<float> c = {0.5f, 0.5f, 0.0f}; // represents the camera pinhole
-  Vector3D<float> e = {0.0f, 0.0f, 0.1f}; // represents the display surface relative to the camera
+  Vector3D<float> c = {-0.5f, 0.3f, 0.0f}; // represents the camera pinhole
+  Vector3D<float> e = {0.0f, 0.0f, 0.45f}; // represents the display surface relative to the camera
   // correct for the camera pos
   auto d = point - c;
   // multiply by the rotation matrix
@@ -133,5 +140,5 @@ Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
   float xPos = ((e.z / d.z) * d.x) + e.x;
   float yPos = ((e.z / d.z) * d.y) + e.y;
 
-  return {xPos * (float)GRAPH_W, yPos * (float)GRAPH_H};
+  return {(1.0f - xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
 }
