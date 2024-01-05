@@ -17,6 +17,17 @@ template <typename T> struct Mat3x3
     }
   }
 
+  Mat3x3(Mat3x3<T> &other)
+  {
+    for (int r = 0; r < 3; r++)
+    {
+      for (int c = 0; c < 3; c++)
+      {
+        data[r][c] = other.data[r][c];
+      }
+    }
+  }
+
   Vector3D<T> operator*(const Vector3D<T> &vec)
   {
     Vector3D<T> out = {0.0f, 0.0f, 0.0f};
@@ -64,7 +75,8 @@ template <typename T> struct Mat3x3
 #define GRAPH_W 512
 #define GRAPH_H 512
 
-#define Z_SETBACK 0.85f
+#define Z_SETBACK 0.75f
+#define CAMERA_DISTANCE 0.35f
 
 class BitmapWavetableGraph : public Component, public Timer
 {
@@ -78,6 +90,15 @@ private:
   bool needsImgUpdate;
   // just so we don't have to recalculate the rotation matrix for every point
   Mat3x3<float> rotation;
+  // this stores our paths. makes sense in updateImagePixels
+  // a little struct for storing everything we need to draw a given wave
+  struct WavePathData
+  {
+    Path path;
+    Colour color;
+    float zPos;
+  };
+  std::stack<WavePathData> wavePaths;
   // this generates a list of vertices based on the provided Wave and z values
   static std::vector<Vector3D<float>> createVerticesFor(Wave &wave, int numPoints, float zPlane);
   // converts the list of vertices from the above function into a Path object we can draw

@@ -1,6 +1,8 @@
 #pragma once
+#include "../../Parameters/DLog.h"
 #include "../../Parameters/MathUtil.h"
 #include <array>
+#include <cmath>
 #define TABLE_SIZE 2048
 #define WAVES_PER_TABLE 10
 using Wave = std::array<float, TABLE_SIZE>;
@@ -9,6 +11,7 @@ struct WaveUtil
 {
   static float valueAtPhase(float *wave, float phase)
   {
+    jassert(phase >= 0.0f && phase <= 1.0f);
     auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
 #if INT_INDEX
     return wave[fIdx];
@@ -20,6 +23,7 @@ struct WaveUtil
 
   static float valueAtPhase(Wave &wave, float phase)
   {
+    jassert(phase >= 0.0f && phase <= 1.0f);
     auto fIdx = Math::fastFloor(phase * (float)TABLE_SIZE);
 #if INT_INDEX
     return wave[fIdx];
@@ -83,6 +87,34 @@ struct WaveUtil
   {
     return {getRisingRampWave(), getTriangleWave(), getFallingRampWave(), getPulseWave(0.5f),
             getPulseWave(0.6f)};
+  }
+
+  static Wave interpolateWaveSet(std::vector<Wave> &waves, float pos)
+  {
+    float fPos = pos * (float)(waves.size());
+    size_t lower = (size_t)std::floorf(pos * (float)waves.size());
+    size_t upper = (lower + 1) % waves.size();
+    float fLower = (float)lower / (float)(waves.size());
+    float fUpper = (float)upper / (float)(waves.size());
+    if (lower == upper || fUpper <= fLower)
+    {
+      DLog::log("Warning! Lower and upper indeces match for position " + String(pos) +
+                " with scaled position " + String(fPos));
+    }
+    float norm = (pos - fLower) / (fUpper - fLower);
+    if (norm < 0.0f || norm > 1.0f)
+    {
+      DLog::log("Warning! Out of range lerp value " + String(norm));
+      DLog::log("fPos: " + String(fPos));
+      DLog::log("fLower: " + String(fLower));
+      DLog::log("fUpper: " + String(fUpper));
+    }
+    Wave output;
+    for (size_t i = 0; i < TABLE_SIZE; ++i)
+    {
+      output[i] = Math::flerp(waves[lower][i], waves[upper][i], norm);
+    }
+    return output;
   }
 
   static void wavetableFFT(float *ar, float *ai)

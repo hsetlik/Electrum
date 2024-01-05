@@ -1,5 +1,139 @@
 #include "BitmapWavetableGraph.h"
+//==================================================================================
+BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
+    : state(tree), index(idx), img(Image::ARGB, GRAPH_W, GRAPH_H, true), lastWavePos(0.0f),
+      needsImgUpdate(false)
+{
+  // calculate our rotation matrix now bc it's math-intensive and won't change
+  const float xAngle = MathConstants<float>::pi * 0.05f;
+  const float yAngle = MathConstants<float>::pi * -0.6f;
+  const float zAngle = MathConstants<float>::pi * -0.18f;
+  rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
+  // start the timer
+  startTimerHz(GRAPH_REFRESH_HZ);
+}
 
+void BitmapWavetableGraph::timerCallback()
+{
+  float currentPos = state->getLeadingVoiceOscPosition(index);
+  if (currentPos != lastWavePos || needsImgUpdate)
+  {
+    lastWavePos = currentPos;
+    updateImagePixels();
+    repaint();
+    needsImgUpdate = false;
+  }
+}
+
+void BitmapWavetableGraph::paint(Graphics &g)
+{
+  auto fBounds = getLocalBounds().toFloat();
+  g.drawImage(img, fBounds);
+}
+
+//==================================================================================
+void BitmapWavetableGraph::updateImagePixels()
+{
+  // STEP 1: calculate the vertices and paths and add them to the stack
+  const int numVertices = 65;
+  // grip the wave shapes for the current oscillator
+  auto waves = state->getAudioData()->getBaseWaves(index);
+  for (size_t i = 0; i < waves.size(); i++)
+  {
+    float currentZ = (float)i / (float)waves.size();
+    // after the first wave we need to start checking if it's time to draw the virtual wave yet
+    if (i > 0)
+    {
+      float prevZ = (float)(i - 1) / (float)waves.size();
+      if (prevZ < lastWavePos && currentZ >= lastWavePos)
+      {
+        auto wave = WaveUtil::interpolateWaveSet(waves, lastWavePos);
+        auto verts = createVerticesFor(wave, numVertices, lastWavePos + Z_SETBACK);
+        auto p = convertToPath(verts);
+        auto col = Color::brightSeafoam.withAlpha(0.9f);
+        wavePaths.push({p, col, lastWavePos + Z_SETBACK});
+      }
+    }
+    // create our vertices and path
+    auto vertices = createVerticesFor(waves[i], numVertices, currentZ + Z_SETBACK);
+    auto path = convertToPath(vertices);
+
+    // calculate the color
+    float proximity = std::fabs(lastWavePos - currentZ) * 2.0f;
+    const Colour bright =
+        Color::brightSeafoam.interpolatedWith(Color::paleSeafoam, 0.5f).withAlpha(0.8f);
+    const Colour dark = bright.darker(0.3f).withAlpha(0.65f);
+    Colour waveColor = bright.interpolatedWith(dark, proximity);
+    // create the WavePathData object and add it to our stack
+    WavePathData d{path, waveColor, currentZ + Z_SETBACK};
+    wavePaths.push(d);
+  }
+  // STEP 2: go through the stack and draw each wave
+  img.clear(img.getBounds(), Color::black);
+  Graphics g(img);
+  while (!wavePaths.empty())
+  {
+    auto w = wavePaths.top();
+    PathStrokeType pst(3.0f - w.zPos);
+    g.setColour(w.color);
+    g.strokePath(w.path, pst);
+    wavePaths.pop();
+  }
+
+  // make sure we emptied the stack
+  if (!wavePaths.empty())
+  {
+    DLog::log("Warning! " + String(wavePaths.size()) + " paths not rendered!");
+  }
+}
+
+Path BitmapWavetableGraph::convertToPath(std::vector<Vector3D<float>> &vertices)
+{
+  Path p;
+  p.startNewSubPath(projectToCanvas(vertices[0]));
+  for (size_t i = 1; i < vertices.size(); i++)
+  {
+    p.lineTo(projectToCanvas(vertices[i]));
+  }
+  p.closeSubPath();
+  return p;
+}
+
+std::vector<Vector3D<float>> BitmapWavetableGraph::createVerticesFor(Wave &wave, int numPoints,
+                                                                     float zPlane)
+{
+  std::vector<Vector3D<float>> verts;
+  verts.push_back({0.0f, 0.0f, zPlane});
+  for (int i = 0; i < numPoints; ++i)
+  {
+    float x = (float)i / (float)numPoints;
+    jassert(x >= 0.0f && x <= 1.0f);
+    float wVal = WaveUtil::valueAtPhase(wave, x);
+    float y = (wVal + 1.0f) / 2.0f;
+    verts.push_back({x, y, zPlane});
+  }
+  verts.push_back({1.0f, 0.0f, zPlane});
+  return verts;
+}
+
+Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
+{
+  float yHeight = 0.55f;
+  Vector3D<float> c = {-0.5f, yHeight, 0.0f}; // represents the camera pinhole
+  Vector3D<float> e = {0.0f, 0.0f,
+                       CAMERA_DISTANCE}; // represents the display surface relative to the camera
+  // correct for the camera pos
+  auto d = point - c;
+  // multiply by the rotation matrix
+  d = rotation * d;
+  // now convert to the 2d plane
+  float xPos = ((e.z / d.z) * d.x) + e.x;
+  float yPos = ((e.z / d.z) * d.y) + e.y;
+
+  return {(1.0f - xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
+}
+
+//=======================================================================================================
 template <typename T> Mat3x3<float> Mat3x3<T>::getRotationMatrix(float x, float y, float z)
 {
   Mat3x3<float> m1;
@@ -44,101 +178,5 @@ template <typename T> Mat3x3<float> Mat3x3<T>::getRotationMatrix(float x, float 
   m3.data[2][1] = 0.0f;
   m3.data[2][2] = 1.0f;
 
-  return m1 * m2 * m3;
-}
-//==================================================================================
-BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
-    : state(tree), index(idx), img(Image::ARGB, GRAPH_W, GRAPH_H, true), lastWavePos(0.0f),
-      needsImgUpdate(false)
-{
-  // calculate our rotation matrix now bc it's math-intensive and won't change
-  const float xAngle = MathConstants<float>::pi * -0.03f;
-  const float yAngle = MathConstants<float>::pi * (-0.08f * (float)(index + 1));
-  const float zAngle = MathConstants<float>::pi * 0.0f;
-  rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
-  // start the timer
-  startTimerHz(GRAPH_REFRESH_HZ);
-}
-
-void BitmapWavetableGraph::timerCallback()
-{
-  float currentPos = state->getLeadingVoiceOscPosition(index);
-  if (currentPos != lastWavePos || needsImgUpdate)
-  {
-    lastWavePos = currentPos;
-    updateImagePixels();
-    repaint();
-    needsImgUpdate = false;
-  }
-}
-
-void BitmapWavetableGraph::paint(Graphics &g)
-{
-  auto fBounds = getLocalBounds().toFloat();
-  g.drawImage(img, fBounds);
-}
-//==================================================================================
-void BitmapWavetableGraph::updateImagePixels()
-{
-  // clear the image
-  img.clear(img.getBounds(), Color::black);
-  Graphics g(img);
-  // grip the wave shapes for the current oscillator
-  auto waves = state->getAudioData()->getBaseWaves(index);
-  for (size_t i = 0; i < waves.size(); i++)
-  {
-    // calculate the vertices for this wave
-    float zPos = (float)i / (float)waves.size();
-    auto w = createVerticesFor(waves[i], 128, zPos + Z_SETBACK);
-    // convert to a path and figure out the stroke
-    auto wavePath = convertToPath(w);
-    float strokeW = (1.8f * (1.0f - zPos));
-    PathStrokeType pst(strokeW);
-
-    g.setColour(Color::paleOrange.brighter());
-    g.strokePath(wavePath, pst);
-  }
-}
-
-Path BitmapWavetableGraph::convertToPath(std::vector<Vector3D<float>> &vertices)
-{
-  Path p;
-  p.startNewSubPath(projectToCanvas(vertices[0]));
-  for (size_t i = 1; i < vertices.size(); i++)
-  {
-    p.lineTo(projectToCanvas(vertices[i]));
-  }
-  p.closeSubPath();
-  return p;
-}
-
-std::vector<Vector3D<float>> BitmapWavetableGraph::createVerticesFor(Wave &wave, int numPoints,
-                                                                     float zPlane)
-{
-  std::vector<Vector3D<float>> verts;
-  verts.push_back({0.0f, 0.0f, zPlane});
-  for (int i = 0; i < numPoints; ++i)
-  {
-    float x = (float)i / (float)numPoints;
-    float wVal = WaveUtil::valueAtPhase(wave, x);
-    float y = (wVal + 1.0f) / 2.0f;
-    verts.push_back({x, y, zPlane});
-  }
-  verts.push_back({1.0f, 0.0f, zPlane});
-  return verts;
-}
-
-Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
-{
-  Vector3D<float> c = {-0.5f, 0.3f, 0.0f}; // represents the camera pinhole
-  Vector3D<float> e = {0.0f, 0.0f, 0.45f}; // represents the display surface relative to the camera
-  // correct for the camera pos
-  auto d = point - c;
-  // multiply by the rotation matrix
-  d = rotation * d;
-  // now convert to the 2d plane
-  float xPos = ((e.z / d.z) * d.x) + e.x;
-  float yPos = ((e.z / d.z) * d.y) + e.y;
-
-  return {(1.0f - xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
+  return (m1 * m2) * m3;
 }
