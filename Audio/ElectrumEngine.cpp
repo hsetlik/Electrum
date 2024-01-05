@@ -133,6 +133,11 @@ void ElectrumEngine::updateParamsForBlock()
     if (state->isVoiceActive(i) && !voices[i]->isBusy())
       state->endVoice(i);
   }
+  if (numBusyVoices() == 0)
+  {
+    // TODO: if no voices are active, we still need a way to update the UI without rendering audio
+    voices[0]->updateForBlock();
+  }
 }
 
 void ElectrumEngine::loadMidiEvents(MidiBuffer &midi)

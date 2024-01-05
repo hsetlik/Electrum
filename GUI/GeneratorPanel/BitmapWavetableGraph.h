@@ -83,6 +83,11 @@ class BitmapWavetableGraph : public Component, public Timer
 private:
   EVT *const state;
   const int index;
+  // this is maybe weird but I'm trying it
+  float currentZCoeff;
+  float maxZCoeff;
+  float minZCoeff;
+  bool zCoeffIncreasing;
 
   Image img;
   // keep track of whether we need to update the image
@@ -90,6 +95,8 @@ private:
   bool needsImgUpdate;
   // just so we don't have to recalculate the rotation matrix for every point
   Mat3x3<float> rotation;
+  // this gets called in the constructor
+  void setRotationMatrix();
   // this stores our paths. makes sense in updateImagePixels
   // a little struct for storing everything we need to draw a given wave
   struct WavePathData

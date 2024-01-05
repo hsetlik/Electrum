@@ -4,17 +4,48 @@ BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
     : state(tree), index(idx), img(Image::ARGB, GRAPH_W, GRAPH_H, true), lastWavePos(0.0f),
       needsImgUpdate(false)
 {
-  // calculate our rotation matrix now bc it's math-intensive and won't change
-  const float xAngle = MathConstants<float>::pi * 0.05f;
-  const float yAngle = MathConstants<float>::pi * -0.6f;
-  const float zAngle = MathConstants<float>::pi * -0.18f;
-  rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
+  minZCoeff = -0.25f;
+  maxZCoeff = 0.12f;
+  currentZCoeff = minZCoeff;
+  zCoeffIncreasing = true;
+  setRotationMatrix();
   // start the timer
   startTimerHz(GRAPH_REFRESH_HZ);
 }
 
+void BitmapWavetableGraph::setRotationMatrix()
+{
+  const float xAngle = MathConstants<float>::pi * 0.05f;
+  const float yAngle = MathConstants<float>::pi * -0.45f;
+  const float zAngle = MathConstants<float>::pi * currentZCoeff;
+  rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
+}
+
 void BitmapWavetableGraph::timerCallback()
 {
+
+  // this is just here for debugging
+  const float lengthFrames = 65.0f;
+  float yDiff = (maxZCoeff - minZCoeff) / lengthFrames;
+  if (zCoeffIncreasing)
+  {
+    currentZCoeff += yDiff;
+    if (currentZCoeff >= maxZCoeff)
+    {
+      zCoeffIncreasing = false;
+    }
+  } else
+  {
+    currentZCoeff -= yDiff;
+    if (currentZCoeff <= minZCoeff)
+    {
+      zCoeffIncreasing = true;
+    }
+  }
+  setRotationMatrix();
+  needsImgUpdate = true;
+  // end of debug stuff
+
   float currentPos = state->getLeadingVoiceOscPosition(index);
   if (currentPos != lastWavePos || needsImgUpdate)
   {
@@ -130,7 +161,7 @@ Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
   float xPos = ((e.z / d.z) * d.x) + e.x;
   float yPos = ((e.z / d.z) * d.y) + e.y;
 
-  return {(1.0f - xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
+  return {(xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
 }
 
 //=======================================================================================================
