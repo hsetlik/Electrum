@@ -14,7 +14,10 @@ private:
     int timestamp;
     MidiMessage message;
   };
+
   std::queue<TimestampedMidiMessage> midiQueue;
+  std::queue<ElectrumVoice *> sustainedVoices;
+  void killSustainedVoices();
   ModDestMap currentModulation;
   // state
   OwnedArray<ElectrumVoice> voices;

@@ -29,12 +29,25 @@ void ElectrumEngine::noteOff(int note)
 {
 
   auto voice = getVoicePlayingNote(note);
-  if (voice != nullptr)
+  if (voice != nullptr && !state->getSustainPedal())
   {
     voice->stopNote();
+  } else if (voice != nullptr) // handle the sustain pedal logic here
+  {
+    sustainedVoices.push(voice);
   } else
   {
     DLog::log("No voice found for note: " + String(note));
+  }
+}
+
+void ElectrumEngine::killSustainedVoices()
+{
+  while (!sustainedVoices.empty())
+  {
+    auto *v = sustainedVoices.front();
+    sustainedVoices.pop();
+    v->stopNote();
   }
 }
 
@@ -166,6 +179,7 @@ void ElectrumEngine::handleMidiMessage(MidiMessage &message)
   } else if (message.isSustainPedalOff())
   {
     state->setSustainPedal(false);
+    killSustainedVoices();
   } else if (message.isController() && message.getControllerNumber() == 1) // handle mod wheel
   {
     float modVal = (float)message.getControllerValue() / 127.0f;
