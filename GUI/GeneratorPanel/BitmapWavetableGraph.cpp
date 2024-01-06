@@ -4,10 +4,7 @@ BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
     : state(tree), index(idx), img(Image::ARGB, GRAPH_W, GRAPH_H, true), lastWavePos(0.0f),
       needsImgUpdate(false)
 {
-  minZCoeff = -0.25f;
-  maxZCoeff = 0.12f;
-  currentZCoeff = minZCoeff;
-  zCoeffIncreasing = true;
+
   setRotationMatrix();
   // start the timer
   startTimerHz(GRAPH_REFRESH_HZ);
@@ -15,36 +12,14 @@ BitmapWavetableGraph::BitmapWavetableGraph(EVT *tree, int idx)
 
 void BitmapWavetableGraph::setRotationMatrix()
 {
-  const float xAngle = MathConstants<float>::pi * 0.05f;
-  const float yAngle = MathConstants<float>::pi * -0.45f;
-  const float zAngle = MathConstants<float>::pi * currentZCoeff;
+  const float xAngle = MathConstants<float>::pi * 1.0f;
+  const float yAngle = MathConstants<float>::pi * -0.6f;
+  const float zAngle = MathConstants<float>::pi * -0.35f;
   rotation = Mat3x3<float>::getRotationMatrix(xAngle, yAngle, zAngle);
 }
 
 void BitmapWavetableGraph::timerCallback()
 {
-
-  // this is just here for debugging
-  const float lengthFrames = 65.0f;
-  float yDiff = (maxZCoeff - minZCoeff) / lengthFrames;
-  if (zCoeffIncreasing)
-  {
-    currentZCoeff += yDiff;
-    if (currentZCoeff >= maxZCoeff)
-    {
-      zCoeffIncreasing = false;
-    }
-  } else
-  {
-    currentZCoeff -= yDiff;
-    if (currentZCoeff <= minZCoeff)
-    {
-      zCoeffIncreasing = true;
-    }
-  }
-  setRotationMatrix();
-  needsImgUpdate = true;
-  // end of debug stuff
 
   float currentPos = state->getLeadingVoiceOscPosition(index);
   if (currentPos != lastWavePos || needsImgUpdate)
@@ -82,7 +57,8 @@ void BitmapWavetableGraph::updateImagePixels()
         auto verts = createVerticesFor(wave, numVertices, lastWavePos + Z_SETBACK);
         auto p = convertToPath(verts);
         auto col = Color::brightSeafoam.withAlpha(0.9f);
-        wavePaths.push({p, col, lastWavePos + Z_SETBACK});
+        float z = lastWavePos + Z_SETBACK;
+        wavePaths.push({p, col, z, 4.5f - z});
       }
     }
     // create our vertices and path
@@ -96,7 +72,8 @@ void BitmapWavetableGraph::updateImagePixels()
     const Colour dark = bright.darker(0.3f).withAlpha(0.65f);
     Colour waveColor = bright.interpolatedWith(dark, proximity);
     // create the WavePathData object and add it to our stack
-    WavePathData d{path, waveColor, currentZ + Z_SETBACK};
+    float zFinal = currentZ + Z_SETBACK;
+    WavePathData d{path, waveColor, zFinal, 3.0f - zFinal};
     wavePaths.push(d);
   }
   // STEP 2: go through the stack and draw each wave
@@ -105,7 +82,7 @@ void BitmapWavetableGraph::updateImagePixels()
   while (!wavePaths.empty())
   {
     auto w = wavePaths.top();
-    PathStrokeType pst(3.0f - w.zPos);
+    PathStrokeType pst(w.stroke);
     g.setColour(w.color);
     g.strokePath(w.path, pst);
     wavePaths.pop();
@@ -149,7 +126,7 @@ std::vector<Vector3D<float>> BitmapWavetableGraph::createVerticesFor(Wave &wave,
 
 Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
 {
-  float yHeight = 0.55f;
+  float yHeight = 1.4f;
   Vector3D<float> c = {-0.5f, yHeight, 0.0f}; // represents the camera pinhole
   Vector3D<float> e = {0.0f, 0.0f,
                        CAMERA_DISTANCE}; // represents the display surface relative to the camera
@@ -161,7 +138,7 @@ Point<float> BitmapWavetableGraph::projectToCanvas(Vector3D<float> point)
   float xPos = ((e.z / d.z) * d.x) + e.x;
   float yPos = ((e.z / d.z) * d.y) + e.y;
 
-  return {(xPos) * (float)GRAPH_W, (1.0f - yPos) * (float)GRAPH_H};
+  return {(xPos) * (float)GRAPH_W, yPos * (float)GRAPH_H};
 }
 
 //=======================================================================================================

@@ -75,19 +75,14 @@ template <typename T> struct Mat3x3
 #define GRAPH_W 512
 #define GRAPH_H 512
 
-#define Z_SETBACK 0.75f
-#define CAMERA_DISTANCE 0.35f
+#define Z_SETBACK 0.6f
+#define CAMERA_DISTANCE 0.3f
 
 class BitmapWavetableGraph : public Component, public Timer
 {
 private:
   EVT *const state;
   const int index;
-  // this is maybe weird but I'm trying it
-  float currentZCoeff;
-  float maxZCoeff;
-  float minZCoeff;
-  bool zCoeffIncreasing;
 
   Image img;
   // keep track of whether we need to update the image
@@ -104,6 +99,7 @@ private:
     Path path;
     Colour color;
     float zPos;
+    float stroke;
   };
   std::stack<WavePathData> wavePaths;
   // this generates a list of vertices based on the provided Wave and z values
