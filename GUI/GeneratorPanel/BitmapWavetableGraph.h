@@ -2,6 +2,7 @@
 #include "../../Parameters/ElectrumValueTree.h"
 #include "../../Parameters/Identifiers.h"
 #include "../Color.h"
+#include "../Utility/GUIUtil.h"
 // some stuff to help us with the 3D projection math
 template <typename T> struct Mat3x3
 {

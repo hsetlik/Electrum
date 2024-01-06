@@ -1,7 +1,8 @@
 #include "WavetableOscillator.h"
 
 WavetableOscillator::WavetableOscillator(EVT *t, int idx)
-    : state(t), index(idx), baseWavetablePos(0.0f), baseLevel(1.0f), lastPositionFinal(0.0f)
+    : state(t), index(idx), baseWavetablePos(OSC_POS_DEFAULT), baseLevel(1.0f),
+      lastPositionFinal(OSC_POS_DEFAULT)
 {
 }
 

@@ -32,4 +32,5 @@ public:
   String getPosParamName() const { return IDs::oscillatorPos.toString() + String(index); }
   String getLevelParamName() const { return IDs::oscillatorLevel.toString() + String(index); }
   float getLastPosition() { return lastPositionFinal; }
+  float getBasePosition() { return baseWavetablePos; }
 };

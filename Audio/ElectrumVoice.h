@@ -107,6 +107,14 @@ public:
   void stealNote(int note, float velocity);
   void stopNote();
   void updateForBlock();
+  // call this when no voices are active but we want to update the GUI
+  void passiveDataUpdate()
+  {
+    for (int i = 0; i < NUM_OSCILLATORS; i++)
+    {
+      state->setLeadingVoiceOscPosition(i, oscs[i]->getBasePosition());
+    }
+  }
 
   int getCurrentNote() { return currentNote; }
   // called to get the current value of the given modulation source for this

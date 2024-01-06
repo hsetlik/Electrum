@@ -47,7 +47,7 @@ void BitmapWavetableGraph::updateImagePixels()
   for (size_t i = 0; i < waves.size(); i++)
   {
     float currentZ = (float)i / (float)waves.size();
-    // after the first wave we need to start checking if it's time to draw the virtual wave yet
+    // after the first wave we need to start checking if it's time to add the virtual wave yet
     if (i > 0)
     {
       float prevZ = (float)(i - 1) / (float)waves.size();
@@ -97,10 +97,13 @@ void BitmapWavetableGraph::updateImagePixels()
 
 Path BitmapWavetableGraph::convertToPath(std::vector<Vector3D<float>> &vertices)
 {
+  Rectangle<float> bounds = {0.0f, 0.0f, (float)GRAPH_W, (float)GRAPH_H};
   Path p;
   p.startNewSubPath(projectToCanvas(vertices[0]));
   for (size_t i = 1; i < vertices.size(); i++)
   {
+    // auto point = projectToCanvas(vertices[i]);
+    //  GUIUtil::checkPointIsValid(point, bounds);
     p.lineTo(projectToCanvas(vertices[i]));
   }
   p.closeSubPath();

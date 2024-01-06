@@ -126,17 +126,16 @@ void ElectrumEngine::updateParamsForBlock()
   state->updatePerlinForBlock();
   state->updateEnvelopesForBlock();
   state->updateLFOsForBlock();
+
+  bool allVoicesSilent = numBusyVoices() == 0;
   // check to update state for voices that have trailed off
   for (int i = 0; i < NUM_VOICES; i++)
   {
     voices[i]->updateForBlock();
     if (state->isVoiceActive(i) && !voices[i]->isBusy())
       state->endVoice(i);
-  }
-  if (numBusyVoices() == 0)
-  {
-    // TODO: if no voices are active, we still need a way to update the UI without rendering audio
-    voices[0]->updateForBlock();
+    if (allVoicesSilent)
+      voices[i]->passiveDataUpdate();
   }
 }
 
