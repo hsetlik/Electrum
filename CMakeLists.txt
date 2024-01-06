@@ -61,6 +61,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/Parameters/AudioSystem.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.h"
     "${CMAKE_CURRENT_LIST_DIR}/Parameters/ElectrumAudioData.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Parameters/FileManager.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Parameters/FileManager.cpp"
     # /Audio/Modulators
     "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Oscillator.h"
     "${CMAKE_CURRENT_LIST_DIR}/Audio/Modulators/Perlin.h"

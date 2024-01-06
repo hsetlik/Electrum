@@ -98,6 +98,9 @@ private:
   std::array<std::atomic<float>, NUM_LFOS> newestLFOLevels;
   std::stack<int> voiceIndeces;
 
+  // TODO: figure out a way to store the APVTS and the waves in a single XML file in a way which can
+  // be saved and loaded to EVT & ElectrumAudioData objects
+
 public:
   EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType)
       : audioData(std::make_unique<ElectrumAudioData>()),
