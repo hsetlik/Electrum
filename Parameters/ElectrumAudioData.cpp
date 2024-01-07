@@ -28,7 +28,6 @@ ElectrumAudioData::ElectrumAudioData(ValueTree &state)
   {
     lfoData.add(new LFOData());
   }
-  // find any children with type WAVETABLE_DATA
   if (!state.hasType(IDs::ELECTRUM_AUDIO_DATA))
     DLog::log("Not a valid ElectrumAudioData tree!");
   // loop thru the children

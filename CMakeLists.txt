@@ -29,6 +29,7 @@ FetchContent_Declare(
   GIT_TAG v3.3.2)
 FetchContent_MakeAvailable(Catch2)
 
+# font files
 set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Roboto-MediumItalic.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/HelveticaNeue-Regular.otf"
@@ -38,6 +39,14 @@ set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/FuturaLightCondensed.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/AcierDisplayNoir.otf"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Fonts/Futura.ttf")
+
+#vector files
+set(SYMBOLFILES
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Symbols/Left.svg"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Symbols/Open.svg"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Symbols/Right.svg"
+"${CMAKE_CURRENT_LIST_DIR}/GUI/Symbols/Save.svg"
+)
 
 set(SOURCES
     # /Core
@@ -105,6 +114,8 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/GLUtil.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/DragPoint.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/DragPoint.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/VectorSymbols.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Utility/VectorSymbols.cpp"
     # /GUI/Modulation
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/Modulation/ModulationDestSlider.cpp"
@@ -158,7 +169,9 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/ProcessorPanel/SaturationPanel.cpp"
     # /GUI/HeaderPanel
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.h"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.cpp")
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/PatchSelectorPanel.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/PatchSelectorPanel.cpp")
 
 # make a binary target to grip the shader files
 juce_add_binary_data(
@@ -180,6 +193,15 @@ juce_add_binary_data(
   "FontBinaries"
   SOURCES
   "${FONTFILES}")
+# another binary data target for out .svg files
+juce_add_binary_data(
+  vectorSymbols
+  HEADER_NAME
+  "Symbols.h"
+  NAMESPACE
+  "Symbols"
+  SOURCES
+  "${SYMBOLFILES}")
 
 set(FORMATS AU VST3)
 # By default we don't want Xcode schemes to be made for modules, etc
@@ -241,7 +263,8 @@ target_link_libraries(
          juce::juce_recommended_warning_flags
          Melatonin::Perfetto
          shaderLib
-         fontBinaries)
+         fontBinaries
+vectorSymbols)
 # setting up benchamrks
 if(BUILD_BENCHMARKS)
 
