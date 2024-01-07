@@ -99,6 +99,15 @@
 using frange = NormalisableRange<float>;
 namespace IDs {
 #define DECLARE_ID(name) const juce::Identifier name(#name);
+/*
+ * This ID represents a top-level Electrum patch which consists of 3 sub-trees
+ * 1. the main state given to the APVTS with type ELECTRUM_STATE
+ * 2. the tree which keeps track of all the modulations with type ELECTRUM_MODULATIONS
+ * 3. the tree of wavetable data with type ELECTRUM_AUDIO_DATA
+ * */
+DECLARE_ID(ELECTRUM_PATCH)
+DECLARE_ID(patchName)
+
 DECLARE_ID(ELECTRUM_STATE)
 
 // oscillator

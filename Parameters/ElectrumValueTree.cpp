@@ -156,6 +156,32 @@ EVT::~EVT()
   coreTree.removeParameterListener(IDs::filterType.toString(), this);
   coreTree.state.removeListener(&paramWatcher);
 }
+
+// saving/loading stuff===================================================================
+ValueTree EVT::getPatchTree()
+{
+  ValueTree tree(IDs::ELECTRUM_PATCH);
+  // TODO: set this to the actual name at some point
+  tree.setProperty(IDs::patchName, "DefaultPatch", nullptr);
+  auto apvtsState = coreTree.copyState();
+  tree.appendChild(apvtsState, nullptr);
+  tree.appendChild(getModulationsTree(), nullptr);
+  tree.appendChild(audioData->toValueTree(), nullptr);
+  return tree;
+}
+
+void EVT::loadPatch(ValueTree vt)
+{
+  if (!vt.hasType(IDs::ELECTRUM_PATCH))
+    DLog::log("Invalid patch!");
+  /*This needs to:
+   * 1. Remove all the modulations from the GUI and the current modulations list
+   * 2. Add the new tree's modulations to both state and GUI
+   * 3. Replace the AudioData with a new one from the tree (and tell the 3d graphs to update)
+   * 4. Replace the APVTS core with the new tree
+   * */
+}
+
 //====Param getters=============================================================
 
 float EVT::getFloatParamValue(const String &id)

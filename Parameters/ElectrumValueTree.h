@@ -98,23 +98,21 @@ private:
   std::array<std::atomic<float>, NUM_LFOS> newestLFOLevels;
   std::stack<int> voiceIndeces;
 
-  // TODO: figure out a way to store the APVTS and the waves in a single XML file in a way which can
-  // be saved and loaded to EVT & ElectrumAudioData objects
-
 public:
   EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType);
   ~EVT() override;
 
+  // saving/loading stuff===================================================================
+  ValueTree getPatchTree();
+  void loadPatch(ValueTree vt);
+  //========================================================================================
   String getCurrentFilterType() { return currentFilterType; }
 
   ElectrumAudioData *getAudioData() { return audioData.get(); }
   // helper functions for accesing the underlying atomic values. unchecked!
   float getFloatParamValue(const String &id);
-
   int getIntParamValue(const String &id);
-
   int getChoiceParamValue(const String &id);
-
   AudioParameterFloat *getFloatParamPtr(const String &id);
 
   // Since the perlin noise generator is shared by all voices, we handle it here
