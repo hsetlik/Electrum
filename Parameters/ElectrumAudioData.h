@@ -15,6 +15,7 @@ public:
   ElectrumAudioData();
   // for loading from a valueTree object
   ElectrumAudioData(ValueTree &state);
+  ValueTree toValueTree();
   float getOscillatorValue(int idx, float phase, float tablePos, double freq, double sampleRate);
   // get the data for a given envelope
   AHDSRData *getEnvelopeData(int index) { return envData[index]; }

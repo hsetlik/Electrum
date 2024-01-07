@@ -128,6 +128,10 @@ WavetableSet::WavetableSet(std::vector<Wave> waves)
 WavetableSet::WavetableSet(std::string waveData) : WavetableSet(WaveUtil::wavesFromString(waveData))
 {
 }
+WavetableSet::WavetableSet(const String &waveData)
+    : WavetableSet(WaveUtil::wavesFromString(waveData.toStdString()))
+{
+}
 
 float WavetableSet::getSample(float phase, float tablePos, double freq, double sampleRate)
 {

@@ -144,10 +144,12 @@ DECLARE_ID(perlinFreq)
 DECLARE_ID(perlinOctaves)
 DECLARE_ID(perlinLacunarity)
 
-DECLARE_ID(WAVETABLE_DATA)
+DECLARE_ID(WAVETABLE_DATA) // tree type for an osc. wavetable set
 DECLARE_ID(wavetableName)
 DECLARE_ID(wavetableSize)
 DECLARE_ID(wavetableStringData)
+
+DECLARE_ID(ELECTRUM_AUDIO_DATA) // tree type
 
 DECLARE_ID(ELECTRUM_MODULATIONS) // tree type for subtree that contains modulation data
 DECLARE_ID(MODULATION)

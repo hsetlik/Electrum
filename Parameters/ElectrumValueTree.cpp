@@ -132,7 +132,80 @@ OwnedArray<Modulation> *ModDestMap::getModsFor(const String &destID)
   }
   return nullptr;
 }
-//===============================================================================
+//====Constructor/Destructor=============================================================
+EVT::EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType)
+    : audioData(std::make_unique<ElectrumAudioData>()),
+      coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()), sustainPedalOn(false),
+      modWheelValue(0.0f), pitchBendValue(0.0f), envsInUse(0), lastPerlinVal(0.0f),
+      editorOpen(false), voicesState(0), newestVoice(-1)
+{
+  coreTree.addParameterListener(IDs::filterType.toString(), this);
+  coreTree.state.addListener(&paramWatcher);
+  for (int i = 0; i < NUM_ENVELOPES; i++)
+  {
+    newestEnvLevels[(size_t)i] = 0.0f;
+  }
+  for (int i = 0; i < NUM_OSCILLATORS; i++)
+  {
+    newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
+  }
+}
+
+EVT::~EVT()
+{
+  coreTree.removeParameterListener(IDs::filterType.toString(), this);
+  coreTree.state.removeListener(&paramWatcher);
+}
+//====Param getters=============================================================
+
+float EVT::getFloatParamValue(const String &id)
+{
+  if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
+  {
+    return param->get();
+  } else
+  {
+    DLog::log("Could not get float parameter with ID: " + id);
+    return 0.0f;
+  }
+}
+
+int EVT::getIntParamValue(const String &id)
+{
+  if (auto param = dynamic_cast<AudioParameterInt *>(coreTree.getParameter(id)))
+  {
+    return param->get();
+  } else
+  {
+    DLog::log("Could not get int parameter with ID: " + id);
+    return -1;
+  }
+}
+
+int EVT::getChoiceParamValue(const String &id)
+{
+  if (auto param = dynamic_cast<AudioParameterChoice *>(coreTree.getParameter(id)))
+  {
+    return param->getIndex();
+  } else
+  {
+    DLog::log("Could not get int parameter with ID: " + id);
+    return -1;
+  }
+}
+
+AudioParameterFloat *EVT::getFloatParamPtr(const String &id)
+{
+  if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
+  {
+    return param;
+  } else
+  {
+    DLog::log("Could not get float parameter with ID: " + id);
+    return nullptr;
+  }
+}
+//=========Mod tree stuff=================================================
 ValueTree EVT::getModulationsTree()
 {
   auto modTree = coreTree.state.getChildWithName(IDs::ELECTRUM_MODULATIONS);
@@ -217,7 +290,15 @@ void EVT::loadModulationData(ModDestMap &modMap)
   auto tree = getModulationsTree();
   modMap.loadFromTree(tree);
 }
-//===============================================================
+//====Per-block update functions===========================================================
+void EVT::updatePerlinForBlock()
+{
+  float freq = getFloatParamValue(IDs::perlinFreq.toString());
+  float lac = getFloatParamValue(IDs::perlinLacunarity.toString());
+  size_t octaves = (size_t)getIntParamValue(IDs::perlinOctaves.toString());
+  perlin.setParams(octaves, freq, lac);
+}
+
 void EVT::updateEnvelopesForBlock()
 {
   TRACE_DSP();

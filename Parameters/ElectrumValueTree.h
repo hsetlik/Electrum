@@ -102,86 +102,24 @@ private:
   // be saved and loaded to EVT & ElectrumAudioData objects
 
 public:
-  EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType)
-      : audioData(std::make_unique<ElectrumAudioData>()),
-        coreTree(proc, undo, valueTreeType, IDs::createElectrumLayout()), sustainPedalOn(false),
-        modWheelValue(0.0f), pitchBendValue(0.0f), envsInUse(0), lastPerlinVal(0.0f),
-        editorOpen(false), voicesState(0), newestVoice(-1)
-  {
-    coreTree.addParameterListener(IDs::filterType.toString(), this);
-    coreTree.state.addListener(&paramWatcher);
-    for (int i = 0; i < NUM_ENVELOPES; i++)
-    {
-      newestEnvLevels[(size_t)i] = 0.0f;
-    }
-    for (int i = 0; i < NUM_OSCILLATORS; i++)
-    {
-      newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
-    }
-  }
-  ~EVT() override
-  {
-    coreTree.removeParameterListener(IDs::filterType.toString(), this);
-    coreTree.state.removeListener(&paramWatcher);
-  }
+  EVT(AudioProcessor &proc, UndoManager *undo, const Identifier &valueTreeType);
+  ~EVT() override;
 
   String getCurrentFilterType() { return currentFilterType; }
 
   ElectrumAudioData *getAudioData() { return audioData.get(); }
   // helper functions for accesing the underlying atomic values. unchecked!
-  float getFloatParamValue(const String &id)
-  {
-    if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
-    {
-      return param->get();
-    } else
-    {
-      DLog::log("Could not get float parameter with ID: " + id);
-      return 0.0f;
-    }
-  }
-  int getIntParamValue(const String &id)
-  {
-    if (auto param = dynamic_cast<AudioParameterInt *>(coreTree.getParameter(id)))
-    {
-      return param->get();
-    } else
-    {
-      DLog::log("Could not get int parameter with ID: " + id);
-      return -1;
-    }
-  }
-  int getChoiceParamValue(const String &id)
-  {
-    if (auto param = dynamic_cast<AudioParameterChoice *>(coreTree.getParameter(id)))
-    {
-      return param->getIndex();
-    } else
-    {
-      DLog::log("Could not get int parameter with ID: " + id);
-      return -1;
-    }
-  }
-  AudioParameterFloat *getFloatParamPtr(const String &id)
-  {
-    if (auto param = dynamic_cast<AudioParameterFloat *>(coreTree.getParameter(id)))
-    {
-      return param;
-    } else
-    {
-      DLog::log("Could not get float parameter with ID: " + id);
-      return nullptr;
-    }
-  }
+  float getFloatParamValue(const String &id);
+
+  int getIntParamValue(const String &id);
+
+  int getChoiceParamValue(const String &id);
+
+  AudioParameterFloat *getFloatParamPtr(const String &id);
+
   // Since the perlin noise generator is shared by all voices, we handle it here
   // updates the perlin noise generator with any UI changes
-  void updatePerlinForBlock()
-  {
-    float freq = getFloatParamValue(IDs::perlinFreq.toString());
-    float lac = getFloatParamValue(IDs::perlinLacunarity.toString());
-    size_t octaves = (size_t)getIntParamValue(IDs::perlinOctaves.toString());
-    perlin.setParams(octaves, freq, lac);
-  }
+
   // advances the perlin generator for the next sample
   void tickPerlinForSample() { lastPerlinVal = perlin.getNextValue(); }
   // gets the current output of the perlin generator
@@ -203,7 +141,7 @@ public:
   void removeModulation(const String &src, const String &dest);
   // updates the AudioData with the current envelope parameters
   void updateEnvelopesForBlock();
-
+  void updatePerlinForBlock();
   void updateLFOsForBlock();
 
   bool envIsInUse(int idx) { return envsInUse & (1 << idx); }
@@ -223,13 +161,12 @@ public:
   void loadModulationData(ModDestMap &modMap);
   // APVTS::Listener override
   void parameterChanged(const String &paramID, float value) override;
-  // -- Graphics/readout
-  // stuff===============================================================================
 
   void editorOpened() { editorOpen = true; }
   void editorClosed() { editorOpen = false; }
   bool isEditorOpen() const { return editorOpen.load(); }
 
+  // voice logic
   void startVoice(int idx)
   {
     int result = ElectrumVoicesState::startVoice(voicesState.load(), idx);
@@ -259,6 +196,7 @@ public:
   }
   int currentNewestVoice() { return newestVoice.load(); }
 
+  // getters/setters for GUI dieplays
   void setLeadingVoiceEnvLevel(int idx, float value) { newestEnvLevels[(size_t)idx] = value; }
 
   float getLeadingVoiceEnvLevel(int idx) { return newestEnvLevels[(size_t)idx].load(); }
@@ -271,7 +209,6 @@ public:
   }
 
   void setLeadingVoiceLFOLevel(int idx, float value) { newestLFOLevels[(size_t)idx] = value; }
-
   void setLeadingVoiceOscPosition(int idx, float value) { newestOscPositions[(size_t)idx] = value; }
   float getLeadingVoiceOscPosition(int idx) { return newestOscPositions[(size_t)idx].load(); }
 };

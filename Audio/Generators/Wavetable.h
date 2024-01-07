@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Parameters/DLog.h"
+#include "../../Parameters/Identifiers.h"
 #include "../../Parameters/MathUtil.h"
 #include <array>
 #include <cmath>
@@ -265,6 +266,7 @@ private:
 public:
   WavetableSet(std::vector<Wave> waves);
   WavetableSet(std::string waveData);
+  WavetableSet(const String &waveData);
   float getSample(float phase, float tablePos, double freq, double sampleRate);
   size_t numWaves() const { return tables.size(); }
   std::string getWavesAsString()
@@ -284,5 +286,16 @@ public:
       out.push_back(t.getBasicWave());
     }
     return out;
+  }
+  ValueTree toValueTree()
+  {
+    ValueTree tree(IDs::WAVETABLE_DATA);
+    int size = (int)tables.size();
+    String name = "todo";
+    String data = getWavesAsString();
+    tree.setProperty(IDs::wavetableName, name, nullptr);
+    tree.setProperty(IDs::wavetableSize, size, nullptr);
+    tree.setProperty(IDs::wavetableStringData, data, nullptr);
+    return tree;
   }
 };
