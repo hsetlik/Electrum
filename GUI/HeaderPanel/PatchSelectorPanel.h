@@ -14,5 +14,6 @@ private:
 
 public:
   PatchSelectorPanel(EVT *tree);
+  ~PatchSelectorPanel() override {}
   void resized() override;
 };

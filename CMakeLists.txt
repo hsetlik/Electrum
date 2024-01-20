@@ -171,7 +171,11 @@ set(SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.h"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/HeaderPanel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/PatchSelectorPanel.h"
-    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/PatchSelectorPanel.cpp")
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/HeaderPanel/PatchSelectorPanel.cpp"
+
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modal/PatchOpenModal.h"
+    "${CMAKE_CURRENT_LIST_DIR}/GUI/Modal/PatchOpenModal.cpp"
+)
 
 # make a binary target to grip the shader files
 juce_add_binary_data(

@@ -11,10 +11,14 @@ void writePatch(ValueTree patchTree, const File &file);
 ValueTree readPatchTree(const File &file);
 bool isLegalPatchName(const String &name);
 
-// the above are mostly helpers, other code should use mostly these three:
+// the above are mostly helpers, other code should use these three:
+//
 // returns a list of the unique name of each patch installed
 std::vector<String> getAvailablePatches();
+// attempts to save a patch with the specified name from the given ValueTree.
+// returns success or failure
 bool savePatch(ValueTree pTree, const String &name);
+// returns the top level ValueTree for the patch with the given name
 ValueTree treeForPatch(const String &name);
 
 } // namespace UserFiles

@@ -1,10 +1,18 @@
 #include "HeaderPanel.h"
 HeaderPanel::HeaderPanel(EVT *tree)
-    : state(tree), nameFont(Fonts::getTypeface(Fonts::AcierDisplayNoir))
+    : state(tree), nameFont(Fonts::getTypeface(Fonts::AcierDisplayNoir)), patchSelector(tree)
 {
+  addAndMakeVisible(&patchSelector);
 }
 
-void HeaderPanel::resized() {}
+void HeaderPanel::resized()
+{
+  auto fBounds = getLocalBounds().toFloat();
+  fBounds.removeFromTop(fBounds.getHeight() * 0.26f).toNearestInt();
+  const float headerHeight = 16.0f;
+  auto sBounds = fBounds.removeFromTop(headerHeight);
+  patchSelector.setBounds(sBounds.toNearestInt());
+}
 
 void HeaderPanel::paint(Graphics &g)
 {
