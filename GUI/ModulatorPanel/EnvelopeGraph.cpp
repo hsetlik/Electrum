@@ -85,7 +85,7 @@ void EnvelopeGraphCore::handleAsyncUpdate()
 //======================================================================================
 void EnvelopeGraphCore::drawEnvelopeGraph(Rectangle<float> &bounds, Graphics &g)
 {
-  const int curvePoints = 60;
+  static const int curvePoints = 60;
   if (bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f)
   {
     return;
@@ -317,7 +317,7 @@ float EnvelopeGraphCore::getParamFromPos(const String &paramID, DragPoint *point
   {
     float y1 = decayEnd.getY();
     float output;
-    if (y1 != yTop)
+    if (!fequal(y1, yTop))
     {
       output = (pos.y - y1) / (yTop - y1);
     } else

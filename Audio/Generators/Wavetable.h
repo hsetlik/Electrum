@@ -142,10 +142,10 @@ struct WaveUtil
       { /* swap a[i] and a[j] */
         t = ar[j - 1];
         ar[j - 1] = ar[i - 1];
-        ar[i - 1] = t;
+        ar[i - 1] = (float)t;
         t = ai[j - 1];
         ai[j - 1] = ai[i - 1];
-        ai[i - 1] = t;
+        ai[i - 1] = (float)t;
       }
       k = NV2; /* bit-reversed counter */
       while (k < j)
@@ -162,8 +162,8 @@ struct WaveUtil
       LE *= 2;  // (LE = 2^L)
       Ur = 1.0f;
       Ui = 0.0f;
-      Wr = cos(M_PI / (float)LE1);
-      Wi = -sin(M_PI / (float)LE1); // Cooley, Lewis, and Welch have "+" here
+      Wr = std::cosf((float)M_PI / (float)LE1);
+      Wi = -std::sinf((float)M_PI / (float)LE1); // Cooley, Lewis, and Welch have "+" here
       for (j = 1; j <= LE1; j++)
       {
         for (i = j; i <= N; i += LE)

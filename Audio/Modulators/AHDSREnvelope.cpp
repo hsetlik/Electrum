@@ -47,7 +47,7 @@ float AHDSREnvelope::getEnvelopeSample()
   switch (currentPhase)
   {
   case AHDSRPhase::Attack: {
-    if (prevAttackCurve != env->attackCurve)
+    if (!fequal(prevAttackCurve, env->attackCurve))
     {
       prevAttackCurve = env->attackCurve;
       attackExp = std::log(prevAttackCurve) / std::log(0.5f);
@@ -61,7 +61,7 @@ float AHDSREnvelope::getEnvelopeSample()
     break;
   case AHDSRPhase::Decay: {
     float fX = (currentMs - (env->attackMs + env->holdMs)) / env->decayMs;
-    if (prevDecayCurve != env->decayCurve)
+    if (!fequal(prevDecayCurve, env->decayCurve))
     {
       prevDecayCurve = env->decayCurve;
       decayExp = std::log(prevDecayCurve) / std::log(0.5f);
@@ -75,7 +75,7 @@ float AHDSREnvelope::getEnvelopeSample()
     break;
   case AHDSRPhase::Release: {
     float fX = currentMs / env->releaseMs;
-    if (prevReleaseCurve != env->releaseCurve)
+    if (!fequal(prevReleaseCurve, env->releaseCurve))
     {
       prevReleaseCurve = env->releaseCurve;
       releaseExp = std::log(prevReleaseCurve) / std::log(0.5f);

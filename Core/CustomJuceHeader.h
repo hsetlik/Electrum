@@ -16,6 +16,7 @@
 #include <juce_opengl/juce_opengl.h>
 // #include <melatonin_perfetto/melatonin_perfetto.h>
 #include <Shaders.h>
+#include <limits>
 
 #if JUCE_TARGET_HAS_BINARY_DATA
 #include "BinaryData.h"
@@ -39,3 +40,8 @@ const char *const versionString = "1.0.0";
 const int versionNumber = 0x10000;
 } // namespace ProjectInfo
 #endif
+
+inline bool fequal(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
+{
+  return std::fabs(a - b) < epsilon;
+}

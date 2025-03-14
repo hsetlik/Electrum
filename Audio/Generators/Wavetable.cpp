@@ -28,9 +28,9 @@ void Wavetable::createTables(Wave &real, Wave &imag)
   {
     --maxHarmonic;
   }
-  float topFreq =
-      (float)(2.0f / 3.0f /
-              maxHarmonic); // note:: topFreq is in units of phase fraction per sample, not Hz
+  // note:: topFreq is in units of phase fraction per sample, not Hz
+
+  float topFreq = (float)(2.0f / 3.0f / (float)maxHarmonic);
   Wave ai;
   Wave ar;
   float scale = 0.0f;
@@ -41,7 +41,7 @@ void Wavetable::createTables(Wave &real, Wave &imag)
     // fill the table in with the needed harmonics
     for (idx = 0; idx < size; idx++)
       ar[idx] = ai[idx] = 0.0f;
-    for (idx = 1; idx <= maxHarmonic; idx++)
+    for (idx = 1; idx <= (size_t)maxHarmonic; idx++)
     {
       ar[idx] = real[idx];
       ai[idx] = imag[idx];
@@ -72,7 +72,7 @@ float Wavetable::makeTable(Wave &waveReal, Wave &waveImag, float scale, float bo
       if (max < temp)
         max = temp;
     }
-    scale = 1.0f / max * 0.999f;
+    scale = 1.0f / (float)max * 0.999f;
     // printf("Table: %d has scale: %f\n", tablesAdded, scale);
   }
   auto minLevel = std::numeric_limits<float>::max();

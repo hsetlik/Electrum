@@ -4,9 +4,9 @@
 #include "Fonts.h"
 
 ElectrumLookAndFeel::ElectrumLookAndFeel()
-    : labelFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium)),
-      tabButtonFont(Fonts::getTypeface(Fonts::FuturaBoldOblique)),
-      comboBoxFont(Fonts::getTypeface(Fonts::HelveticaNeueMedium))
+    : labelFont(FontOptions(Fonts::getTypeface(Fonts::HelveticaNeueMedium))),
+      tabButtonFont(FontOptions(Fonts::getTypeface(Fonts::FuturaBoldOblique))),
+      comboBoxFont(FontOptions(Fonts::getTypeface(Fonts::HelveticaNeueMedium)))
 {
   setDefaultSansSerifTypeface(Fonts::getTypeface(Fonts::HelveticaNeueMedium));
   /* We set colors up here so that we can use the 'ColourIds' in the rest of the code*/
@@ -538,7 +538,7 @@ TextLayout ElectrumLookAndFeel::makeTooltipLayout(const String &text, Colour col
 
   AttributedString s;
   s.setJustification(Justification::centred);
-  s.append(text, Font(tooltipFontSize, Font::bold), colour);
+  s.append(text, Font(FontOptions(tooltipFontSize, Font::bold)), colour);
 
   TextLayout tl;
   tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);

@@ -11,26 +11,6 @@ enable_testing()
 # this sets whether the oscillators use integer indeces or linear interpolation
 add_compile_definitions(INT_INDEX)
 
-# Old dependencies setup==========================================================
-# include(FetchContent)
-# # Juce module wrapper for Perfetto profiler
-# FetchContent_Declare(
-#   melatonin_perfetto
-#   GIT_REPOSITORY https://github.com/sudara/melatonin_perfetto.git
-#   GIT_TAG origin/main)
-# FetchContent_MakeAvailable(melatonin_perfetto)
-#
-# # Catch2- C++ Unit testing framework
-# FetchContent_Declare(
-#   Catch2
-#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-#   GIT_PROGRESS TRUE
-#   GIT_SHALLOW TRUE
-#   GIT_TAG v3.3.2)
-# FetchContent_MakeAvailable(Catch2)
-#=================================================================================
-
-
 set(CMAKE_CXX_STANDARD 20)
 
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
@@ -294,7 +274,6 @@ target_link_libraries(
   "${PROJECT_NAME}"
   PUBLIC juce::juce_audio_utils
          juce::juce_dsp
-         juce::juce_opengl
          juce::juce_cryptography
          juce::juce_audio_processors
          juce::juce_recommended_config_flags

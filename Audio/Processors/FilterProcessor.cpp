@@ -48,7 +48,7 @@ void SynthFilter::setFilterFor(const String &type, float cutoff,
     filter->setType(newType);
     typeChanged = true;
   }
-  if (typeChanged || cutoff != lastCutoff || resonance != lastRes) {
+  if (typeChanged || !fequal(cutoff, lastCutoff) || !fequal(resonance, lastRes)) {
     lastCutoff = cutoff;
     lastRes = resonance;
     filter->setCutoffFrequency(lastCutoff);
