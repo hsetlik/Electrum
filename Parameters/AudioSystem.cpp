@@ -1,63 +1,15 @@
 #include "AudioSystem.h"
 
-JUCE_IMPLEMENT_SINGLETON(AudioSystem);
+static double _sampleRate = 44100.0;
+static int _blockSize = 512;
+static size_t _numChannels = 2;
 
-AudioSystem::AudioSystem() :
-sampleRate(44100.0f),
-blockSize(512),
-numChannels(2)
-{
+namespace AudioSystem {
+double getSampleRate() { return _sampleRate; }
+int getBlockSize() { return _blockSize; }
+size_t getNumChannels() { return _numChannels; }
 
-}
-
-AudioSystem::~AudioSystem()
-{
-    clearSingletonInstance();
-}
-
-double AudioSystem::getSampleRatePriv() const 
-{
-    return sampleRate;
-}
-int AudioSystem::getBlockSizePriv() const 
-{
-    return blockSize;
-}
-size_t AudioSystem::getNumChannelsPriv() const 
-{
-    return numChannels;
-}
-//========================================================
-double AudioSystem::getSampleRate() 
-{
-    auto i = getInstance();
-    return i->getSampleRatePriv();
-}
-int AudioSystem::getBlockSize() 
-{
-    auto i = getInstance();
-    return i->getBlockSizePriv();
-}
-size_t AudioSystem::getNumChannels() 
-{
-    auto i = getInstance();
-    return i->getNumChannelsPriv();
-}
-
-void AudioSystem::setSampleRate(double rate)
-{
-    auto i = getInstance();
-    i->setSampleRatePriv(rate);
-}
-
-void AudioSystem::setBlockSize(int size)
-{
-    auto i = getInstance();
-    i->setBlockSizePriv(size);
-}
-
-void AudioSystem::setNumChannels(size_t num)
-{
-    auto i = getInstance();
-    i->setNumChannelsPriv(num);
-}
+void setSampleRate(double rate) { _sampleRate = rate; }
+void setBlockSize(int size) { _blockSize = size; }
+void setNumChannels(size_t num) { _numChannels = num; }
+} // namespace AudioSystem

@@ -80,33 +80,66 @@ void ElectrumEngine::processBlock(AudioBuffer<float> &buffer, MidiBuffer &midi)
   // this loads the midi events and their timestamps into a queue
   loadMidiEvents(midi);
   // make sure we have stereo
-  jassert(buffer.getNumChannels() >= 2);
-  for (int s = 0; s < buffer.getNumSamples(); s++)
+  // jassert(buffer.getNumChannels() >= 2);
+  float left = 0.0f;
+  float right = 0.0f;
+  if (buffer.getNumChannels() >= 2)
   {
-    // STEP 1: Check if we have a midi event on this sample
-    //
-    // there's a good reason this is a while rather than a for loop: many GUI
-    // plugin hosts will send multiple midi events with the same timestamp
-    while (!midiQueue.empty() && midiQueue.front().timestamp == s)
+    for (int s = 0; s < buffer.getNumSamples(); s++)
     {
-      handleMidiMessage(midiQueue.front().message);
-      midiQueue.pop();
+      // STEP 1: Check if we have a midi event on this sample
+      //
+      // there's a good reason this is a while rather than a for loop: many GUI
+      // plugin hosts will send multiple midi events with the same timestamp
+      while (!midiQueue.empty() && midiQueue.front().timestamp == s)
+      {
+        handleMidiMessage(midiQueue.front().message);
+        midiQueue.pop();
+      }
+      left = 0.0f;
+      right = 0.0f;
+      // STEP 2: figure out whether to update the mod dests or not
+      if (destUpdateIdx >= DEST_UPDATE_INTERVAL)
+      {
+        destUpdateIdx = 0;
+        // STEP 3: Render the actual samples
+        renderNextSample(left, right, true);
+      } else
+      {
+        ++destUpdateIdx;
+        renderNextSample(left, right, false);
+      }
+      buffer.setSample(0, s, left);
+      buffer.setSample(1, s, right);
     }
-    float left = 0.0f;
-    float right = 0.0f;
-    // STEP 2: figure out whether to update the mod dests or not
-    if (destUpdateIdx >= DEST_UPDATE_INTERVAL)
+  } else
+  {
+    for (int s = 0; s < buffer.getNumSamples(); s++)
     {
-      destUpdateIdx = 0;
-      // STEP 3: Render the actual samples
-      renderNextSample(left, right, true);
-    } else
-    {
-      ++destUpdateIdx;
-      renderNextSample(left, right, false);
+      // STEP 1: Check if we have a midi event on this sample
+      //
+      // there's a good reason this is a while rather than a for loop: many GUI
+      // plugin hosts will send multiple midi events with the same timestamp
+      while (!midiQueue.empty() && midiQueue.front().timestamp == s)
+      {
+        handleMidiMessage(midiQueue.front().message);
+        midiQueue.pop();
+      }
+      left = 0.0f;
+      right = 0.0f;
+      // STEP 2: figure out whether to update the mod dests or not
+      if (destUpdateIdx >= DEST_UPDATE_INTERVAL)
+      {
+        destUpdateIdx = 0;
+        // STEP 3: Render the actual samples
+        renderNextSample(left, right, true);
+      } else
+      {
+        ++destUpdateIdx;
+        renderNextSample(left, right, false);
+      }
+      buffer.setSample(0, s, left);
     }
-    buffer.setSample(0, s, left);
-    buffer.setSample(1, s, right);
   }
   // ensure that the midi queue is empty (i.e. no out of range timestamps)
   // jassert(midiQueue.empty());

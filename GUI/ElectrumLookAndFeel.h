@@ -1,6 +1,7 @@
 #pragma once
 #include "Color.h"
 #include "Fonts.h"
+#include "juce_core/system/juce_PlatformDefs.h"
 #ifndef ELECTRUMLOOKANDFEEL_H
 #define ELECTRUMLOOKANDFEEL_H
 #define LABEL_DEFAULT_FONT_HEIGHT 15.0f
@@ -58,5 +59,7 @@ private:
   Font labelFont;
   Font tabButtonFont;
   Font comboBoxFont;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumLookAndFeel)
 };
 #endif

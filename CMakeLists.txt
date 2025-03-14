@@ -222,7 +222,7 @@ juce_add_binary_data(
   SOURCES
   "${SYMBOLFILES}")
 
-set(FORMATS AU VST3)
+set(FORMATS Standalone AU VST3)
 # By default we don't want Xcode schemes to be made for modules, etc
 set(CMAKE_XCODE_GENERATE_SCHEME OFF)
 
@@ -246,9 +246,9 @@ juce_add_plugin(
   COPY_PLUGIN_AFTER_BUILD
   TRUE # On MacOS, plugin will be copied to /Users/you/Library/Audio/Plug-Ins/
   PLUGIN_MANUFACTURER_CODE
-  Elrm # This has to be one uppercase, rest lower for AU formats
+  STLK # This has to be one uppercase, rest lower for AU formats
   PLUGIN_CODE
-  Elrm # A unique four-character plugin id with at least one upper-case
+  ELRM # A unique four-character plugin id with at least one upper-case
        # character
   FORMATS
   "${FORMATS}"
