@@ -1,7 +1,3 @@
 #include "PatchOpenModal.h"
 
-
-PatchOpenModal::PatchOpenModal(EVT* tree) : state(tree);
-{
-  addAndMakeVisible(&oButton);
-}
+PatchOpenModal::PatchOpenModal(EVT *tree) : state(tree) { addAndMakeVisible(&oButton); }

@@ -1,4 +1,8 @@
+libs
 .vscode
 build
 .cache
 Assets
+.cmake
+CMakeFiles
+CMakeCache.txt

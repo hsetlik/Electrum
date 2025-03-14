@@ -4,8 +4,8 @@ void DepthSliderLookAndFeel::drawRotarySlider(Graphics &g, int x, int y, int wid
                                               float sliderPosProportional, float rotaryStartAngle,
                                               float rotaryEndAngle, Slider &)
 {
-  TRACE_COMPONENT();
-  // step 1: Draw the main arc
+  // TRACE_COMPONENT();
+  //  step 1: Draw the main arc
   Rectangle<int> iArea(x, y, width, height);
   auto fArea = iArea.toFloat();
   g.setColour(Color::aquamarine);

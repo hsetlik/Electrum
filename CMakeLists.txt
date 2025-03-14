@@ -1,33 +1,68 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.22)
 
 project("Electrum" VERSION 1.0.0)
 
 message("Using Generator: ${CMAKE_GENERATOR}")
-# Juce
-add_subdirectory(JUCE)
-add_subdirectory(JUCE/extras/AudioPluginHost)
+# # Juce
+# add_subdirectory(JUCE)
+# add_subdirectory(JUCE/extras/AudioPluginHost)
 enable_testing()
-
-include(FetchContent)
 
 # this sets whether the oscillators use integer indeces or linear interpolation
 add_compile_definitions(INT_INDEX)
 
-# Juce module wrapper for Perfetto profiler
-FetchContent_Declare(
-  melatonin_perfetto
-  GIT_REPOSITORY https://github.com/sudara/melatonin_perfetto.git
-  GIT_TAG origin/main)
-FetchContent_MakeAvailable(melatonin_perfetto)
+# Old dependencies setup==========================================================
+# include(FetchContent)
+# # Juce module wrapper for Perfetto profiler
+# FetchContent_Declare(
+#   melatonin_perfetto
+#   GIT_REPOSITORY https://github.com/sudara/melatonin_perfetto.git
+#   GIT_TAG origin/main)
+# FetchContent_MakeAvailable(melatonin_perfetto)
+#
+# # Catch2- C++ Unit testing framework
+# FetchContent_Declare(
+#   Catch2
+#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#   GIT_PROGRESS TRUE
+#   GIT_SHALLOW TRUE
+#   GIT_TAG v3.3.2)
+# FetchContent_MakeAvailable(Catch2)
+#=================================================================================
 
-# Catch2- C++ Unit testing framework
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW TRUE
-  GIT_TAG v3.3.2)
-FetchContent_MakeAvailable(Catch2)
+
+set(CMAKE_CXX_STANDARD 20)
+
+set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
+
+include(cmake/cpm.cmake)
+
+CPMAddPackage(
+    NAME JUCE
+    GIT_TAG 8.0.2
+    VERSION 8.0.2
+    GITHUB_REPOSITORY juce-framework/JUCE
+    SOURCE_DIR ${LIB_DIR}/juce
+)
+
+CPMAddPackage(
+  NAME CATCH2
+  GITHUB_REPOSITORY catchorg/Catch2
+  GIT_TAG v3.8.0
+  VERSION 3.8.0
+    SOURCE_DIR ${LIB_DIR}/catch2
+)
+#
+# CPMAddPackage(
+#   NAME MELATONINPERFETTO
+#   GITHUB_REPOSITORY sudara/melatonin_perfetto
+#   GIT_TAG v3.8.0
+#   VERSION 3.8.0
+#     SOURCE_DIR ${LIB_DIR}/melatonin_perfetto
+# )
+#
+#
+
 
 # font files
 set(FONTFILES
@@ -217,9 +252,9 @@ juce_add_plugin(
   # is different to the project version ICON_BIG ... # ICON_* arguments specify
   # a path to an image file to use as an icon for the Standalone ICON_SMALL ...
   COMPANY_NAME
-  "Hayden Setlik"
+  "Setlik"
   BUNDLE_ID
-  "com.HaydenSetlik.${PROJECT_NAME}"
+  "com.Setlik.${PROJECT_NAME}"
   IS_SYNTH
   TRUE # Is this a synth or an effect?
   NEEDS_MIDI_INPUT
@@ -265,7 +300,7 @@ target_link_libraries(
          juce::juce_recommended_config_flags
          juce::juce_recommended_lto_flags
          juce::juce_recommended_warning_flags
-         Melatonin::Perfetto
+         #Melatonin::Perfetto
          shaderLib
          fontBinaries
 vectorSymbols)
@@ -300,5 +335,5 @@ target_include_directories(
 target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Core)
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}")
 
-include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
+include(${LIB_DIR}/catch2/extras/Catch.cmake)
 catch_discover_tests(Tests)

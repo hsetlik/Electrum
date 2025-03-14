@@ -8,7 +8,7 @@ PerlinGraph::PerlinGraph(EVT *tree)
 }
 void PerlinGraph::timerCallback()
 {
-  TRACE_COMPONENT();
+  // TRACE_COMPONENT();
   buf.push(state->perlinValue());
 #if VECTOR_GRAPH
   auto lBounds = getLocalBounds().toFloat();

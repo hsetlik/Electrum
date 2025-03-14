@@ -312,7 +312,7 @@ void EVT::removeModulation(const String &src, const String &dest)
 }
 void EVT::loadModulationData(ModDestMap &modMap)
 {
-  TRACE_DSP();
+  // TRACE_DSP();
   auto tree = getModulationsTree();
   modMap.loadFromTree(tree);
 }
@@ -327,7 +327,7 @@ void EVT::updatePerlinForBlock()
 
 void EVT::updateEnvelopesForBlock()
 {
-  TRACE_DSP();
+  // TRACE_DSP();
   for (int i = 0; i < NUM_ENVELOPES; i++)
   {
     // step 1: grip atomic values from the tree;
