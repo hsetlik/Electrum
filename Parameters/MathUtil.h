@@ -25,13 +25,10 @@ inline double midiToHz(int midiNum, float semitones = 0.0f, float cents = 0.0f)
 {
   float fNote = (float)midiNum - 69.0f;
   fNote += semitones + (cents / 100.0f);
-  return 440.0f * std::pow(SEMITONE_RATIO, fNote);
+  return 440.0f * std::powf(SEMITONE_RATIO, fNote);
 }
-inline float fconstrain(float min, float max, float value)
-{
-  return std::min(std::max(value, min), max);
-}
-inline float fsign(float input) { return input / std::fabs(input); }
+
+inline float fsign(float input) { return std::signbit(input) ? -1.0f : 1.0f; }
 // convert an int in the range 0, 16383 into a float in the range -1.0, 1.0
 inline float toPitchBendValue(int val)
 {

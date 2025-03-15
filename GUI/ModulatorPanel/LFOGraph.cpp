@@ -258,7 +258,7 @@ void LFOLevelComponent::paint(Graphics &g)
 void LFOLevelComponent::timerCallback()
 {
   float level = 1.0f - state->getLeadingVoiceLFOLevel(index);
-  if (level != lastLevel)
+  if (!fequal(lastLevel, level))
   {
     lastLevel = level;
     repaint();

@@ -3,6 +3,7 @@
 #include "ElectrumLookAndFeel.h"
 #include "GeneratorPanel/OscillatorEditor.h"
 #include "HeaderPanel/HeaderPanel.h"
+#include "Modal/PatchOpenModal.h"
 #include "ModulatorPanel/EnvelopeTabbedComponent.h"
 #include "ModulatorPanel/ModMacroPanel.h"
 #include "ProcessorPanel/ProcessorPanel.h"
@@ -11,9 +12,11 @@ class ElectrumEditor : public Component, public DragAndDropContainer
 {
 private:
   EVT *const state;
+  ElectrumLookAndFeel lnf;
+
+  PatchOpenModal openDialog;
   OwnedArray<OscillatorEditor> oscEditors;
   ModMacroPanel macro;
-  ElectrumLookAndFeel lnf;
   EnvelopesComponent envPanel;
   ProcessorPanel procPanel;
   HeaderPanel headerPanel;

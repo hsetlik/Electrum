@@ -2,7 +2,8 @@
 #include "ElectrumEditor.h"
 
 ElectrumEditor::ElectrumEditor(EVT *tree)
-    : state(tree), macro(tree), envPanel(tree), procPanel(tree), headerPanel(tree)
+    : state(tree), openDialog(tree), macro(tree), envPanel(tree), procPanel(tree),
+      headerPanel(tree, &openDialog, &openDialog)
 {
   setLookAndFeel(&lnf);
   for (int i = 0; i < NUM_OSCILLATORS; ++i)
@@ -11,6 +12,9 @@ ElectrumEditor::ElectrumEditor(EVT *tree)
     addAndMakeVisible(oscEditors.getLast());
     oscEditors.getLast()->setLookAndFeel(&lnf);
   }
+  addAndMakeVisible(openDialog);
+  openDialog.setVisible(false);
+  openDialog.setEnabled(false);
   addAndMakeVisible(macro);
   addAndMakeVisible(envPanel);
   addAndMakeVisible(procPanel);
@@ -24,18 +28,18 @@ void ElectrumEditor::paint(Graphics &g)
   auto dX = fBounds.getWidth() / 36.0f;
   auto modArea = fBounds.removeFromLeft(dX * 8.0f);
 
-  // TODO: this is where the header and patch selector should eventually go
-  auto headerArea = modArea.removeFromTop(dX * 8.0f);
-  g.setColour(Color::chartreuse);
-  g.fillRect(modArea);
+  auto headerArea = modArea.removeFromTop(dX * 10.0f);
+  // g.setColour(Color::chartreuse);
+  // g.fillRect(modArea);
   g.setColour(Color::mediumSeaGreen);
   g.fillRect(headerArea);
-  // auto oscArea = fBounds.removeFromTop(dX * 14);
 }
+
 void ElectrumEditor::resized()
 {
   auto lBounds = getLocalBounds().toFloat();
   float dX = lBounds.getWidth() / 36.0f;
+  auto modalBounds = lBounds.reduced(10.0f).toNearestInt();
   auto modArea = lBounds.removeFromLeft(dX * 8.0f);
   // TODO: this is where the header and patch selector should eventually go
   auto headerArea = modArea.removeFromTop(dX * 8.0f);
@@ -54,4 +58,10 @@ void ElectrumEditor::resized()
   envPanel.setBounds(envArea.toNearestInt());
   // the processor panel
   procPanel.setBounds(lBounds.toNearestInt());
+  // handle the modal component if one is open
+  if (openDialog.isVisible())
+  {
+    openDialog.setBounds(modalBounds);
+    openDialog.toFront(true);
+  }
 }

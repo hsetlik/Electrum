@@ -20,5 +20,12 @@ std::vector<String> getAvailablePatches();
 bool savePatch(ValueTree pTree, const String &name);
 // returns the top level ValueTree for the patch with the given name
 ValueTree treeForPatch(const String &name);
-
 } // namespace UserFiles
+
+class PatchFileFilter : public FileFilter
+{
+public:
+  PatchFileFilter() : FileFilter("Valid patch files only") {}
+  bool isFileSuitable(const File &f) const override { return UserFiles::isValidPatchFile(f); }
+  bool isDirectorySuitable(const File &f) const override { return f.isDirectory(); }
+};

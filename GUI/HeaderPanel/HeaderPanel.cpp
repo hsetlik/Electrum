@@ -1,6 +1,7 @@
 #include "HeaderPanel.h"
-HeaderPanel::HeaderPanel(EVT *tree)
-    : state(tree), nameFont(Fonts::getTypeface(Fonts::AcierDisplayNoir)), patchSelector(tree)
+HeaderPanel::HeaderPanel(EVT *tree, Component *open, Component *save)
+    : state(tree), nameFont(FontOptions(Fonts::getTypeface(Fonts::AcierDisplayNoir))),
+      patchSelector(tree, open, save)
 {
   addAndMakeVisible(&patchSelector);
 }

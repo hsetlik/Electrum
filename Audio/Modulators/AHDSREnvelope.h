@@ -27,7 +27,7 @@ private:
 public:
   const int index;
   AHDSREnvelope(EVT *tree, int idx);
-  bool isFinished() { return ((!gateIsOn) && lastOutput == 0.0f); }
+  bool isFinished() { return ((!gateIsOn) && fequal(lastOutput, 0.0f)); }
   void gateStart(float velocity = 1.0f)
   {
     currentVelocity = velocity;
