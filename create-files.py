@@ -32,7 +32,7 @@ def add_cpp_header(cmake_path, src_path):
             pos = lines[idx].find("PluginProcessor.h")
             src_list_found = (pos != -1)
         else:
-            lines.insert(idx, include_line)
+            lines.insert(idx - 1, include_line)
             include_added = True
         idx += 1
     # write it back to the cmake file
@@ -61,7 +61,7 @@ def add_cpp_source(cmake_path, src_name):
             pos = lines[idx].find(src_name)
             header_inc_found = (pos != -1)
         else:
-            lines.insert(idx, include_line)
+            lines.insert(idx - 1, include_line)
             include_added = True
         idx += 1
     # write it back to the cmake file
@@ -89,7 +89,7 @@ path_to_create = ""
 pos = parent_path.find("/")
 while pos != -1:
     # grip the new path segment
-    path_to_create += parent_path[:pos]
+    path_to_create += parent_path[0:pos + 1]
     # trim the parent path
     parent_path = parent_path[pos + 1:]
     # find the next delimiter

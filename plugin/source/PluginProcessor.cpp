@@ -13,7 +13,7 @@ ElectrumAudioProcessor::ElectrumAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
               ),
-      tree(*this, nullptr, ID::ELECTRUM_STATE, ID::getParameterLayout()) {
+      tree(*this, nullptr) {
 }
 
 ElectrumAudioProcessor::~ElectrumAudioProcessor() {}

@@ -82,6 +82,12 @@ namespace ID {
 // top level ID for the apvts
 DECLARE_ID(ELECTRUM_STATE)
 
+DECLARE_ID(ELECTRUM_MOD_TREE)
+DECLARE_ID(ELECTRUM_MODULATION)
+DECLARE_ID(modSourceID)
+DECLARE_ID(modDestID)
+DECLARE_ID(modDepth)
+
 // wavetable osc stuff
 DECLARE_ID(oscillatorPos)
 DECLARE_ID(oscillatorLevel)

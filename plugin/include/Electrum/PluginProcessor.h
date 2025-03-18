@@ -32,7 +32,7 @@ public:
   void setStateInformation(const void* data, int sizeInBytes) override;
 
   // this is the plugin's parameter state
-  apvts tree;
+  ElectrumState tree;
 
 private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)
