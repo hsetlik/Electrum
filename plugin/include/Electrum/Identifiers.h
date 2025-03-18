@@ -23,7 +23,7 @@ typedef juce::NormalisableRange<float> frange_t;
 
 namespace ID {
 // top level ID for the apvts
-DECLARE_ID(YourPluginName_state)
+DECLARE_ID(Electrum_state)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID

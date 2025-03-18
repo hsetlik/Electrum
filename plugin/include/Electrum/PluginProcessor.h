@@ -5,10 +5,10 @@
 
 namespace audio_plugin {
 
-class YourPluginNameAudioProcessor : public juce::AudioProcessor {
+class ElectrumAudioProcessor : public juce::AudioProcessor {
 public:
-  YourPluginNameAudioProcessor();
-  ~YourPluginNameAudioProcessor() override;
+  ElectrumAudioProcessor();
+  ~ElectrumAudioProcessor() override;
 
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
   void releaseResources() override;
@@ -35,7 +35,7 @@ public:
   apvts tree;
 
 private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(YourPluginNameAudioProcessor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)
 };
 
 }  // namespace audio_plugin
