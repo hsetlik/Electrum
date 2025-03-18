@@ -7,10 +7,6 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 constexpr float twoPi_f = juce::MathConstants<float>::twoPi;
 
-// some type aliases to maybe type juce:: fewer times
-typedef juce::String String;
-typedef juce::Component Component;
-typedef juce::ValueTree ValueTree;
 // maybe we'll avoid writing 5 zillion 'prepare()' functions this way
 namespace SampleRate {
 void set(double rate);

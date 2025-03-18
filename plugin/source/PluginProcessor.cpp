@@ -13,7 +13,7 @@ ElectrumAudioProcessor::ElectrumAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
               ),
-      tree(*this, nullptr, ID::Electrum_state, ID::getParameterLayout()) {
+      tree(*this, nullptr, ID::ELECTRUM_STATE, ID::getParameterLayout()) {
 }
 
 ElectrumAudioProcessor::~ElectrumAudioProcessor() {}
@@ -71,14 +71,13 @@ const juce::String ElectrumAudioProcessor::getProgramName(int index) {
   return {};
 }
 
-void ElectrumAudioProcessor::changeProgramName(
-    int index,
-    const juce::String& newName) {
+void ElectrumAudioProcessor::changeProgramName(int index,
+                                               const juce::String& newName) {
   juce::ignoreUnused(index, newName);
 }
 
 void ElectrumAudioProcessor::prepareToPlay(double sampleRate,
-                                                 int samplesPerBlock) {
+                                           int samplesPerBlock) {
   // Use this method as the place to do any pre-playback
   // initialisation that you need..
   juce::ignoreUnused(sampleRate, samplesPerBlock);
@@ -111,9 +110,8 @@ bool ElectrumAudioProcessor::isBusesLayoutSupported(
 #endif
 }
 
-void ElectrumAudioProcessor::processBlock(
-    juce::AudioBuffer<float>& buffer,
-    juce::MidiBuffer& midiMessages) {
+void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
+                                          juce::MidiBuffer& midiMessages) {
   juce::ignoreUnused(midiMessages);
   juce::ScopedNoDenormals noDenormals;
   auto totalNumInputChannels = getTotalNumInputChannels();
@@ -159,7 +157,7 @@ void ElectrumAudioProcessor::getStateInformation(
 }
 
 void ElectrumAudioProcessor::setStateInformation(const void* data,
-                                                       int sizeInBytes) {
+                                                 int sizeInBytes) {
   // You should use this method to restore your parameters from this memory
   // block, whose contents will have been created by the getStateInformation()
   // call.

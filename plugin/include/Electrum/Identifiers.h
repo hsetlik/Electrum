@@ -10,7 +10,6 @@
  * */
 #include <juce_core/juce_core.h>
 #include <juce_audio_processors/juce_audio_processors.h>
-
 // typedefs bc some of these types are a mouthful
 typedef juce::AudioProcessorValueTreeState apvts;
 typedef std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
@@ -19,11 +18,87 @@ typedef std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>
     combo_attach_ptr;
 typedef juce::NormalisableRange<float> frange_t;
 
+// very helpful
+inline frange_t rangeWithCenter(float min, float max, float center) {
+  frange_t range(min, max);
+  range.setSkewForCentre(center);
+  return range;
+}
+
+// some type aliases to maybe type juce:: fewer times
+typedef juce::String String;
+typedef juce::Component Component;
+typedef juce::ValueTree ValueTree;
+
+// defines for param ranges
+// Every Identifier for every parameter should be in here
+#define NUM_OSCILLATORS 3
+#define NUM_ENVELOPES 3
+#define NUM_LFOS 3
+
+// oscillator
+#define OSC_POS_DEFAULT 0.1f
+#define OSC_LEVEL_DEFAULT 0.25f
+
+#define COARSE_TUNE_MIN -36.0f
+#define COARSE_TUNE_MAX 36.0f
+
+#define FINE_TUNE_MIN -100.0f
+#define FINE_TUNE_MAX 100.0f
+
+// envelope
+#define ENV_CURVE_MIN 0.0f
+#define ENV_CURVE_MAX 1.0f
+#define ENV_CURVE_DEFAULT 0.5f
+
+#define ATTACK_MS_DEFAULT 20.0f
+#define ATTACK_MS_MIN 0.01f
+#define ATTACK_MS_MAX 2500.0f
+#define ATTACK_MS_CENTER 150.0f
+
+#define HOLD_MS_DEFAULT 0.0f
+#define HOLD_MS_MIN 0.0f
+#define HOLD_MS_MAX 1000.0f
+#define HOLD_MS_CENTER 100.0f
+
+#define DECAY_MS_DEFAULT 50.0f
+#define DECAY_MS_MIN 0.1f
+#define DECAY_MS_MAX 4000.0f
+#define DECAY_MS_CENTER 250.0f
+
+#define SUSTAIN_LEVEL_DEFAULT 0.65f
+#define VEL_TRACKING_DEFAULT 0.85f
+
+#define RELEASE_MS_DEFAULT 85.0f
+#define RELEASE_MS_MIN 1.0f
+#define RELEASE_MS_MAX 10000.0f
+#define RELEASE_MS_CENTER 400.0f
+
+#define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
+
 #define DECLARE_ID(name) const juce::Identifier name(#name);
 
 namespace ID {
 // top level ID for the apvts
-DECLARE_ID(Electrum_state)
+DECLARE_ID(ELECTRUM_STATE)
+
+// wavetable osc stuff
+DECLARE_ID(oscillatorPos)
+DECLARE_ID(oscillatorLevel)
+DECLARE_ID(oscillatorPan)
+DECLARE_ID(oscillatorCoarseTune)
+DECLARE_ID(oscillatorFineTune)
+
+// envelope
+DECLARE_ID(attackMs)
+DECLARE_ID(attackCurve)
+DECLARE_ID(holdMs)
+DECLARE_ID(decayMs)
+DECLARE_ID(decayCurve)
+DECLARE_ID(sustainLevel)
+DECLARE_ID(velocityTracking)
+DECLARE_ID(releaseMs)
+DECLARE_ID(releaseCurve)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID
