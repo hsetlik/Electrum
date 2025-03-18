@@ -28,10 +28,13 @@ target_sources(${PROJECT_NAME}
         ${INCLUDE_DIR}/Identifiers.h
         ${INCLUDE_DIR}/Common.h
         ${INCLUDE_DIR}/PluginEditor.h
-${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
-${INCLUDE_DIR}/Shared/ElectrumState.h
-source/ElectrumState.cpp
-source/ModSourceComponent.cpp
+				source/ModContextComponent.cpp
+				${INCLUDE_DIR}/GUI/Modulation/ModContextComponent.h
+        ${INCLUDE_DIR}/PluginProcessor.h
+        ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
+        ${INCLUDE_DIR}/Shared/ElectrumState.h
+        source/ElectrumState.cpp
+        source/ModSourceComponent.cpp
 )
 # Sets the include directories of the plugin project.
 target_include_directories(${PROJECT_NAME}

@@ -131,6 +131,7 @@ void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
   // Make sure to reset the state if your inner loop is processing
   // Alternatively, you can process the samples with the channels
   // interleaved by keeping the same state.
+  tree.modulations.updateMap(tree.getModulationTree());
 
   for (int channel = 0; channel < totalNumInputChannels; ++channel) {
     auto* channelData = buffer.getWritePointer(channel);

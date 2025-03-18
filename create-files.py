@@ -19,7 +19,7 @@ def cmake_get_project_name(path_name):
 def add_cpp_header(cmake_path, src_path):
     plugin_name = cmake_get_project_name(cmake_path)
     plugin_dir = "plugin/include/" + plugin_name + "/"
-    include_line = "${INCLUDE_DIR}/" + src_path;
+    include_line = "\t\t\t\t${INCLUDE_DIR}/" + src_path + "\n";
     # load the cmake file as an array of lines
     f_read = open(cmake_path, "r")
     lines = f_read.readlines()
@@ -48,7 +48,7 @@ def add_cpp_header(cmake_path, src_path):
 #note: src_name be just the file name
 # argument without extensions or any pathname stuff
 def add_cpp_source(cmake_path, src_name):
-    include_line = "source/" + src_name + ".cpp"
+    include_line = "\t\t\t\tsource/" + src_name + ".cpp\n"
     # load the cmake file as an array of lines
     f_read = open(cmake_path, "r")
     lines = f_read.readlines()
@@ -70,7 +70,7 @@ def add_cpp_source(cmake_path, src_name):
         f_write.write(l)
     f_write.close()
     #create the file
-    f_src = "plugin/" + include_line
+    f_src = "plugin/source/" + src_name + ".cpp"
     file = open(f_src, "w")
     file.write("//===================================================")
     file.close()

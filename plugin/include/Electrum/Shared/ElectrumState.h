@@ -23,8 +23,13 @@ enum mod_dest {
 
 #define MOD_DESTS 10
 
-typedef std::array<std::array<float, MOD_SOURCES>, MOD_DESTS> depth_array_t;
-typedef std::array<std::array<bool, MOD_SOURCES>, MOD_DESTS> toggle_array_t;
+typedef std::array<std::array<float, MOD_DESTS>, MOD_SOURCES> depth_array_t;
+typedef std::array<std::array<bool, MOD_DESTS>, MOD_SOURCES> toggle_array_t;
+
+struct mod_src_t {
+  int source;
+  float depth;
+};
 
 class ModMap {
 private:
@@ -34,7 +39,10 @@ private:
 
 public:
   ModMap();
-  void updateMap(ValueTree& modTree);
+  void updateMap(ValueTree modTree);
+  bool modExists(int src, int dest) const;
+  int numSourcesOnDest(int dest) const;
+  std::vector<mod_src_t> getSourcesFor(int dest);
 };
 
 //===========================================================
@@ -44,4 +52,14 @@ class ElectrumState : public apvts {
 private:
 public:
   ElectrumState(juce::AudioProcessor& proc, juce::UndoManager* undo);
+  inline ValueTree getModulationTree() {
+    return state.getChildWithName(ID::ELECTRUM_MOD_TREE);
+  }
+  // our components should call these
+  void setModulation(int src, int dest, float depth);
+  void removeModulation(int src, int dest);
+  ModMap modulations;
+
+private:
+  ValueTree findTreeForRouting(const ValueTree& modTree, int src, int dest);
 };
