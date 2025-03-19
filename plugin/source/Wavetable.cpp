@@ -1,5 +1,26 @@
 #include "Electrum/Audio/Wavetable.h"
 #include <limits>
+#include "Electrum/Common.h"
+#include "juce_core/juce_core.h"
+
+String stringEncodeWave(float* wave) {
+  String str = "";
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    wchar_t* c = reinterpret_cast<wchar_t*>(&wave[i]);
+    str += *c;
+  }
+  return str;
+}
+void stringDecodeWave(const String& str, float* dest) {
+  jassert(str.length() == TABLE_SIZE);
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    wchar_t c = str[i];
+    float* fPtr = reinterpret_cast<float*>(&c);
+    dest[i] = *fPtr;
+  }
+}
+
+//======================================================================
 
 BandLimitedWave::BandLimitedWave(float* firstWave) : fftProc(fftOrder) {
   // we need an array of 2X table size to hold the complex output
@@ -92,4 +113,131 @@ float BandLimitedWave::_makeTableComplex(float* raw,
     data[table].wave[i] -= offset;
   return scale;
 }
+
+static size_t fastFloor(float fp) {
+  size_t i = static_cast<size_t>(fp);
+  return (fp < i) ? (i - 1) : (i);
+}
+
+float BandLimitedWave::getSample(float phase, float phaseDelt) const {
+  size_t iWave = 0;
+  while (data[iWave].maxPhaseDelt < phaseDelt && iWave < WAVES_PER_TABLE) {
+    ++iWave;
+  }
+  size_t iIdx = fastFloor(phase * 2048.0f);
+  return data[iWave].wave[iIdx];
+}
+
+String BandLimitedWave::toString() {
+  return stringEncodeWave(data[0].wave);
+}
 //===================================================
+
+// some basic wave shape generation for the default
+// waves
+static std::array<float, TABLE_SIZE> genTriangleWave() {
+  std::array<float, TABLE_SIZE> arr;
+  const float dY = 2.0f / ((float)TABLE_SIZE / 2.0f);
+  float val = -1.0f;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    if (i < (TABLE_SIZE / 2)) {
+      val += dY;
+    } else {
+      val -= dY;
+    }
+    arr[i] = val;
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> genSineWave() {
+  std::array<float, TABLE_SIZE> arr;
+  constexpr float dPhase =
+      juce::MathConstants<float>::twoPi / (float)TABLE_SIZE;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    arr[i] = std::sinf(dPhase * (float)i);
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> getSawWave() {
+  std::array<float, TABLE_SIZE> arr;
+  const float dY = 2.0f / (float)TABLE_SIZE;
+
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    arr[i] = -1.0f + (dY * (float)i);
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> getNarrowRamp(size_t rampWidth) {
+  std::array<float, TABLE_SIZE> arr;
+
+  const float dY = 2.0f / (float)rampWidth;
+  const size_t rampStart = (TABLE_SIZE >> 1) - (rampWidth >> 1);
+  const size_t rampEnd = rampStart + rampWidth;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    if (i < rampStart) {
+      arr[i] = -1.0f;
+    } else if (i < rampEnd) {
+      arr[i] = -1.0f + (dY * (float)(i - rampStart));
+    } else {
+      arr[i] = 1.0f;
+    }
+  }
+  return arr;
+}
+
+static String getDefaultWavesetString() {
+  String str = "";
+  constexpr size_t numWaves = 18;
+  constexpr size_t rampMax = (size_t)(0.625f * (float)TABLE_SIZE);
+  constexpr size_t dRamp = 56;
+  for (size_t t = 0; t < numWaves; ++t) {
+    auto arr = getNarrowRamp(rampMax - (dRamp * t));
+    str += stringEncodeWave(arr.data());
+  }
+  return str;
+}
+
+static void loadWavesetIntoArr(wave_set_t* arr, const String& input) {
+  if (!arr->isEmpty())
+    arr->clear();
+  String str = input;
+
+  float wave[TABLE_SIZE] = {};
+  while (str.length() && arr->size() < MAX_WAVES_PER_TABLE) {
+    String current = str.substring(0, TABLE_SIZE);
+    str = str.substring(TABLE_SIZE);
+    stringDecodeWave(current, wave);
+    arr->add(new BandLimitedWave(wave));
+  }
+}
+
+//====================================================================
+String& Wavetable::getDefaultSetString() {
+  static String str = getDefaultWavesetString();
+  return str;
+}
+
+Wavetable::Wavetable() {
+  auto str = getDefaultSetString();
+  loadWavesetIntoArr(pActive, str);
+}
+
+// this should be thread-safe because it loads
+// data into the array at the 'waiting' pointer
+// but the audio thread will only touch the 'active'
+// pointer
+void Wavetable::loadWaveData(const String& str) {
+  loadWavesetIntoArr(pWaiting, str);
+  triggerAsyncUpdate();
+}
+
+// and this is where we swap the pointers
+// for the audio thread
+void Wavetable::handleAsyncUpdate() {
+  wave_set_t* prevActive = pActive;
+  pActive = pWaiting;
+  pWaiting = prevActive;
+}
