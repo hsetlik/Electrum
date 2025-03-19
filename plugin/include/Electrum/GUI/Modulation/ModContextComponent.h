@@ -26,6 +26,7 @@ public:
   void valueTreeChildRemoved(ValueTree& parent,
                              ValueTree& child,
                              int index) override;
+  void valueTreeRedirected(ValueTree& changedTree) override;
   // add dest listeners like so
   void addDestListener(ModDestListener* l) { dListeners.push_back(l); }
 };
@@ -43,7 +44,7 @@ public:
     juce::ignoreUnused(src, depth);
   }
   virtual void sourceRemoved(int src) { juce::ignoreUnused(src); }
-  virtual void reinit(std::vector<mod_src_t> sources) {
+  virtual void reinit(std::vector<mod_src_t>& sources) {
     juce::ignoreUnused(sources);
   }
 };

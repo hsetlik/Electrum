@@ -30,6 +30,8 @@ target_sources(${PROJECT_NAME}
         ${INCLUDE_DIR}/PluginEditor.h
 				source/ModContextComponent.cpp
 				${INCLUDE_DIR}/GUI/Modulation/ModContextComponent.h
+				source/ElectrumEditor.cpp
+				${INCLUDE_DIR}/GUI/ElectrumEditor.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
