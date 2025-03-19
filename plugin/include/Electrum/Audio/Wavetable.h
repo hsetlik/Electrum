@@ -49,7 +49,7 @@ public:
 // oscilators will access via pointer
 #define MAX_WAVES_PER_TABLE 256
 typedef juce::OwnedArray<BandLimitedWave> wave_set_t;
-class Wavetable : juce::AsyncUpdater {
+class Wavetable : public juce::AsyncUpdater {
 private:
   wave_set_t setA;
   wave_set_t setB;

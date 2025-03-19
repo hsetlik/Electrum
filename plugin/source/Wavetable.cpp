@@ -1,5 +1,6 @@
 #include "Electrum/Audio/Wavetable.h"
 #include <limits>
+#include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Common.h"
 #include "juce_core/juce_core.h"
 
@@ -124,7 +125,7 @@ float BandLimitedWave::getSample(float phase, float phaseDelt) const {
   while (data[iWave].maxPhaseDelt < phaseDelt && iWave < WAVES_PER_TABLE) {
     ++iWave;
   }
-  size_t iIdx = fastFloor(phase * 2048.0f);
+  size_t iIdx = AudioUtil::fastFloor64(phase * 2048.0f);
   return data[iWave].wave[iIdx];
 }
 
@@ -245,15 +246,15 @@ void Wavetable::handleAsyncUpdate() {
 }
 
 float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
-  auto idx = fastFloor(pos * fSize);
-  return pActive->getUnchecked((int)idx)->getSample(phase, phaseDelt);
+  int idx = AudioUtil::fastFloor32(pos * fSize);
+  return pActive->getUnchecked(idx)->getSample(phase, phaseDelt);
 }
 
 float Wavetable::getSampleSmooth(float phase,
                                  float phaseDelt,
                                  float pos) const {
   float temp = pos * fSize;
-  const int lIdx = (int)fastFloor(temp);
+  const int lIdx = AudioUtil::fastFloor32(temp);
   const int hIdx = lIdx + 1;
   temp -= (float)lIdx;
   return flerp(pActive->getUnchecked(lIdx)->getSample(phase, phaseDelt),
