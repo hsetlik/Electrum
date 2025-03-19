@@ -55,6 +55,7 @@ private:
   wave_set_t setB;
   wave_set_t* pActive = &setA;
   wave_set_t* pWaiting = &setB;
+  float fSize;
 
   static String& getDefaultSetString();
 
@@ -63,4 +64,7 @@ public:
   int size() const { return pActive->size(); }
   void loadWaveData(const String& str);
   void handleAsyncUpdate() override;
+  // these do the main for the oscillators
+  float getSampleFixed(float phase, float phaseDelt, float pos) const;
+  float getSampleSmooth(float phase, float phaseDelt, float pos) const;
 };

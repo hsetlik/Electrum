@@ -223,6 +223,7 @@ String& Wavetable::getDefaultSetString() {
 Wavetable::Wavetable() {
   auto str = getDefaultSetString();
   loadWavesetIntoArr(pActive, str);
+  fSize = (float)(pActive->size() - 1);
 }
 
 // this should be thread-safe because it loads
@@ -240,4 +241,21 @@ void Wavetable::handleAsyncUpdate() {
   wave_set_t* prevActive = pActive;
   pActive = pWaiting;
   pWaiting = prevActive;
+  fSize = (float)(pActive->size() - 1);
+}
+
+float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
+  auto idx = fastFloor(pos * fSize);
+  return pActive->getUnchecked((int)idx)->getSample(phase, phaseDelt);
+}
+
+float Wavetable::getSampleSmooth(float phase,
+                                 float phaseDelt,
+                                 float pos) const {
+  float temp = pos * fSize;
+  const int lIdx = (int)fastFloor(temp);
+  const int hIdx = lIdx + 1;
+  temp -= (float)lIdx;
+  return flerp(pActive->getUnchecked(lIdx)->getSample(phase, phaseDelt),
+               pActive->getUnchecked(hIdx)->getSample(phase, phaseDelt), temp);
 }
