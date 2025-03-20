@@ -4,7 +4,7 @@
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_core/juce_core.h"
 
-class ModDestListener;
+class ModDestAttachment;
 //
 
 /* The top-level component should inherit from this
@@ -14,7 +14,7 @@ class ModDestListener;
 class ModContextComponent : public Component, public ValueTree::Listener {
 private:
   ElectrumState* const state;
-  std::vector<ModDestListener*> dListeners;
+  std::vector<ModDestAttachment*> dListeners;
 
 public:
   ModContextComponent(ElectrumState* mainTree);
@@ -28,15 +28,16 @@ public:
                              int index) override;
   void valueTreeRedirected(ValueTree& changedTree) override;
   // add dest listeners like so
-  void addDestListener(ModDestListener* l) { dListeners.push_back(l); }
+  void addDestListener(ModDestAttachment* l) { dListeners.push_back(l); }
 };
+//============================================================
 
 // components that can be modulated should inherit from this
-class ModDestListener : public Component {
+class ModDestAttachment {
 public:
   const int destID;
-  ModDestListener(int id);
-  virtual ~ModDestListener() {}
+  ModDestAttachment(int id, Component* comp);
+  virtual ~ModDestAttachment() {}
   virtual void sourceAdded(int src, float depth) {
     juce::ignoreUnused(src, depth);
   }
@@ -47,5 +48,7 @@ public:
   virtual void reinit(std::vector<mod_src_t>& sources) {
     juce::ignoreUnused(sources);
   }
-};
 
+protected:
+  Component* attachedComponent;
+};

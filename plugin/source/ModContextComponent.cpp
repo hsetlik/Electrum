@@ -2,8 +2,10 @@
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 
-ModDestListener::ModDestListener(int id) : destID(id) {
-  auto* context = findParentComponentOfClass<ModContextComponent>();
+ModDestAttachment::ModDestAttachment(int id, Component* comp)
+    : destID(id), attachedComponent(comp) {
+  auto* context =
+      attachedComponent->findParentComponentOfClass<ModContextComponent>();
   jassert(context != nullptr);
   context->addDestListener(this);
 }
@@ -15,8 +17,7 @@ ModContextComponent::ModContextComponent(ElectrumState* mainTree)
 }
 
 ModContextComponent::~ModContextComponent() {
-  auto modTree = state->getModulationTree();
-  modTree.removeListener(this);
+  state->state.removeListener(this);
 }
 
 void ModContextComponent::valueTreePropertyChanged(
@@ -86,4 +87,3 @@ void ModContextComponent::valueTreeRedirected(ValueTree& changed) {
     l->reinit(sources);
   }
 }
-

@@ -36,6 +36,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/Wavetable.h
 				source/AudioUtil.cpp
 				${INCLUDE_DIR}/Audio/AudioUtil.h
+				source/HarmonicSeries.cpp
+				${INCLUDE_DIR}/Audio/HarmonicSeries.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

@@ -7,7 +7,7 @@ int fastFloor32(float fValue) {
   return 32768 - (int)(32768. - fValue);
 }
 size_t fastFloor64(float fValue) {
-  return (size_t)fValue;
+  return (size_t)fastFloor32(fValue);
 }
 
 #define FAST_SINE_POINTS 2048
