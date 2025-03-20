@@ -1,5 +1,7 @@
 #include "Electrum/PluginProcessor.h"
 
+#include "Electrum/Audio/AudioUtil.h"
+#include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/PluginEditor.h"
 namespace audio_plugin {
@@ -80,7 +82,9 @@ void ElectrumAudioProcessor::prepareToPlay(double sampleRate,
                                            int samplesPerBlock) {
   // Use this method as the place to do any pre-playback
   // initialisation that you need..
-  juce::ignoreUnused(sampleRate, samplesPerBlock);
+  SampleRate::set(sampleRate);
+  AudioUtil::updateTuningTables(sampleRate);
+  juce::ignoreUnused(samplesPerBlock);
 }
 
 void ElectrumAudioProcessor::releaseResources() {

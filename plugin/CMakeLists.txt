@@ -38,6 +38,12 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/AudioUtil.h
 				source/HarmonicSeries.cpp
 				${INCLUDE_DIR}/Audio/HarmonicSeries.h
+				source/Engine.cpp
+				${INCLUDE_DIR}/Audio/Synth/Engine.h
+				source/Oscillator.cpp
+				${INCLUDE_DIR}/Audio/Generator/Oscillator.h
+				source/Voice.cpp
+				${INCLUDE_DIR}/Audio/Synth/Voice.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

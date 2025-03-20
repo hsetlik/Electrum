@@ -59,12 +59,27 @@ private:
 
   static String& getDefaultSetString();
 
+  // the GUI parameters for each oscillator
+  // since these are shared across voices they'll
+  // be here
+  float position = 0.0f;
+  float level = 0.75f;
+  float pan = 0.0f;
+  float coarse = 0.0f;
+  float fine = 0.0f;
+
 public:
   Wavetable();
   int size() const { return pActive->size(); }
   void loadWaveData(const String& str);
   void handleAsyncUpdate() override;
-  // these do the main for the oscillators
+  // these do the main work for the oscillators
   float getSampleFixed(float phase, float phaseDelt, float pos) const;
   float getSampleSmooth(float phase, float phaseDelt, float pos) const;
+  // parameter getters for the oscillator code
+  inline float getPos() const { return position; }
+  inline float getLevel() const { return level; }
+  inline float getPan() const { return pan; }
+  inline float getCoarse() const { return coarse; }
+  inline float getFine() const { return fine; }
 };

@@ -13,6 +13,10 @@ double SampleRate::get() {
   return sampleHz;
 }
 
+float SampleRate::getf() {
+  return fSampleHz;
+}
+
 float SampleRate::phaseDeltNyquist() {
   return dNyquist;
 }

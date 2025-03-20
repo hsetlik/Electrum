@@ -15,5 +15,18 @@ struct harmonic_t {
   float amplitude = 1.0f;
 };
 
-#define MAX_NUM_HARMONICS 127
+/*
+#define MAX_NUM_HARMONICS 256
+class HarmonicSeries {
+private:
+  harmonic_t harmonics[MAX_NUM_HARMONICS];
+  int usedHarmonics = 0;
 
+public:
+  HarmonicSeries();
+  void loadData(const String& data);
+  String toString();
+  int getNumHarmonics() const { return usedHarmonics; }
+  float getSample(float phase, float fundamental) const;
+};
+*/
