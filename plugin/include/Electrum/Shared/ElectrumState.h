@@ -4,11 +4,11 @@
 
 // structs for modulations
 
-enum mod_source { Env1, Env2, Env3, ModWheel, Velocity };
+enum ModSourceE { Env1, Env2, Env3, ModWheel, Velocity };
 
 #define MOD_SOURCES 5
 
-enum mod_dest {
+enum ModDestE {
   osc1Coarse,
   osc1Fine,
   osc1Pos,
@@ -18,10 +18,15 @@ enum mod_dest {
   osc2Fine,
   osc2Pos,
   osc2Level,
-  osc2Pan
+  osc2Pan,
+  osc3Coarse,
+  osc3Fine,
+  osc3Pos,
+  osc3Level,
+  osc3Pan
 };
 
-#define MOD_DESTS 10
+#define MOD_DESTS 15
 
 typedef std::array<std::array<float, MOD_DESTS>, MOD_SOURCES> depth_array_t;
 typedef std::array<std::array<bool, MOD_DESTS>, MOD_SOURCES> toggle_array_t;
@@ -42,7 +47,9 @@ public:
   void updateMap(ValueTree modTree);
   bool modExists(int src, int dest) const;
   int numSourcesOnDest(int dest) const;
+  bool destInUse(int dest) const { return numSourcesOnDest(dest) > 0; }
   std::vector<mod_src_t> getSourcesFor(int dest);
+  void getSourcesSafe(mod_src_t* arr, int* numSources, int destID) const;
 };
 
 //===========================================================
@@ -50,11 +57,15 @@ public:
 
 class ElectrumState : public apvts {
 private:
+  frange_t modDestRanges[MOD_DESTS];
+
 public:
   ElectrumState(juce::AudioProcessor& proc, juce::UndoManager* undo);
   inline ValueTree getModulationTree() {
     return state.getChildWithName(ID::ELECTRUM_MOD_TREE);
   }
+  // helper for moduation
+  float getModulatedDestValue(int destID, float baseValue, float modNorm) const;
   // our components should call these
   void setModulation(int src, int dest, float depth);
   void removeModulation(int src, int dest);

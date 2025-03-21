@@ -56,13 +56,74 @@ std::vector<mod_src_t> ModMap::getSourcesFor(int _dest) {
   return vec;
 }
 
+/*This loads the only the modulations in use into the first part of the
+ * 'moc_src_t' array at 'arr' and sets the value of 'numSources' to
+ * the number of sources in use*/
+void ModMap::getSourcesSafe(mod_src_t* arr, int* numSources, int destID) const {
+  *numSources = 0;
+  for (size_t src = 0; src < MOD_SOURCES; ++src) {
+    if (boolArr[src][(size_t)destID]) {
+      auto* srcPtr = &arr[*numSources];
+      srcPtr->source = (int)src;
+      srcPtr->depth = depthArr[src][(size_t)destID];
+      *numSources += 1;
+    }
+  }
+}
+
 //===================================================
+
+static std::array<String, MOD_DESTS> _getModDestParamIDs() {
+  std::array<String, MOD_DESTS> arr;
+  size_t modDest = 0;
+  int oscIdx = 0;
+  while (modDest < MOD_DESTS) {
+    if (modDest <= ModDestE::osc3Pos) {
+      String iStr(oscIdx + 1);
+      String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
+      arr[modDest] = coarseID;
+      ++modDest;
+      String fineID = ID::oscillatorFineTune.toString() + iStr;
+      arr[modDest] = fineID;
+      ++modDest;
+      String posID = ID::oscillatorPos.toString() + iStr;
+      arr[modDest] = posID;
+      ++modDest;
+      String levelID = ID::oscillatorLevel.toString() + iStr;
+      arr[modDest] = levelID;
+      ++modDest;
+      String panID = ID::oscillatorPan.toString() + iStr;
+      arr[modDest] = panID;
+      ++modDest;
+      ++oscIdx;
+    }
+  }
+  return arr;
+}
+
+static String _paramIDForModDest(int destID) {
+  static std::array<String, MOD_DESTS> destIDs = _getModDestParamIDs();
+  return destIDs[(size_t)destID];
+}
 
 ElectrumState::ElectrumState(juce::AudioProcessor& proc,
                              juce::UndoManager* undo)
     : apvts(proc, undo, ID::ELECTRUM_STATE, ID::getParameterLayout()) {
   ValueTree mod(ID::ELECTRUM_MOD_TREE);
   state.appendChild(mod, undo);
+  // now we initialize the modDestRanges array
+  // remember this is in order of the ModDestE enum
+  for (int i = 0; i < MOD_DESTS; ++i) {
+    modDestRanges[i] = getParameterRange(_paramIDForModDest(i));
+  }
+}
+
+float ElectrumState::getModulatedDestValue(int destID,
+                                           float baseValue,
+                                           float modNorm) const {
+  float bNorm = modDestRanges[destID].convertTo0to1(baseValue);
+  bNorm = std::clamp(bNorm + modNorm, 0.0f, 1.0f);
+  return modDestRanges[destID].convertFrom0to1(bNorm);
 }
 
 ValueTree ElectrumState::findTreeForRouting(const ValueTree& modTree,

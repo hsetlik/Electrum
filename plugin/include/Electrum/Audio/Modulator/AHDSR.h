@@ -30,7 +30,6 @@ private:
   float lastOutput = 0.0f;
   float currentVelocity = 0.0f;
   bool gateIsOn = false;
-  size_t samplesSinceGateChange = 0;
   bool inKillQuickMode = false;
   float killQuickDelta = 0.00001f;
   ahdsr_phase_t currentPhase = ahdsr_phase_t::Idle;
@@ -44,6 +43,7 @@ private:
   float decayExp;
   float releaseExp;
 
+  // heavy lifting happens here, basically just a finite state machine
   float _getEnvelopeSample();
 
 public:
@@ -53,14 +53,10 @@ public:
   void gateStart(float velocity = 1.0f) {
     currentVelocity = velocity;
     gateIsOn = true;
-    samplesSinceGateChange = 0;
     phaseMs = 0.0f;
     currentPhase = ahdsr_phase_t::Attack;
   }
-  void gateEnd() {
-    gateIsOn = false;
-    samplesSinceGateChange = 0;
-  }
+  void gateEnd() { gateIsOn = false; }
   // call this on sample rate changes to keep timing accurate
   void sampleRateChanged(double sr) { msDelta = (float)(1000.0 / sr); }
   void tick();

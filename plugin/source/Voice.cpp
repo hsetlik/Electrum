@@ -1,4 +1,31 @@
 #include "Electrum/Audio/Synth/Voice.h"
+#include "Electrum/Audio/Modulator/AHDSR.h"
+#include "Electrum/Identifiers.h"
+#include "Electrum/Shared/ElectrumState.h"
+
+float AudioSourceState::baseValueForModDest(int destID) const {
+  // check if it's an oscillator
+  if (destID <= ModDestE::osc3Pan) {
+    const int oscID = destID / 5;
+    const int pID = destID % 5;
+    switch (pID) {
+      case 0:
+        return wOsc[oscID].getCoarse();
+      case 1:
+        return wOsc[oscID].getFine();
+      case 2:
+        return wOsc[oscID].getPos();
+      case 3:
+        return wOsc[oscID].getLevel();
+      default:
+        return wOsc[oscID].getPan();
+    }
+  }
+  jassert(false);
+  return 0.0f;
+}
+
+//===================================================
 
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p)
     : parent(p), gate(false), forceKillQuick(false), lastOutput(0.0f) {}
@@ -23,21 +50,73 @@ void VoiceGateEnvelope::start() {
 bool VoiceGateEnvelope::parentIsFinished() {
   if (gate)
     return false;
-  // TODO: check if any of the parent's
-  //  envelopes are still running
-  //  for (auto e : parent->envs)
-  //  {
-  //    if (!e->isFinished())
-  //      return false;
-  //  }
+  for (auto e : parent->envs) {
+    if (!e->isFinished())
+      return false;
+  }
   return true;
+}
+
+//===================================================
+//
+// the input value coresponds to the 'mod_source_t' enum
+// in ElectrumState.h
+float ElectrumVoice::_currentModSrcVal(int src) {
+  const ModSourceE id = (ModSourceE)src;
+  if (id < ModSourceE::ModWheel) {
+    return envs[src]->getCurrentSample();
+  }
+  // TODO: other modulation sources get implemented here
+  else
+    return 0.0f;
+}
+
+float ElectrumVoice::_normalizedModulationForDest(ModMap* map, int destID) {
+  // this static array holds info about the current modulation dest
+  static mod_src_t currentMods[MOD_SOURCES];
+  int numSources = 0;
+  float sum = 0.0f;
+  map->getSourcesSafe(currentMods, &numSources, destID);
+  // return 0 if this dest isn't used
+  if (numSources < 1)
+    return sum;
+  // otherwise add each of the used sources
+  // to the sum
+  for (int i = 0; i < numSources; ++i) {
+    sum += _currentModSrcVal(currentMods[i].source) * currentMods[i].depth;
+  }
+  return std::clamp(sum, -1.0f, 1.0f);
+}
+
+void ElectrumVoice::_updateModDests(ModMap* map) {
+  // 1. Update the  oscillators
+  int oscIdx = 0;
+  int destIdx = 0;
+  while (oscIdx < NUM_OSCILLATORS && destIdx < MOD_DESTS) {
+    oscModState[oscIdx].coarseMod = _normalizedModulationForDest(map, destIdx);
+    ++destIdx;
+    oscModState[oscIdx].fineMod = _normalizedModulationForDest(map, destIdx);
+    ++destIdx;
+    oscModState[oscIdx].posMod = _normalizedModulationForDest(map, destIdx);
+    ++destIdx;
+    oscModState[oscIdx].levelMod = _normalizedModulationForDest(map, destIdx);
+    ++destIdx;
+    oscModState[oscIdx].panMod = _normalizedModulationForDest(map, destIdx);
+    ++destIdx;
+    ++oscIdx;
+  }
 }
 
 //===================================================
 ElectrumVoice::ElectrumVoice(ElectrumState* s, AudioSourceState* a, int idx)
     : state(s), audioState(a), vge(this), voiceIndex(idx) {
+  // instantiate the oscillators
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
-    wOscs.add(new WavetableOscillator(&audioState->wOsc[i], i));
+    oscs.add(new WavetableOscillator(&audioState->wOsc[i], i));
+  }
+  // instantiate the envelopes
+  for (int i = 0; i < NUM_ENVELOPES; ++i) {
+    envs.add(new AHDSREnvelope(&audioState->env[i], i));
   }
 }
 
@@ -49,8 +128,35 @@ void ElectrumVoice::startNote(int note, float vel) {
   currentNote = note;
   currentNoteVelocity = vel;
   gate = true;
-  // DLog::log("New note at voice: " + String(index));
   vge.start();
-  // TODO: start the mod envelopes here
+  for (auto* e : envs) {
+    e->gateStart(vel);
+  }
 }
 
+void ElectrumVoice::stealNote(int note, float velocity) {
+  inQuickKill = true;
+  queuedNote = note;
+  queuedVelocity = velocity;
+  for (auto e : envs)
+    e->killQuick();
+  vge.killQuick();
+}
+
+void ElectrumVoice::stopNote() {
+  vge.end();
+  gate = false;
+  for (auto e : envs) {
+    e->gateEnd();
+  }
+}
+
+void ElectrumVoice::sampleRateSet(double sr) {
+  for (auto* e : envs) {
+    e->sampleRateChanged(sr);
+  }
+}
+
+void ElectrumVoice::renderNextSample(float& left,
+                                     float& right,
+                                     bool updateDests) {}
