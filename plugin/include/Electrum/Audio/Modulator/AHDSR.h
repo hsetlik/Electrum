@@ -24,17 +24,7 @@ struct ahdsr_data_t {
   float releaseCurve = ENV_CURVE_DEFAULT;
   // copy constructor/equality checker
   ahdsr_data_t() = default;
-  ahdsr_data_t(const ahdsr_data_t& other) {
-    attackMs = other.attackMs;
-    attackCurve = other.attackCurve;
-    holdMs = other.holdMs;
-    decayMs = other.decayMs;
-    decayCurve = other.decayCurve;
-    sustainLevel = other.sustainLevel;
-    releaseMs = other.releaseMs;
-    releaseCurve = other.releaseCurve;
-    velTracking = other.velTracking;
-  }
+
   void operator=(const ahdsr_data_t& other) {
     attackMs = other.attackMs;
     attackCurve = other.attackCurve;

@@ -9,6 +9,10 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 constexpr float twoPi_f = juce::MathConstants<float>::twoPi;
 
+namespace DLog {
+void log(const String& str);
+}
+
 // maybe we'll avoid writing 5 zillion 'prepare()' functions this way
 namespace SampleRate {
 void set(double rate);

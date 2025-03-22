@@ -61,15 +61,18 @@ void AudioSourceState::updateForBlock(ElectrumState* tree) {
     const String rCurveID = ID::releaseCurve.toString() + iStr;
     const String vID = ID::velocityTracking.toString() + iStr;
 
-    const float _aMs = tree->getRawParameterValue(aMsID)->load();
-    const float _aCurve = tree->getRawParameterValue(aMsID)->load();
-    const float _hMs = tree->getRawParameterValue(aMsID)->load();
-    const float _dMs = tree->getRawParameterValue(aMsID)->load();
-    const float _dCurve = tree->getRawParameterValue(aMsID)->load();
-    const float _sustain = tree->getRawParameterValue(aMsID)->load();
-    const float _rMs = tree->getRawParameterValue(aMsID)->load();
-    const float _rCurve = tree->getRawParameterValue(aMsID)->load();
-    const float _velTrack = tree->getRawParameterValue(aMsID)->load();
+    ahdsr_data_t envParams;
+    envParams.attackMs = tree->getRawParameterValue(aMsID)->load();
+    envParams.attackCurve = tree->getRawParameterValue(aCurveID)->load();
+    envParams.holdMs = tree->getRawParameterValue(hID)->load();
+    envParams.decayMs = tree->getRawParameterValue(dMsID)->load();
+    envParams.decayCurve = tree->getRawParameterValue(dCurveID)->load();
+    envParams.sustainLevel = tree->getRawParameterValue(sID)->load();
+    envParams.velTracking = tree->getRawParameterValue(vID)->load();
+    envParams.releaseMs = tree->getRawParameterValue(rMsID)->load();
+    envParams.releaseCurve = tree->getRawParameterValue(rCurveID)->load();
+
+    env[i].updateState(envParams);
   }
 }
 

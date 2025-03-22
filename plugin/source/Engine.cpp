@@ -46,6 +46,11 @@ void SynthEngine::killSustainedVoices() {
   }
 }
 
+// GUI/DSP communication stuff---------------------
+void SynthEngine::updateParamsForBlock() {
+  audioSrc.updateForBlock(state);
+}
+
 // MIDI handling stuff -----------------------------
 
 void SynthEngine::loadMidiEvents(juce::MidiBuffer& midi) {
@@ -77,8 +82,15 @@ void SynthEngine::handleMidiMessage(juce::MidiMessage& message) {
   } else if (message.isPitchWheel()) {
     // state->setPitchBend(Math::toPitchBendValue(message.getPitchWheelValue()));
   } else {
-    // DLog::log("Warning! Unhandled MIDI message: " +
-    // message.getDescription());
+    DLog::log("Warning! Unhandled MIDI message: " + message.getDescription());
+  }
+}
+
+void SynthEngine::renderNextSample(float& left,
+                                   float& right,
+                                   bool updateDests) {
+  for (auto* v : voices) {
+    v->renderNextSample(left, right, updateDests);
   }
 }
 
@@ -92,9 +104,42 @@ SynthEngine::SynthEngine(ElectrumState* s) : state(s) {
 
 void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
                                juce::MidiBuffer& midiBuf) {
-  juce::ignoreUnused(audioBuf, midiBuf);
+  // 1. grab any needed updates from the GUI
+  updateParamsForBlock();
+  // 2. load any midi events into the queue
+  loadMidiEvents(midiBuf);
+  // 3. determine if we're stereo or mono
+  if (audioBuf.getNumChannels() >= 2) {
+    // 4. render the audio
+    float* lSample = audioBuf.getWritePointer(0);
+    float* rSample = audioBuf.getWritePointer(1);
+    for (int i = 0; i < audioBuf.getNumSamples(); ++i) {
+      // process any midi events for this sample
+      while (!midiQueue.empty() && midiQueue.front().timestamp == i) {
+        handleMidiMessage(midiQueue.front().message);
+        midiQueue.pop();
+      }
+      renderNextSample(lSample[i], rSample[i], destUpdateIdx == 0);
+      destUpdateIdx = (destUpdateIdx + 1) % DEST_UPDATE_INTERVAL;
+    }
+  } else {
+    float* lSample = audioBuf.getWritePointer(0);
+    float dummy;
+    for (int i = 0; i < audioBuf.getNumSamples(); ++i) {
+      // process any midi events for this sample
+      while (!midiQueue.empty() && midiQueue.front().timestamp == i) {
+        handleMidiMessage(midiQueue.front().message);
+        midiQueue.pop();
+      }
+      renderNextSample(lSample[i], dummy, destUpdateIdx == 0);
+      destUpdateIdx = (destUpdateIdx + 1) % DEST_UPDATE_INTERVAL;
+    }
+  }
 }
 
 void SynthEngine::prepareToPlay(double sampleRate, size_t blockSize) {
-  juce::ignoreUnused(sampleRate, blockSize);
+  for (auto* v : voices) {
+    v->sampleRateSet(sampleRate);
+  }
+  juce::ignoreUnused(blockSize);
 }
