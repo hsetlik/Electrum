@@ -63,6 +63,58 @@ void EnvelopeLUT::setReleaseCurve(float value) {
 EnvelopeLUT::EnvelopeLUT() {
   _computeLUTs();
 }
+
+float EnvelopeLUT::getSample(ahdsr_phase_t& currentPhase,
+                             int& phaseSamples) const {
+  switch (currentPhase) {
+    case ahdsr_phase_t::Attack:
+      if (phaseSamples >= atkCurveLength) {
+        currentPhase = ahdsr_phase_t::Hold;
+        phaseSamples = 0;
+        return 1.0f;
+      }
+      return atkCurve[phaseSamples];
+      break;
+    case ahdsr_phase_t::Hold:
+      if (phaseSamples >= holdLengthSamples) {
+        currentPhase = ahdsr_phase_t::Decay;
+        phaseSamples = 0;
+      }
+      return 1.0f;
+      break;
+    case ahdsr_phase_t::Decay:
+      if (phaseSamples >= decayCurveLength) {
+        currentPhase = ahdsr_phase_t::Sustain;
+        phaseSamples = 0;
+        return data.sustainLevel;
+      }
+      return decayCurve[phaseSamples];
+      break;
+    case ahdsr_phase_t::Sustain:
+      return data.sustainLevel;
+      break;
+    case ahdsr_phase_t::Release:
+      if (phaseSamples >= releaseCurveLength) {
+        currentPhase = ahdsr_phase_t::Idle;
+        phaseSamples = 0;
+        return 0.0f;
+      }
+      return releaseCurve[phaseSamples];
+      break;
+    case ahdsr_phase_t::Idle:
+      return 0.0f;
+      break;
+  }
+  jassert(false);
+  return 0.0f;
+}
+
+void EnvelopeLUT::updateState(ahdsr_data_t& params) {
+  if (!data.isEqual(params)) {
+    data = params;
+    triggerAsyncUpdate();
+  }
+}
 //=======================================================================
 void EnvelopeLUT::_computeLUTs() {
   // 1. calculate the attack LUT
@@ -112,13 +164,37 @@ static float _phaseMsForStealLevel(float lvl, EnvelopeLUT* env) {
   return env->getAttackMs() * t;
 }
 
+// just a basic binary search to get the closest
+// LUT value to the given level
+int EnvelopeLUT::phaseSamplesForLevel(float lvl) const {
+  int left = 0;
+  int right = atkCurveLength - 1;
+  while (left <= right) {
+    int mid = left + (right - left) / 2;
+    // check if we're between the right two
+    if (atkCurve[mid] <= lvl && atkCurve[mid + 1] > lvl) {
+      const float diff1 = std::fabs(lvl - atkCurve[mid]);
+      const float diff2 = std::fabs(lvl - atkCurve[mid + 1]);
+      return (diff1 < diff2) ? mid : mid + 1;
+    }
+    // otherwise check if the midpoint is high or low
+    else if (atkCurve[mid] < lvl) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+  jassert(false);
+  return 0;
+}
+
 //===================================================
 
 AHDSREnvelope::AHDSREnvelope(EnvelopeLUT* p, int idx) : lut(p), index(idx) {}
 
 void AHDSREnvelope::steal() {
   gateIsOn = true;
-  phaseMs = _phaseMsForStealLevel(lastOutput, lut);
+  phaseSamples = lut->phaseSamplesForLevel(lastOutput);
 }
 
 void AHDSREnvelope::killQuick() {

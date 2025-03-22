@@ -73,8 +73,11 @@ public:
   int size() const { return pActive->size(); }
   void loadWaveData(const String& str);
   void handleAsyncUpdate() override;
-  // TODO: we need some way to update the base parameter values from the GUI
-  // once per block
+  inline void setPos(float value) { position = value; }
+  inline void setLevel(float value) { level = value; }
+  inline void setPan(float value) { pan = value; }
+  inline void setCoarse(float value) { coarse = value; }
+  inline void setFine(float value) { fine = value; }
   //  these do the main work for the oscillators
   float getSampleFixed(float phase, float phaseDelt, float pos) const;
   float getSampleSmooth(float phase, float phaseDelt, float pos) const;

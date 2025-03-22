@@ -25,6 +25,54 @@ float AudioSourceState::baseValueForModDest(int destID) const {
   return 0.0f;
 }
 
+void AudioSourceState::updateForBlock(ElectrumState* tree) {
+  // oscillators----------------------------------
+  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    String iStr(i);
+    // 1. figure out the IDs
+    const String posID = ID::oscillatorPos.toString() + iStr;
+    const String levelID = ID::oscillatorLevel.toString() + iStr;
+    const String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
+    const String fineID = ID::oscillatorFineTune.toString() + iStr;
+    const String panID = ID::oscillatorPan.toString() + iStr;
+    // 2. grab from the atomic values
+    const float _pos = tree->getRawParameterValue(posID)->load();
+    const float _level = tree->getRawParameterValue(levelID)->load();
+    const float _coarse = tree->getRawParameterValue(coarseID)->load();
+    const float _fine = tree->getRawParameterValue(fineID)->load();
+    const float _pan = tree->getRawParameterValue(panID)->load();
+    // 3. assign to the DSP objects
+    wOsc[i].setPos(_pos);
+    wOsc[i].setLevel(_level);
+    wOsc[i].setCoarse(_coarse);
+    wOsc[i].setFine(_fine);
+    wOsc[i].setPan(_pan);
+  }
+  // envelopes----------------------------------
+  for (int i = 0; i < NUM_ENVELOPES; ++i) {
+    String iStr(i);
+    const String aMsID = ID::attackMs.toString() + iStr;
+    const String aCurveID = ID::attackCurve.toString() + iStr;
+    const String hID = ID::holdMs.toString() + iStr;
+    const String dMsID = ID::decayMs.toString() + iStr;
+    const String dCurveID = ID::decayCurve.toString() + iStr;
+    const String sID = ID::sustainLevel.toString() + iStr;
+    const String rMsID = ID::releaseMs.toString() + iStr;
+    const String rCurveID = ID::releaseCurve.toString() + iStr;
+    const String vID = ID::velocityTracking.toString() + iStr;
+
+    const float _aMs = tree->getRawParameterValue(aMsID)->load();
+    const float _aCurve = tree->getRawParameterValue(aMsID)->load();
+    const float _hMs = tree->getRawParameterValue(aMsID)->load();
+    const float _dMs = tree->getRawParameterValue(aMsID)->load();
+    const float _dCurve = tree->getRawParameterValue(aMsID)->load();
+    const float _sustain = tree->getRawParameterValue(aMsID)->load();
+    const float _rMs = tree->getRawParameterValue(aMsID)->load();
+    const float _rCurve = tree->getRawParameterValue(aMsID)->load();
+    const float _velTrack = tree->getRawParameterValue(aMsID)->load();
+  }
+}
+
 //===================================================
 
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p)

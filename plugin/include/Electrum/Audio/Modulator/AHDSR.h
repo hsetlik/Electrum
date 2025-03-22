@@ -1,5 +1,6 @@
 #pragma once
 #include "../AudioUtil.h"
+#include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "juce_events/juce_events.h"
 
@@ -21,6 +22,51 @@ struct ahdsr_data_t {
   // release
   float releaseMs = RELEASE_MS_DEFAULT;
   float releaseCurve = ENV_CURVE_DEFAULT;
+  // copy constructor/equality checker
+  ahdsr_data_t() = default;
+  ahdsr_data_t(const ahdsr_data_t& other) {
+    attackMs = other.attackMs;
+    attackCurve = other.attackCurve;
+    holdMs = other.holdMs;
+    decayMs = other.decayMs;
+    decayCurve = other.decayCurve;
+    sustainLevel = other.sustainLevel;
+    releaseMs = other.releaseMs;
+    releaseCurve = other.releaseCurve;
+    velTracking = other.velTracking;
+  }
+  void operator=(const ahdsr_data_t& other) {
+    attackMs = other.attackMs;
+    attackCurve = other.attackCurve;
+    holdMs = other.holdMs;
+    decayMs = other.decayMs;
+    decayCurve = other.decayCurve;
+    sustainLevel = other.sustainLevel;
+    releaseMs = other.releaseMs;
+    releaseCurve = other.releaseCurve;
+    velTracking = other.velTracking;
+  }
+  bool isEqual(const ahdsr_data_t& other) {
+    if (!fequal(attackMs, other.attackMs))
+      return false;
+    if (!fequal(attackCurve, other.attackCurve))
+      return false;
+    if (!fequal(holdMs, other.holdMs))
+      return false;
+    if (!fequal(decayMs, other.decayMs))
+      return false;
+    if (!fequal(decayCurve, other.decayCurve))
+      return false;
+    if (!fequal(sustainLevel, other.sustainLevel))
+      return false;
+    if (!fequal(releaseMs, other.releaseMs))
+      return false;
+    if (!fequal(releaseCurve, other.releaseCurve))
+      return false;
+    if (!fequal(velTracking, other.velTracking))
+      return false;
+    return true;
+  }
 };
 
 enum ahdsr_phase_t { Attack, Hold, Decay, Sustain, Release, Idle };
@@ -73,8 +119,13 @@ public:
   void setVelTracking(float value) { data.velTracking = value; }
   void setReleaseMs(float value);
   void setReleaseCurve(float value);
+  // actually use this duh
+  void updateState(ahdsr_data_t& params);
+
   // voices should use this
   float getSample(ahdsr_phase_t& currentPhase, int& phaseSamples) const;
+  // for voice stealing logic
+  int phaseSamplesForLevel(float lvl) const;
 };
 //==================================================================
 // our per-voice object

@@ -13,8 +13,11 @@ public:
   Wavetable wOsc[NUM_OSCILLATORS];
   EnvelopeLUT env[NUM_ENVELOPES];
   float baseValueForModDest(int destID) const;
+  // this callback should run once per buffer
+  void updateForBlock(ElectrumState* tree);
 };
 
+//========================================================
 #define QUICK_KILL_MS 4.0f
 // forward declaration for the envelope
 class ElectrumVoice;
