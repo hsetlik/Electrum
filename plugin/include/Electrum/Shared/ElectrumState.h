@@ -59,6 +59,10 @@ class ElectrumState : public apvts {
 private:
   frange_t modDestRanges[MOD_DESTS];
 
+  // controller state stuff
+  bool sustainPedal = false;
+  float modWheelValue = 0.0f;
+
 public:
   ElectrumState(juce::AudioProcessor& proc, juce::UndoManager* undo);
   inline ValueTree getModulationTree() {
@@ -69,6 +73,9 @@ public:
   // our components should call these
   void setModulation(int src, int dest, float depth);
   void removeModulation(int src, int dest);
+  bool getSustainPedal() const { return sustainPedal; }
+  void setSustainPedal(bool pedalDown) { sustainPedal = pedalDown; }
+  void setModWheel(float val) { modWheelValue = val; }
   ModMap modulations;
 
 private:

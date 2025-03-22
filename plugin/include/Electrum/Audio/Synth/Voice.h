@@ -11,7 +11,7 @@
 class AudioSourceState {
 public:
   Wavetable wOsc[NUM_OSCILLATORS];
-  ahdsr_data_t env[NUM_ENVELOPES];
+  EnvelopeLUT env[NUM_ENVELOPES];
   float baseValueForModDest(int destID) const;
 };
 

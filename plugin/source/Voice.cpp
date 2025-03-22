@@ -159,4 +159,32 @@ void ElectrumVoice::sampleRateSet(double sr) {
 
 void ElectrumVoice::renderNextSample(float& left,
                                      float& right,
-                                     bool updateDests) {}
+                                     bool updateDests) {
+  if (!isBusy())
+    return;
+  // 1. tick the envelopes
+  for (auto* e : envs)
+    e->tick();
+  vge.tick();
+  // 2. update modulation dests if needed
+  if (updateDests)
+    _updateModDests(&state->modulations);
+  // 3. add samples from the oscillators
+  float voiceLeft = 0.0f;
+  float voiceRight = 0.0f;
+  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    oscs[i]->renderSampleStereo(currentNote, oscModState[i].levelMod,
+                                oscModState[i].posMod, oscModState[i].panMod,
+                                oscModState[i].coarseMod,
+                                oscModState[i].fineMod, voiceLeft, voiceRight);
+  }
+  // 4. this is where filters and any other per-voice waveshaping happens
+  // 5. add to the output
+  left += voiceLeft * vge.getCurrentSample();
+  right += voiceRight * vge.getCurrentSample();
+  // 6. deal with any killQuick that may be happening
+  if (inQuickKill && vge.getCurrentSample() == 0.0f) {
+    inQuickKill = false;
+    startNote(queuedNote, queuedVelocity);
+  }
+}

@@ -9,9 +9,13 @@ struct timed_midi_msg {
   juce::MidiMessage message;
 };
 
+#define DEST_UPDATE_INTERVAL 35
+#define NUM_VOICES 24
+
 class SynthEngine {
 public:
   ElectrumState* const state;
+  AudioSourceState audioSrc;
 
 private:
   std::queue<timed_midi_msg> midiQueue;
@@ -19,7 +23,7 @@ private:
   void killSustainedVoices();
   // state
   juce::OwnedArray<ElectrumVoice> voices;
-  uint32_t destUpdateIdx;
+  uint32_t destUpdateIdx = 0;
   // functions
   void noteOn(int note, float velocity);
   void noteOff(int note);
@@ -27,7 +31,6 @@ private:
 
   ElectrumVoice* getFreeVoice();
   ElectrumVoice* getVoicePlayingNote(int note);
-  ElectrumVoice* getVoiceForNote(int note);
 
   int numBusyVoices();
   void updateParamsForBlock();
