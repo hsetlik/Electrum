@@ -15,7 +15,8 @@ ElectrumAudioProcessor::ElectrumAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
               ),
-      tree(*this, nullptr) {
+      tree(*this, nullptr),
+      engine(&tree) {
 }
 
 ElectrumAudioProcessor::~ElectrumAudioProcessor() {}
@@ -84,7 +85,7 @@ void ElectrumAudioProcessor::prepareToPlay(double sampleRate,
   // initialisation that you need..
   SampleRate::set(sampleRate);
   AudioUtil::updateTuningTables(sampleRate);
-  juce::ignoreUnused(samplesPerBlock);
+  engine.prepareToPlay(sampleRate, samplesPerBlock);
 }
 
 void ElectrumAudioProcessor::releaseResources() {
@@ -136,12 +137,7 @@ void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
   // Alternatively, you can process the samples with the channels
   // interleaved by keeping the same state.
   tree.modulations.updateMap(tree.getModulationTree());
-
-  for (int channel = 0; channel < totalNumInputChannels; ++channel) {
-    auto* channelData = buffer.getWritePointer(channel);
-    juce::ignoreUnused(channelData);
-    // ..do something to the data...
-  }
+  engine.processBlock(buffer, midiMessages);
 }
 
 bool ElectrumAudioProcessor::hasEditor() const {

@@ -42,6 +42,6 @@ public:
   SynthEngine(ElectrumState* s);
   void processBlock(juce::AudioBuffer<float>& audioBuf,
                     juce::MidiBuffer& midiBuf);
-  void prepareToPlay(double sampleRate, size_t blockSize);
+  void prepareToPlay(double sampleRate, int blockSize);
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthEngine)
 };

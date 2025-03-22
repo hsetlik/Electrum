@@ -137,7 +137,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   }
 }
 
-void SynthEngine::prepareToPlay(double sampleRate, size_t blockSize) {
+void SynthEngine::prepareToPlay(double sampleRate, int blockSize) {
   for (auto* v : voices) {
     v->sampleRateSet(sampleRate);
   }

@@ -4,21 +4,18 @@
 #include "Electrum/Common.h"
 #include "juce_core/juce_core.h"
 
+constexpr size_t tableBytes = TABLE_SIZE * sizeof(float);
 String stringEncodeWave(float* wave) {
-  String str = "";
-  for (int i = 0; i < TABLE_SIZE; ++i) {
-    wchar_t* c = reinterpret_cast<wchar_t*>(&wave[i]);
-    str += *c;
-  }
-  return str;
+  juce::MemoryBlock mb(tableBytes, true);
+  mb.copyFrom(wave, 0, tableBytes);
+  return mb.toBase64Encoding() + "WAVE_END";
 }
 void stringDecodeWave(const String& str, float* dest) {
-  jassert(str.length() == TABLE_SIZE);
-  for (int i = 0; i < TABLE_SIZE; ++i) {
-    wchar_t c = str[i];
-    float* fPtr = reinterpret_cast<float*>(&c);
-    dest[i] = *fPtr;
+  juce::MemoryBlock mb(tableBytes, true);
+  if (!mb.fromBase64Encoding(str)) {
+    DLog::log("Failed to decode string to memory block!");
   }
+  mb.copyTo(dest, 0, tableBytes);
 }
 
 //======================================================================
@@ -30,6 +27,7 @@ BandLimitedWave::BandLimitedWave(float* firstWave) : fftProc(fftOrder) {
   // load the wave into the first half
   for (int i = 0; i < TABLE_SIZE; ++i) {
     complex[i] = firstWave[i];
+    complex[TABLE_SIZE + i] = 0.0f;
   }
   // do the first freq domain transformation
   fftProc.performRealOnlyForwardTransform(complex);
@@ -113,11 +111,6 @@ float BandLimitedWave::_makeTableComplex(float* raw,
   for (size_t i = 0; i < TABLE_SIZE; ++i)
     data[table].wave[i] -= offset;
   return scale;
-}
-
-static size_t fastFloor(float fp) {
-  size_t i = static_cast<size_t>(fp);
-  return (fp < i) ? (i - 1) : (i);
 }
 
 float BandLimitedWave::getSample(float phase, float phaseDelt) const {
@@ -205,13 +198,14 @@ static void loadWavesetIntoArr(wave_set_t* arr, const String& input) {
   if (!arr->isEmpty())
     arr->clear();
   String str = input;
-
   float wave[TABLE_SIZE] = {};
-  while (str.length() && arr->size() < MAX_WAVES_PER_TABLE) {
-    String current = str.substring(0, TABLE_SIZE);
-    str = str.substring(TABLE_SIZE);
-    stringDecodeWave(current, wave);
+  int endTagPos = str.indexOf("WAVE_END");
+  while (endTagPos != -1 && arr->size() < MAX_WAVES_PER_TABLE) {
+    String waveStr = str.substring(0, endTagPos);
+    str = str.substring(waveStr.length() + 8);
+    stringDecodeWave(waveStr, wave);
     arr->add(new BandLimitedWave(wave));
+    endTagPos = str.indexOf("WAVE_END");
   }
 }
 
@@ -223,6 +217,7 @@ String& Wavetable::getDefaultSetString() {
 
 Wavetable::Wavetable() {
   auto str = getDefaultSetString();
+
   loadWavesetIntoArr(pActive, str);
   fSize = (float)(pActive->size() - 1);
 }

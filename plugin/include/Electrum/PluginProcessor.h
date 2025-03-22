@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "Common.h"
+#include "Electrum/Audio/Synth/Engine.h"
 
 namespace audio_plugin {
 
@@ -33,6 +34,7 @@ public:
 
   // this is the plugin's parameter state
   ElectrumState tree;
+  SynthEngine engine;
 
 private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectrumAudioProcessor)
