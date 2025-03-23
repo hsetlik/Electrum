@@ -1,6 +1,6 @@
 #pragma once
 #include "../Identifiers.h"
-#include "Electrum/Common.h"
+#include "GraphingData.h"
 #include "juce_data_structures/juce_data_structures.h"
 
 // structs for modulations
@@ -84,6 +84,8 @@ public:
   void setModWheel(float val) { modWheelValue = val; }
   // modulation data for the audio thread to access
   ModMap modulations;
+  // atomic data holder for our GUI graphing
+  GraphingData graph;
 
 private:
   ValueTree findTreeForRouting(const ValueTree& modTree, int src, int dest);

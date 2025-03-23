@@ -1,5 +1,6 @@
 #include "Electrum/PluginEditor.h"
 #include "Electrum/PluginProcessor.h"
+#include "juce_core/juce_core.h"
 
 namespace audio_plugin {
 ElectrumProcessorEditor::ElectrumProcessorEditor(ElectrumAudioProcessor& p)
@@ -15,6 +16,7 @@ ElectrumProcessorEditor::ElectrumProcessorEditor(ElectrumAudioProcessor& p)
 ElectrumProcessorEditor::~ElectrumProcessorEditor() {}
 
 void ElectrumProcessorEditor::paint(juce::Graphics& g) {
+  juce::ignoreUnused(g);
   // (Our component is opaque, so we must completely fill the background with a
   // solid colour)
 }

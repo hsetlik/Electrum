@@ -59,9 +59,6 @@ void SynthEngine::loadMidiEvents(juce::MidiBuffer& midi) {
     timed_midi_msg m;
     m.timestamp = metadata.samplePosition;
     m.message = metadata.getMessage();
-    if (m.message.isNoteOn()) {
-      DLog::log("Note on recieved");
-    }
     midiQueue.push(m);
   }
 }
@@ -69,7 +66,6 @@ void SynthEngine::loadMidiEvents(juce::MidiBuffer& midi) {
 void SynthEngine::handleMidiMessage(juce::MidiMessage& message) {
   // big ol else if to handle every type of MIDI message
   if (message.isNoteOn()) {
-    DLog::log("Engine recieved note on message");
     noteOn(message.getNoteNumber(), message.getFloatVelocity());
   } else if (message.isNoteOff()) {
     noteOff(message.getNoteNumber());
@@ -110,6 +106,10 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
                                juce::MidiBuffer& midiBuf) {
   // 1. grab any needed updates from the GUI
   updateParamsForBlock();
+  // 1b. check if the GUI wants graphing data updates
+  if (state->graph.wantsUpdate()) {
+    // TODO: update stuff here
+  }
   // 2. load any midi events into the queue (and load any events from the GUI
   // keyboard)
   masterKeyboardState.processNextMidiBuffer(midiBuf, 0,
