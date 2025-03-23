@@ -220,6 +220,7 @@ Wavetable::Wavetable() {
 
   loadWavesetIntoArr(pActive, str);
   fSize = (float)(pActive->size() - 1);
+  DLog::log("Initialized " + String(pActive->size()) + " wave shapes");
 }
 
 // this should be thread-safe because it loads

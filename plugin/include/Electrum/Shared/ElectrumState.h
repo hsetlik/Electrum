@@ -1,5 +1,6 @@
 #pragma once
 #include "../Identifiers.h"
+#include "Electrum/Common.h"
 #include "juce_data_structures/juce_data_structures.h"
 
 // structs for modulations
@@ -52,6 +53,11 @@ public:
   void getSourcesSafe(mod_src_t* arr, int* numSources, int destID) const;
 };
 
+struct timed_midi_msg {
+  int timestamp;
+  juce::MidiMessage message;
+};
+
 //===========================================================
 // APVTS subclass to handle all manner of things
 
@@ -76,6 +82,7 @@ public:
   bool getSustainPedal() const { return sustainPedal; }
   void setSustainPedal(bool pedalDown) { sustainPedal = pedalDown; }
   void setModWheel(float val) { modWheelValue = val; }
+  // modulation data for the audio thread to access
   ModMap modulations;
 
 private:

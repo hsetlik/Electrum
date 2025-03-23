@@ -4,11 +4,6 @@
 #include "Voice.h"
 #include "juce_core/system/juce_PlatformDefs.h"
 
-struct timed_midi_msg {
-  int timestamp;
-  juce::MidiMessage message;
-};
-
 #define DEST_UPDATE_INTERVAL 35
 #define NUM_VOICES 24
 
@@ -39,9 +34,11 @@ private:
   void handleMidiMessage(juce::MidiMessage& message);
 
 public:
+  juce::MidiKeyboardState masterKeyboardState;
   SynthEngine(ElectrumState* s);
   void processBlock(juce::AudioBuffer<float>& audioBuf,
                     juce::MidiBuffer& midiBuf);
   void prepareToPlay(double sampleRate, int blockSize);
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthEngine)
 };

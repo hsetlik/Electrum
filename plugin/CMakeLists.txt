@@ -46,6 +46,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/Synth/Voice.h
 				source/AHDSR.cpp
 				${INCLUDE_DIR}/Audio/Modulator/AHDSR.h
+				source/KeyboardView.cpp
+				${INCLUDE_DIR}/GUI/KeyboardView.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
