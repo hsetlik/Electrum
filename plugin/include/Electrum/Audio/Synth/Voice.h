@@ -71,6 +71,7 @@ private:
   int queuedNote = 69;
   float queuedVelocity = 0.0f;
   VoiceGateEnvelope vge;
+  bool wasBusy = false;
   // oscillator stuff
   juce::OwnedArray<WavetableOscillator> oscs;
   osc_mod_t oscModState[NUM_OSCILLATORS];

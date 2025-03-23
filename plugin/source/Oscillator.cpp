@@ -7,12 +7,14 @@ WavetableOscillator::WavetableOscillator(Wavetable* w, int idx)
     : wave(w), index(idx) {}
 //===================================================
 //
+
 float WavetableOscillator::getNextSample(int midiNote,
                                          float levelMod,
                                          float posMod,
                                          float coarseMod,
                                          float fineMod) {
   static const float minLvl = juce::Decibels::decibelsToGain(-50.0f);
+  static const float _oscMaxGain = juce::Decibels::decibelsToGain(-8.0f);
   if (wave->getLevel() + levelMod < minLvl)
     return 0.0f;
   const float _coarse = AudioUtil::signed_flerp(
@@ -24,7 +26,7 @@ float WavetableOscillator::getNextSample(int midiNote,
   const float _phaseDelt =
       AudioUtil::phaseDeltForNote(midiNote, _coarse, _fine);
   phase = std::fmod(phase + _phaseDelt, 1.0f);
-  return wave->getSampleFixed(phase, _phaseDelt, _pos);
+  return wave->getSampleFixed(phase, _phaseDelt, _pos) * _oscMaxGain;
 }
 
 void WavetableOscillator::renderSampleStereo(int midiNote,

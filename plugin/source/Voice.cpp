@@ -211,8 +211,14 @@ void ElectrumVoice::sampleRateSet(double sr) {
 void ElectrumVoice::renderNextSample(float& left,
                                      float& right,
                                      bool updateDests) {
-  if (!isBusy())
+  bool busy = isBusy();
+  if (!busy) {
+    if (wasBusy) {
+      state->graph.voiceEnded(voiceIndex);
+      wasBusy = false;
+    }
     return;
+  }
   // 1. tick the envelopes
   for (auto* e : envs)
     e->tick();

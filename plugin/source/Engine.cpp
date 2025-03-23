@@ -24,6 +24,7 @@ void SynthEngine::noteOn(int note, float velocity) {
   } else {
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
+    state->graph.voiceStarted(voice->voiceIndex);
     voice->startNote(note, velocity);
   }
 }
