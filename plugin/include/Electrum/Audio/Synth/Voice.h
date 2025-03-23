@@ -5,6 +5,7 @@
 #include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "Electrum/Shared/GraphingData.h"
 
 // have the engine class own one of these and each
 // voice gets a pointer to it
@@ -91,6 +92,8 @@ public:
   void stopNote();
   int getCurrentNote() const { return currentNote; }
   void renderNextSample(float& left, float& right, bool updateDests);
+  // callback for gripping graph data
+  void updateGraphData(GraphingData* gd);
 
 private:
   // this gets called on the state pointer's ModMap for every

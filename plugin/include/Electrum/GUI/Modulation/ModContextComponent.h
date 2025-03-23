@@ -33,11 +33,11 @@ public:
 //============================================================
 
 // components that can be modulated should inherit from this
-class ModDestAttachment {
+class ModDestAttachment : public Component {
 public:
   const int destID;
-  ModDestAttachment(int id, Component* comp);
-  virtual ~ModDestAttachment() {}
+  ModDestAttachment(int id);
+  virtual ~ModDestAttachment() override {}
   virtual void sourceAdded(int src, float depth) {
     juce::ignoreUnused(src, depth);
   }
@@ -48,7 +48,9 @@ public:
   virtual void reinit(std::vector<mod_src_t>& sources) {
     juce::ignoreUnused(sources);
   }
+  void parentHierarchyChanged() override;
 
 protected:
-  Component* attachedComponent;
+  bool isAttached = false;
+  void _attemptAttach();
 };

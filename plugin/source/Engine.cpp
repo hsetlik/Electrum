@@ -109,7 +109,10 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   updateParamsForBlock();
   // 1b. check if the GUI wants graphing data updates
   if (state->graph.wantsUpdate()) {
-    // TODO: update stuff here
+    auto* v = voices[state->graph.getNewestVoiceIndex()];
+    jassert(v != nullptr);
+    v->updateGraphData(&state->graph);
+    state->graph.updateFinished();
   }
   // 2. load any midi events into the queue (and load any events from the GUI
   // keyboard)

@@ -50,6 +50,14 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/KeyboardView.h
 				source/GraphingData.cpp
 				${INCLUDE_DIR}/Shared/GraphingData.h
+				source/OscillatorPanel.cpp
+				${INCLUDE_DIR}/GUI/Wavetable/OscillatorPanel.h
+				source/WavetableGraph.cpp
+				${INCLUDE_DIR}/GUI/Wavetable/WavetableGraph.h
+				source/DestinationSlider.cpp
+				${INCLUDE_DIR}/GUI/Modulation/DestinationSlider.h
+				source/WedgeButton.cpp
+				${INCLUDE_DIR}/GUI/Modulation/WedgeButton.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

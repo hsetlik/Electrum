@@ -2,13 +2,16 @@
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 
-ModDestAttachment::ModDestAttachment(int id, Component* comp)
-    : destID(id), attachedComponent(comp) {
-  auto* context =
-      attachedComponent->findParentComponentOfClass<ModContextComponent>();
-  jassert(context != nullptr);
-  context->addDestListener(this);
+ModDestAttachment::ModDestAttachment(int id) : destID(id) {}
+
+void ModDestAttachment::parentHierarchyChanged() {
+  auto* context = findParentComponentOfClass<ModContextComponent>();
+  if (context != nullptr) {
+    context->addDestListener(this);
+    isAttached = true;
+  }
 }
+
 //===================================================
 
 ModContextComponent::ModContextComponent(ElectrumState* mainTree)

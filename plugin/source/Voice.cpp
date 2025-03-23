@@ -245,3 +245,16 @@ void ElectrumVoice::renderNextSample(float& left,
     startNote(queuedNote, queuedVelocity);
   }
 }
+
+void ElectrumVoice::updateGraphData(GraphingData* gd) {
+  // oscillators
+  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    const float latestPos = std::clamp(
+        audioState->wOsc[i].getPos() + oscModState[i].posMod, 0.0f, 1.0f);
+    gd->updateOscPos(i, latestPos);
+  }
+  // envelopes
+  for (int i = 0; i < NUM_ENVELOPES; ++i) {
+    gd->updateEnvLevel(i, envs[i]->getCurrentSample());
+  }
+}
