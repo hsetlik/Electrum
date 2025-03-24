@@ -29,6 +29,8 @@ enum ModDestE {
 
 #define MOD_DESTS 15
 
+String _paramIDForModDest(int destID);
+
 typedef std::array<std::array<float, MOD_DESTS>, MOD_SOURCES> depth_array_t;
 typedef std::array<std::array<bool, MOD_DESTS>, MOD_SOURCES> toggle_array_t;
 

@@ -62,6 +62,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/LookAndFeel/Color.h
 				source/ElectrumLnF.cpp
 				${INCLUDE_DIR}/GUI/LookAndFeel/ElectrumLnF.h
+				source/DepthSliderStack.cpp
+				${INCLUDE_DIR}/GUI/Modulation/DepthSliderStack.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

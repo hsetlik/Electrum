@@ -101,7 +101,7 @@ static std::array<String, MOD_DESTS> _getModDestParamIDs() {
   return arr;
 }
 
-static String _paramIDForModDest(int destID) {
+String _paramIDForModDest(int destID) {
   static std::array<String, MOD_DESTS> destIDs = _getModDestParamIDs();
   return destIDs[(size_t)destID];
 }

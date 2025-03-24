@@ -45,9 +45,7 @@ public:
     juce::ignoreUnused(src, depth);
   }
   virtual void sourceRemoved(int src) { juce::ignoreUnused(src); }
-  virtual void reinit(std::vector<mod_src_t>& sources) {
-    juce::ignoreUnused(sources);
-  }
+  virtual void reinit() {}
   void parentHierarchyChanged() override;
 
 protected:

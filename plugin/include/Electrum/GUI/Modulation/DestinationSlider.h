@@ -1,79 +1,32 @@
 #pragma once
-#include "Electrum/GUI/Modulation/WedgeButton.h"
+#include "DepthSliderStack.h"
+#include "Electrum/GUI/Modulation/ModContextComponent.h"
+#include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
-#include "ModContextComponent.h"
-class DepthSliderLookAndFeel : public juce::LookAndFeel_V4 {
-public:
-  void drawRotarySlider(juce::Graphics& g,
-                        int x,
-                        int y,
-                        int width,
-                        int height,
-                        float sliderPosProportional,
-                        float rotaryStartAngle,
-                        float rotaryEndAngle,
-                        juce::Slider& s) override;
-};
+#include "juce_gui_basics/juce_gui_basics.h"
 
-class DepthSlider : public juce::Slider {
+class DestinationSlider : public ModDestAttachment,
+                          public juce::DragAndDropTarget {
 private:
-  DepthSliderLookAndFeel lnf;
-
-public:
-  const int sourceID;
-  DepthSlider(int src);
-  ~DepthSlider() override;
-};
-
-//==================================================================
-class ModSelectButton : public WedgeButton {
-private:
-  int* selectedSrc;
-  int index;
-
-public:
-  const int srcID;
-  ModSelectButton(int* sel, int idx, int source);
-  ~ModSelectButton() override;
-  void paintButton(juce::Graphics& g, bool over, bool highlighted) override;
-  int getIndex() { return index; }
-  void setIndex(int i) { index = i; }
-};
-
-class ModCloseButton : public WedgeButton {
-public:
-  ModCloseButton() : WedgeButton("closeBtn") {}
-  void paintButton(juce::Graphics& g, bool over, bool highlighted) override;
-};
-
-class DepthSliderStack : public juce::Component, juce::Slider::Listener {
-private:
-  juce::OwnedArray<DepthSlider> sliders;
-  juce::OwnedArray<ModSelectButton> selectButtons;
-  ModCloseButton closeButton;
-  int selectedSrc = -1;
   ElectrumState* const state;
-  DepthSlider* selectedSlider = nullptr;
-  // checks whether the state of this component is in line
-  // with the master state ValueTree
-  bool _trySimpleConform();
-  void _setSliderForSrc(int src, float value);
-  void _reindexButtons();
-  void _setSelectedDepthSlider(int srcID);
-  void _selectSource(int src);
-  // helper helpers
-  DepthSlider* _sliderForSrc(int src);
-  ModSelectButton* _btnForSource(int src);
+  juce::Slider slider;
+  slider_attach_ptr attach;
 
 public:
-  const int destID;
-  DepthSliderStack(ElectrumState* s, int dest);
-  // the drag & drop interface interacts with these
-  bool hasComponentsForSrc(int src);
-  void addModulation(int src);
-  void removeModulation(int src);
-  void sliderValueChanged(juce::Slider* s) override;
+  DepthSliderStack depthSliders;
+  DestinationSlider(ElectrumState* s, int dest);
+  void reinit() override;
   void resized() override;
-  void reinitFromState();
+  void paint(juce::Graphics& g) override;
+  void itemDropped(
+      const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) override;
+  void itemDragEnter(const juce::DragAndDropTarget::SourceDetails&) override {}
+  void itemDragExit(const juce::DragAndDropTarget::SourceDetails&) override {}
+  void itemDragMove(const juce::DragAndDropTarget::SourceDetails&) override {}
+
+  bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails&
+                                    dragSourceDetails) override {
+    int srcID = dragSourceDetails.description;
+    return !depthSliders.hasComponentsForSrc(srcID);
+  }
 };
-//==================================================================
