@@ -58,6 +58,10 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/Modulation/DestinationSlider.h
 				source/WedgeButton.cpp
 				${INCLUDE_DIR}/GUI/Modulation/WedgeButton.h
+				source/Color.cpp
+				${INCLUDE_DIR}/GUI/LookAndFeel/Color.h
+				source/ElectrumLnF.cpp
+				${INCLUDE_DIR}/GUI/LookAndFeel/ElectrumLnF.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

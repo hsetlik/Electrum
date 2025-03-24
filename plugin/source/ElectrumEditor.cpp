@@ -8,7 +8,13 @@ ElectrumEditor::ElectrumEditor(ElectrumState* s,
       state(s),
       processor(p),
       kbdView(p->engine.masterKeyboardState) {
+  // set the lookandfeel before adding child components
+  setLookAndFeel(&lnf);
   addAndMakeVisible(&kbdView);
+}
+
+ElectrumEditor::~ElectrumEditor() {
+  setLookAndFeel(nullptr);
 }
 
 void ElectrumEditor::resized() {
