@@ -1,6 +1,30 @@
 cmake_minimum_required(VERSION 3.22)
 # Version is needed by JUCE.
 project(Electrum VERSION 0.1.0)
+
+#before we set up the plugin targets, we'll set up a static lib
+# with our font files
+
+# font files
+set(FONTFILES
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/RobotoMediumItalic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/HelveticaNeueRegular.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/HelveticaNeueMedium.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaBoldOblique.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaMediumOblique.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaLightCondensed.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/AcierDisplayNoir.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/Futura.ttf")
+
+juce_add_binary_data(
+  fontBinaries
+  HEADER_NAME
+  "FontData.h"
+  NAMESPACE
+  "FontData"
+  SOURCES
+  "${FONTFILES}")
+
 # Adding a directory with the library/application name as a subfolder of the
 # include folder is a good practice. It helps avoid name clashes later on.
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/Electrum")
@@ -64,6 +88,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/LookAndFeel/ElectrumLnF.h
 				source/DepthSliderStack.cpp
 				${INCLUDE_DIR}/GUI/Modulation/DepthSliderStack.h
+				source/Fonts.cpp
+				${INCLUDE_DIR}/GUI/LookAndFeel/Fonts.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
@@ -83,6 +109,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         juce::juce_audio_utils
     PUBLIC
+    fontBinaries
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags

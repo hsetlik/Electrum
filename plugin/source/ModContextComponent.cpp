@@ -86,7 +86,6 @@ void ModContextComponent::valueTreeRedirected(ValueTree& changed) {
   auto modTree = changed.getChildWithName(ID::ELECTRUM_MOD_TREE);
   jassert(modTree.isValid());
   for (auto* l : dListeners) {
-    auto sources = modsForDest(modTree, l->destID);
-    l->reinit(sources);
+    l->reinit();
   }
 }
