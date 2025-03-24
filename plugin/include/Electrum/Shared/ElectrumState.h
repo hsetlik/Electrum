@@ -79,6 +79,12 @@ public:
   // our components should call these
   void setModulation(int src, int dest, float depth);
   void removeModulation(int src, int dest);
+  // these are helpful for components to check if they're
+  // up to date
+  bool modulationExists(int src, int dest);
+  float modulationDepth(int src, int dest);
+
+  //-----------------------------------------------
   bool getSustainPedal() const { return sustainPedal; }
   void setSustainPedal(bool pedalDown) { sustainPedal = pedalDown; }
   void setModWheel(float val) { modWheelValue = val; }

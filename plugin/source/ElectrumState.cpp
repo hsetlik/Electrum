@@ -161,3 +161,22 @@ void ElectrumState::removeModulation(int src, int dest) {
   jassert(child.isValid());
   modTree.removeChild(child, undoManager);
 }
+
+bool ElectrumState::modulationExists(int src, int dest) {
+  auto modTree = getModulationTree();
+  for (auto it = modTree.begin(); it != modTree.end(); ++it) {
+    auto mod = *it;
+    const int _src = mod[ID::modSourceID];
+    const int _dest = mod[ID::modDestID];
+    if (_src == src && _dest == dest)
+      return true;
+  }
+  return false;
+}
+
+float ElectrumState::modulationDepth(int src, int dest) {
+  auto modTree = getModulationTree();
+  auto mod = findTreeForRouting(modTree, src, dest);
+  jassert(mod.isValid());
+  return (float)mod[ID::modDepth];
+}
