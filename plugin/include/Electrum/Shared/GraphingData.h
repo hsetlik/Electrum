@@ -20,7 +20,9 @@ public:
   int top() const { return data[(size_t)head].load(); }
   void pop() { head--; }
   void push(int val) {
-    jassert(head < 32 - 1);
+    if (head == 32) {
+      head = 0;
+    }
     data[(size_t)++head] = val;
   }
 };

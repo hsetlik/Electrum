@@ -2,6 +2,7 @@
 
 #include "Electrum/GUI/KeyboardView.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
+#include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/PluginProcessor.h"
 #include "Modulation/ModContextComponent.h"
 #include "juce_audio_basics/juce_audio_basics.h"
@@ -14,6 +15,8 @@ private:
   ElectrumLnF lnf;
   // keyboard stuff
   KeyboardView kbdView;
+  // Oscillator views
+  juce::OwnedArray<OscillatorPanel> oscs;
 
 public:
   ElectrumEditor(ElectrumState* s, audio_plugin::ElectrumAudioProcessor* p);

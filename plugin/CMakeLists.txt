@@ -90,6 +90,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/Modulation/DepthSliderStack.h
 				source/Fonts.cpp
 				${INCLUDE_DIR}/GUI/LookAndFeel/Fonts.h
+				source/LayoutHelpers.cpp
+				${INCLUDE_DIR}/GUI/LayoutHelpers.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

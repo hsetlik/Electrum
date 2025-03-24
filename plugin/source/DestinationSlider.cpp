@@ -10,6 +10,7 @@ DestinationSlider::DestinationSlider(ElectrumState* s, int d)
   addAndMakeVisible(&slider);
   addAndMakeVisible(&depthSliders);
   String id = _paramIDForModDest(destID);
+  DLog::log("Attempting to attach to param: " + id);
   // deal w the slider attachment
   attach.reset(new apvts::SliderAttachment(*state, id, slider));
 }

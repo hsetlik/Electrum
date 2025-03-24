@@ -201,6 +201,16 @@ DepthSlider* DepthSliderStack::_sliderForSrc(int src) {
   return nullptr;
 }
 
+ModSelectButton* DepthSliderStack::_btnForSource(int src) {
+  for (auto* b : selectButtons) {
+    if (b->srcID == src) {
+      return b;
+    }
+  }
+  jassert(false);
+  return nullptr;
+}
+
 //-------------------------------------------------------
 void DepthSliderStack::addModulation(int src) {
   // 1. if this is the first modulation we need to turn the close button on

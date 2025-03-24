@@ -10,6 +10,7 @@
  * */
 #include <juce_core/juce_core.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "juce_graphics/juce_graphics.h"
 // typedefs bc some of these types are a mouthful
 typedef juce::AudioProcessorValueTreeState apvts;
 typedef std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
@@ -17,6 +18,9 @@ typedef std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
 typedef std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>
     combo_attach_ptr;
 typedef juce::NormalisableRange<float> frange_t;
+
+typedef juce::Rectangle<float> frect_t;
+typedef juce::Rectangle<int> irect_t;
 
 // very helpful
 inline frange_t rangeWithCenter(float min, float max, float center) {

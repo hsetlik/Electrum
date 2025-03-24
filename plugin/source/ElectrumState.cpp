@@ -79,7 +79,7 @@ static std::array<String, MOD_DESTS> _getModDestParamIDs() {
   int oscIdx = 0;
   while (modDest < MOD_DESTS) {
     if (modDest <= ModDestE::osc3Pos) {
-      String iStr(oscIdx + 1);
+      String iStr(oscIdx);
       String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
       arr[modDest] = coarseID;
       ++modDest;
