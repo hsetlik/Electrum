@@ -4,6 +4,7 @@
  * */
 #include <limits>
 #include "Identifiers.h"
+
 constexpr float twoPi_f = juce::MathConstants<float>::twoPi;
 
 namespace DLog {

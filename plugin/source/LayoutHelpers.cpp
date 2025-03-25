@@ -19,5 +19,28 @@ fgrid_t divideInto(frect_t limits, int numColumns, int numRows) {
   }
   return grid;
 }
+
+frect_t leaveRoomAbove(const frect_t& limits, juce::TextLayout& text) {
+  jassert(text.getHeight() < limits.getHeight());
+  const float dY = text.getHeight();
+  return {limits.getX(), limits.getY() + dY, limits.getWidth(),
+          limits.getHeight() - dY};
+}
+
+frect_t makeSquare(const frect_t& rect, bool keepXCenter, bool keepYCenter) {
+  float x = rect.getX();
+  float y = rect.getY();
+  const float sideLength = std::min(rect.getHeight(), rect.getWidth());
+  if (keepXCenter) {
+    const float xCenter = x + (rect.getWidth() / 2.0f);
+    x = xCenter - (sideLength / 2.0f);
+  }
+  if (keepYCenter) {
+    const float yCenter = y + (rect.getHeight() / 2.0f);
+    y = yCenter - (sideLength / 2.0f);
+  }
+  return {x, y, sideLength, sideLength};
+}
+
 }  // namespace Layout
 //===================================================

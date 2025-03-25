@@ -5,4 +5,6 @@
 class ElectrumLnF : public juce::LookAndFeel_V4 {
 public:
   ElectrumLnF();
+  // overrides for our various drawing methods--------------------
+  //--------------------------------------------------------------
 };

@@ -1,4 +1,5 @@
 #include "Electrum/GUI/Modulation/ModSourceComponent.h"
+#include "Electrum/GUI/LayoutHelpers.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_core/juce_core.h"
@@ -34,6 +35,7 @@ ModSourceComponent::ModSourceComponent(ElectrumState* s, int src)
 
 void ModSourceComponent::paint(juce::Graphics& g) {
   auto fBounds = getLocalBounds().toFloat();
+  fBounds = Layout::makeSquare(fBounds, true);
   g.setColour(Color::getModSourceColor((ModSourceE)sourceID));
   g.fillEllipse(fBounds);
   g.setColour(Color::black);
@@ -42,6 +44,12 @@ void ModSourceComponent::paint(juce::Graphics& g) {
 
 void ModSourceComponent::mouseDown(const juce::MouseEvent& e) {
   juce::ignoreUnused(e);
-  juce::DragAndDropContainer::findParentDragContainerFor(this)->startDragging(
-      sourceID, this);
+  auto* dragContainer =
+      juce::DragAndDropContainer::findParentDragContainerFor(this);
+  if (dragContainer != nullptr) {
+    dragContainer->startDragging(sourceID, this);
+    return;
+  }
+  DLog::log("No valid DragAndDropContainer found!");
+  jassert(false);
 }

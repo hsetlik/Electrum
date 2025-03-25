@@ -10,10 +10,12 @@ ElectrumEditor::ElectrumEditor(ElectrumState* s,
     : ModContextComponent(s),
       state(s),
       processor(p),
-      kbdView(p->engine.masterKeyboardState) {
+      kbdView(p->engine.masterKeyboardState),
+      macroPanel(s) {
   // set the lookandfeel before adding child components
   setLookAndFeel(&lnf);
   addAndMakeVisible(&kbdView);
+  addAndMakeVisible(&macroPanel);
   // add the oscs
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     auto* osc = oscs.add(new OscillatorPanel(state, i));
@@ -31,8 +33,9 @@ void ElectrumEditor::resized() {
   const int oscPanelHeight = std::min(iBounds.getHeight(), 500);
   const int leftPanelWidth = std::min(iBounds.getWidth() / 5, 400);
   auto leftPanel = iBounds.removeFromLeft(leftPanelWidth);
-  // whatever we decide to put on the left eventually
-  juce::ignoreUnused(leftPanel);
+  const int macroPanelHeight = std::max(leftPanel.getHeight() / 7, 110);
+  macroPanel.setBounds(leftPanel.removeFromTop(macroPanelHeight));
+
   auto fOscArea = iBounds.removeFromTop(oscPanelHeight).toFloat();
   const float fOscWidth = fOscArea.getWidth() / 3.0f;
   for (auto* o : oscs) {

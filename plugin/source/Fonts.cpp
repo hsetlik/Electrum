@@ -1,5 +1,7 @@
 #include "ELectrum/GUI/LookAndFeel/Fonts.h"
+#include "Electrum/Common.h"
 #include "FontData.h"
+#include "juce_core/system/juce_PlatformDefs.h"
 #include "juce_graphics/juce_graphics.h"
 static typeface_ptr _ptrForEFont(FontE id) {
   switch (id) {
@@ -20,20 +22,11 @@ static typeface_ptr _ptrForEFont(FontE id) {
           FontData::FuturaLightCondensed_otf,
           FontData::FuturaLightCondensed_otfSize);
       break;
-    case FontE::FuturaMO:
-      return juce::Typeface::createSystemTypefaceFor(
-          FontData::FuturaMediumOblique_otf,
-          FontData::FuturaLightCondensed_otfSize);
+      // case FontE::FuturaMO:
+      //   return juce::Typeface::createSystemTypefaceFor(
+      //       FontData::FuturaMediumOblique_otf,
+      //       FontData::FuturaLightCondensed_otfSize);
       break;
-    case FontE::HelveticaReg:
-      return juce::Typeface::createSystemTypefaceFor(
-          FontData::HelveticaNeueRegular_otf,
-          FontData::HelveticaNeueRegular_otfSize);
-      break;
-    case FontE::HelveticaMed:
-      return juce::Typeface::createSystemTypefaceFor(
-          FontData::HelveticaNeueMedium_otf,
-          FontData::HelveticaNeueMedium_otfSize);
       break;
     case FontE::RobotoMI:
       return juce::Typeface::createSystemTypefaceFor(
@@ -42,26 +35,61 @@ static typeface_ptr _ptrForEFont(FontE id) {
       break;
     default:
       return juce::Typeface::createSystemTypefaceFor(
-          FontData::HelveticaNeueRegular_otf,
-          FontData::HelveticaNeueRegular_otfSize);
+          FontData::FuturaLightCondensed_otf,
+          FontData::FuturaLightCondensed_otfSize);
       break;
   }
 }
 
-static std::array<juce::FontOptions, NUM_BINARY_FONTS> _genFontOptions() {
-  std::array<juce::FontOptions, NUM_BINARY_FONTS> arr;
-  for (size_t i = 0; i < NUM_BINARY_FONTS; ++i) {
-    arr[i] = juce::FontOptions(_ptrForEFont((FontE)i));
+static std::vector<juce::Font> _generateBinaryFonts() {
+  std::vector<juce::Font> vec = {};
+  for (int i = 0; i < NUM_BINARY_FONTS; ++i) {
+    DLog::log("Attempting to get system typeface for font " +
+              FontData::getFontName(i));
+    auto ptr = _ptrForEFont((FontE)i);
+    DLog::log("Got typeface pointer");
+    auto opts = juce::FontOptions(ptr);
+    vec.push_back(juce::Font(opts));
+    DLog::log("Created juce::Font object");
   }
-  return arr;
+  return vec;
 }
+
 //===================================================
 namespace FontData {
 
-static std::array<juce::FontOptions, NUM_BINARY_FONTS> opts = _genFontOptions();
+juce::String getFontName(int idx) {
+  FontE id = (FontE)idx;
+  switch (id) {
+    case AcierDN:
+      return "Acier Display Noir";
+      break;
+    case FuturaReg:
+      return "Futura Regular";
+      break;
+    case FuturaBO:
+      return "Futura Bold Oblique";
+      break;
+    case FuturaLC:
+      return "Futura Light Condensed";
+      break;
+    // case FuturaMO:
+    //   return "Futura Medium Oblique";
+    //   break;
+    case RobotoMI:
+      return "Roboto Medium Italic";
+      break;
+  }
+  return "null";
+}
+
 juce::Font getFontWithHeight(FontE id, float height) {
-  auto opt = opts[(size_t)id].withHeight(height);
-  return juce::Font(opt);
+  static std::vector<juce::Font> binFonts = _generateBinaryFonts();
+  size_t idx = (size_t)id;
+  if (idx < binFonts.size()) {
+    return binFonts[idx].withHeight(height);
+  }
+  jassert(false);
+  return juce::Font(juce::FontOptions());
 }
 }  // namespace FontData
-
