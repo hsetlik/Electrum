@@ -12,6 +12,7 @@ String stringEncodeWave(float* wave) {
 }
 void stringDecodeWave(const String& str, float* dest) {
   juce::MemoryBlock mb(tableBytes, true);
+  // trim the end
   if (!mb.fromBase64Encoding(str)) {
     DLog::log("Failed to decode string to memory block!");
   }
@@ -19,8 +20,23 @@ void stringDecodeWave(const String& str, float* dest) {
 }
 
 //======================================================================
+namespace Wave {
+void randomizePhases(std::complex<float>* freqDomain,
+                     int numBins,
+                     size_t seed) {
+  juce::Random rand((juce::int64)seed);
+  for (int i = 0; i < numBins; ++i) {
+    // magnitude of each freq bin = absolute value of s-plane
+    const float magnitude = std::abs(freqDomain[i]);
+    const float phase = rand.nextFloat() * juce::MathConstants<float>::twoPi;
+    // back to s-plane via std::polar
+    freqDomain[i] = std::polar(magnitude, phase);
+  }
+}
+}  // namespace Wave
+//======================================================================
 
-BandLimitedWave::BandLimitedWave(float* firstWave) : fftProc(fftOrder) {
+BandLimitedWave::BandLimitedWave(float* firstWave) : fftProc(WAVE_FFT_ORDER) {
   // we need an array of 2X table size to hold the complex output
   // of the FFT
   float complex[2 * TABLE_SIZE];
@@ -85,6 +101,11 @@ float BandLimitedWave::_makeTableComplex(float* raw,
                                          int tablesAdded) {
   data[(size_t)tablesAdded].maxPhaseDelt = freqHi;
   data[(size_t)tablesAdded].minPhaseDelt = freqLo;
+  // randomize phases
+#ifdef ALWAYS_RANDOMIZE_PHASES
+  auto* comp = reinterpret_cast<std::complex<float>*>(raw);
+  Wave::randomizePhases(comp);
+#endif
   // inverse FFT back to time domain
   fftProc.performRealOnlyInverseTransform(raw);
   if (fequal(scale, 0.0f)) {

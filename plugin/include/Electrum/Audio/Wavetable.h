@@ -6,6 +6,11 @@
 
 #define TABLE_SIZE 2048
 #define WAVES_PER_TABLE 10
+// the fft operates on 2^order number of
+// points, so for our 2048 point tables
+// the order is 11
+#define WAVE_FFT_ORDER 11
+#define ALWAYS_RANDOMIZE_PHASES
 
 // helpers for string/wave conversion
 String stringEncodeWave(float* wave);
@@ -19,16 +24,20 @@ struct banded_wave_t {
   float minPhaseDelt = 0.0f;
   float wave[TABLE_SIZE];
 };
+
+// transforms and utilities full-spectrum waves---------------------------
+namespace Wave {
+void randomizePhases(std::complex<float>* freqDomain,
+                     int numBins = TABLE_SIZE,
+                     size_t seed = 56392);
+}
+//------------------------------------------------------------------------
 // this guy handles the band-limiting
 // on initialization and is accessed
 // via pointer by the rest of our
 // oscillator code
 class BandLimitedWave {
 private:
-  // the fft operates on 2^order number of
-  // points, so for our 2048 point tables
-  // the order is 11
-  static const int fftOrder = 11;
   std::array<banded_wave_t, WAVES_PER_TABLE> data;
   juce::dsp::FFT fftProc;
   void _initTablesComplex(float* data);
