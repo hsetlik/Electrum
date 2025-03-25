@@ -126,7 +126,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     float* rSample = audioBuf.getWritePointer(1);
     for (int i = 0; i < audioBuf.getNumSamples(); ++i) {
       // process any midi events for this sample
-      while (!midiQueue.empty() && midiQueue.front().timestamp == i) {
+      while (!midiQueue.empty() && midiQueue.front().timestamp <= i) {
         handleMidiMessage(midiQueue.front().message);
         midiQueue.pop();
       }

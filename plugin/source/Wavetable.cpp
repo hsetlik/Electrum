@@ -5,6 +5,7 @@
 #include "juce_core/juce_core.h"
 
 constexpr size_t tableBytes = TABLE_SIZE * sizeof(float);
+
 String stringEncodeWave(float* wave) {
   juce::MemoryBlock mb(tableBytes, true);
   mb.copyFrom(wave, 0, tableBytes);
@@ -19,6 +20,7 @@ void stringDecodeWave(const String& str, float* dest) {
   mb.copyTo(dest, 0, tableBytes);
 }
 
+// let's see if parsing it as UTF-8
 //======================================================================
 namespace Wave {
 void randomizePhases(std::complex<float>* freqDomain,

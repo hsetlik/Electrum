@@ -5,13 +5,13 @@
 DestinationSlider::DestinationSlider(ElectrumState* s, int d)
     : ModDestAttachment(d),
       state(s),
-      slider(juce::Slider::Rotary, juce::Slider::NoTextBox),
+      slider(juce::Slider::Rotary, juce::Slider::TextBoxBelow),
       depthSliders(s, d) {
   addAndMakeVisible(&slider);
   addAndMakeVisible(&depthSliders);
   String id = _paramIDForModDest(destID);
-  DLog::log("Attempting to attach to param: " + id);
-  // deal w the slider attachment
+  // DLog::log("Attempting to attach to param: " + id);
+  //  deal w the slider attachment
   attach.reset(new apvts::SliderAttachment(*state, id, slider));
 }
 
