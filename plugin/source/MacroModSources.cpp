@@ -8,7 +8,7 @@ constexpr float _labelHeight = 18.0f;
 
 static juce::AttributedString _getModWheelAString() {
   juce::AttributedString aStr("Mod wheel");
-  auto font = FontData::getFontWithHeight(FontE::FuturaLC, 15.0f);
+  auto font = FontData::getFontWithHeight(FontE::HelveticaMed, 15.0f);
   aStr.setFont(font);
   aStr.setJustification(juce::Justification::centred);
   aStr.setColour(Color::gainsboro);
@@ -17,15 +17,15 @@ static juce::AttributedString _getModWheelAString() {
 
 static juce::AttributedString _getVelocityAString() {
   juce::AttributedString aStr("Velocity");
-  auto font = FontData::getFontWithHeight(FontE::FuturaLC, 15.0f);
+  auto font = FontData::getFontWithHeight(FontE::HelveticaMed, 15.0f);
   aStr.setFont(font);
-  aStr.setJustification(juce::Justification::centred);
+  aStr.setJustification(juce::Justification::verticallyCentred);
   aStr.setColour(Color::gainsboro);
   return aStr;
 }
 
 //===================================================
-constexpr float _maxSrcWidth = 40.0f;
+constexpr float _maxSrcWidth = 120.0f;
 MacroModSources::MacroModSources(ElectrumState* s)
     : modWheelSrc(s, (int)ModSourceE::ModWheel),
       velocitySrc(s, (int)ModSourceE::Velocity) {
@@ -44,10 +44,11 @@ void MacroModSources::resized() {
   velocityLabel.createLayout(_getVelocityAString(), srcWidth, _labelHeight);
   auto modBounds = fBounds.removeFromLeft(srcWidth);
   modBounds.removeFromTop(_labelHeight);
-  modWheelSrc.setBounds(modBounds.toNearestInt());
+
+  modWheelSrc.placeCenteredAtMaxSize(modBounds.toNearestInt());
   auto velBounds = fBounds.removeFromLeft(srcWidth);
   velBounds.removeFromTop(_labelHeight);
-  velocitySrc.setBounds(velBounds.toNearestInt());
+  velocitySrc.placeCenteredAtMaxSize(velBounds.toNearestInt());
 }
 
 void MacroModSources::paint(juce::Graphics& g) {

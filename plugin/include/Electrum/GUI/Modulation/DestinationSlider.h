@@ -27,6 +27,7 @@ public:
   bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails&
                                     dragSourceDetails) override {
     int srcID = dragSourceDetails.description;
+    // DLog::log("Asked about drag source with ID: " + String(srcID));
     return !depthSliders.hasComponentsForSrc(srcID);
   }
 };

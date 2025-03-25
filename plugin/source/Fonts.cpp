@@ -22,16 +22,26 @@ static typeface_ptr _ptrForEFont(FontE id) {
           FontData::FuturaLightCondensed_otf,
           FontData::FuturaLightCondensed_otfSize);
       break;
-      // case FontE::FuturaMO:
-      //   return juce::Typeface::createSystemTypefaceFor(
-      //       FontData::FuturaMediumOblique_otf,
-      //       FontData::FuturaLightCondensed_otfSize);
+    case FontE::FuturaMO:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::FuturaMediumOblique_otf,
+          FontData::FuturaMediumOblique_otfSize);
       break;
       break;
     case FontE::RobotoMI:
       return juce::Typeface::createSystemTypefaceFor(
           FontData::RobotoMediumItalic_ttf,
           FontData::RobotoMediumItalic_ttfSize);
+      break;
+    case FontE::HelveticaMed:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::HelveticaNeueMedium_otf,
+          FontData::HelveticaNeueMedium_otfSize);
+      break;
+    case FontE::HelveticaReg:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::HelveticaNeueRegular_otf,
+          FontData::HelveticaNeueRegular_otfSize);
       break;
     default:
       return juce::Typeface::createSystemTypefaceFor(
@@ -44,13 +54,11 @@ static typeface_ptr _ptrForEFont(FontE id) {
 static std::vector<juce::Font> _generateBinaryFonts() {
   std::vector<juce::Font> vec = {};
   for (int i = 0; i < NUM_BINARY_FONTS; ++i) {
-    DLog::log("Attempting to get system typeface for font " +
-              FontData::getFontName(i));
     auto ptr = _ptrForEFont((FontE)i);
-    DLog::log("Got typeface pointer");
+    // DLog::log("Got typeface pointer");
     auto opts = juce::FontOptions(ptr);
     vec.push_back(juce::Font(opts));
-    DLog::log("Created juce::Font object");
+    // DLog::log("Created juce::Font object");
   }
   return vec;
 }
@@ -73,9 +81,15 @@ juce::String getFontName(int idx) {
     case FuturaLC:
       return "Futura Light Condensed";
       break;
-    // case FuturaMO:
-    //   return "Futura Medium Oblique";
-    //   break;
+    case FuturaMO:
+      return "Futura Medium Oblique";
+      break;
+    case HelveticaReg:
+      return "Helvetica Neue Regular";
+      break;
+    case HelveticaMed:
+      return "Helvetica Neue Medium";
+      break;
     case RobotoMI:
       return "Roboto Medium Italic";
       break;

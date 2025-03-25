@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
@@ -14,6 +15,8 @@ private:
 public:
   const int sourceID;
   ModSourceComponent(ElectrumState* s, int src);
+  // resizing helpers
+  void placeCenteredAtMaxSize(irect_t bounds);
   void paint(juce::Graphics& g) override;
   void mouseDown(const juce::MouseEvent& e) override;
 };

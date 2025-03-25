@@ -1,6 +1,7 @@
 #include "Electrum/GUI/Modulation/ModSourceComponent.h"
 #include "Electrum/GUI/LayoutHelpers.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
+#include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_core/juce_core.h"
 static String _tooltipForModSource(ModSourceE id) {
@@ -40,6 +41,17 @@ void ModSourceComponent::paint(juce::Graphics& g) {
   g.fillEllipse(fBounds);
   g.setColour(Color::black);
   g.fillEllipse(fBounds.reduced(3.0f));
+}
+
+constexpr float _maxSourceWidth = 35.0f;
+void ModSourceComponent::placeCenteredAtMaxSize(irect_t bounds) {
+  auto fBounds = bounds.toFloat();
+  const float width = std::min(_maxSourceWidth, fBounds.getWidth());
+  const float xCenter = fBounds.getCentreX();
+  const float yCenter = fBounds.getCentreY();
+  frect_t squareBounds = {xCenter - (width / 2.0f), yCenter - (width / 2.0f),
+                          width, width};
+  setBounds(squareBounds.toNearestInt());
 }
 
 void ModSourceComponent::mouseDown(const juce::MouseEvent& e) {

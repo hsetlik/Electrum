@@ -18,7 +18,10 @@ DestinationSlider::DestinationSlider(ElectrumState* s, int d)
 void DestinationSlider::itemDropped(
     const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) {
   const int src = dragSourceDetails.description;
+  // DLog::log("Source " + String(src) + " was dropped on dest " +
+  // String(destID));
   depthSliders.addModulation(src);
+  repaint();
 }
 
 void DestinationSlider::resized() {

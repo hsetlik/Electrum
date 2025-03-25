@@ -152,8 +152,10 @@ bool DepthSliderStack::_trySimpleConform() {
 
 bool DepthSliderStack::hasComponentsForSrc(int src) {
   for (auto* selBtn : selectButtons) {
-    if (selBtn->srcID == src)
+    if (selBtn->srcID == src) {
+      DLog::log("DSS already has modulation from source " + String(src));
       return true;
+    }
   }
   return false;
 }
@@ -173,6 +175,7 @@ void DepthSliderStack::_reindexButtons() {
 void DepthSliderStack::_selectSource(int src) {
   selectedSrc = src;
   _setSelectedDepthSlider(src);
+  resized();
   repaint();
 }
 
@@ -185,6 +188,7 @@ void DepthSliderStack::_setSelectedDepthSlider(int srcID) {
       selectedSlider = s;
       s->setVisible(true);
       s->setEnabled(true);
+      s->toFront(false);
     } else {
       s->setVisible(false);
       s->setEnabled(false);

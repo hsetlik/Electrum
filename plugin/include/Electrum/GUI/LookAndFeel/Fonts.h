@@ -3,9 +3,18 @@
 #include "juce_graphics/juce_graphics.h"
 typedef juce::Typeface::Ptr typeface_ptr;
 // each of the fonts we've bundled in the binary
-enum FontE { AcierDN, FuturaReg, FuturaBO, FuturaLC, RobotoMI };
+enum FontE {
+  AcierDN,
+  FuturaReg,
+  FuturaBO,
+  FuturaMO,
+  FuturaLC,
+  HelveticaMed,
+  HelveticaReg,
+  RobotoMI
+};
 
-#define NUM_BINARY_FONTS 5
+#define NUM_BINARY_FONTS 8
 namespace FontData {
 
 juce::String getFontName(int idx);

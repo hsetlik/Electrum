@@ -10,7 +10,13 @@ ElectrumProcessorEditor::ElectrumProcessorEditor(ElectrumAudioProcessor& p)
   // Make sure that before the constructor has finished, you've set the
   // editor's size to whatever you need it to be.
   addAndMakeVisible(ed);
-  setSize(1800, 1200);
+  // we'll figure out the editor's size based
+  // on the size of the area that the host/OS is
+  // allowing us to use
+  auto* constrainer = getConstrainer();
+  const int edWidth = std::min(constrainer->getMaximumWidth(), 1600);
+  const int edHeight = std::min(constrainer->getMaximumHeight(), 1200);
+  setSize(edWidth, edHeight);
 }
 
 ElectrumProcessorEditor::~ElectrumProcessorEditor() {}
