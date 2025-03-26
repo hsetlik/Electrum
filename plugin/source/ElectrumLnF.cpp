@@ -47,5 +47,48 @@ static LnFColorScheme _getNightflyScheme() {
   return scheme;
 }
 
-ElectrumLnF::ElectrumLnF() : juce::LookAndFeel_V4(_getNightflyScheme()) {}
 //===================================================
+
+ElectrumLnF::ElectrumLnF() : juce::LookAndFeel_V4(_getNightflyScheme()) {}
+
+void ElectrumLnF::drawRotarySlider(juce::Graphics& g,
+                                   int x,
+                                   int y,
+                                   int width,
+                                   int height,
+                                   float sliderPosProportional,
+                                   float rotaryStartAngle,
+                                   float rotaryEndAngle,
+                                   juce::Slider& slider) {
+  const color_t trackLeft =
+      slider.findColour(juce::Slider::rotarySliderOutlineColourId);
+  const color_t trackRight =
+      slider.findColour(juce::Slider::rotarySliderFillColourId);
+  auto fBounds =
+      juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);
+  const float thumbAngle =
+      flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
+  const float diameter = std::min(fBounds.getHeight(), fBounds.getWidth());
+  const float outerRadius = diameter / 2.0f;
+  const float innerRadius = outerRadius * 0.85f;
+  // 1. draw the path for the  left half of the
+  // slider track
+  juce::Path tLeft;
+  tLeft.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), outerRadius,
+                      outerRadius, 0.0f, thumbAngle, rotaryStartAngle, true);
+  tLeft.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), innerRadius,
+                      innerRadius, 0.0f, rotaryStartAngle, thumbAngle, false);
+
+  tLeft.closeSubPath();
+  g.setColour(trackLeft);
+  g.fillPath(tLeft);
+  // 2. same idea for the right half
+  juce::Path tRight;
+  tRight.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), outerRadius,
+                       outerRadius, 0.0f, thumbAngle, rotaryEndAngle, true);
+  tRight.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), innerRadius,
+                       innerRadius, 0.0f, rotaryEndAngle, thumbAngle, false);
+  tRight.closeSubPath();
+  g.setColour(trackRight);
+  g.fillPath(tRight);
+}
