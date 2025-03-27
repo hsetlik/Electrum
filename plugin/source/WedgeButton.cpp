@@ -1,4 +1,5 @@
 #include "Electrum/GUI/Modulation/WedgeButton.h"
+#include "juce_core/juce_core.h"
 
 juce::Path WedgeButton::getWedgePath(float x0,
                                      float y0,
@@ -10,6 +11,10 @@ juce::Path WedgeButton::getWedgePath(float x0,
                                      float offsetY) {
   juce::Point<float> center(x0, y0);
 
+  // these juce::Point methods treat 0 radians as 12 o'clock
+  // for some reason so I offset both by pi/2 here
+  startRads += juce::MathConstants<float>::halfPi;
+  endRads += juce::MathConstants<float>::halfPi;
   // start & end of the inner arc
   juce::Point<float> start1 = center.getPointOnCircumference(r1, startRads);
   juce::Point<float> end1 = center.getPointOnCircumference(r1, endRads);

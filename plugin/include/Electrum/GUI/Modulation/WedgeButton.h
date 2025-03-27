@@ -34,6 +34,10 @@ public:
   void setInnerRadius(float r) { r1 = r; }
   void setOuterRadius(float r) { r2 = r; }
 
+  //-----
+  float getStartAngle() const { return a1; }
+  float getEndAngle() const { return a2; }
+
   // call this in the parent's resize method
   void centerOn(Component* parent);
 

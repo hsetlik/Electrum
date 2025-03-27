@@ -26,14 +26,17 @@ void DestinationSlider::itemDropped(
 
 void DestinationSlider::resized() {
   auto bounds = getLocalBounds();
-  // make sure our starting bounds is square
-  if (bounds.getWidth() != bounds.getHeight()) {
-    const int x = std::min(bounds.getWidth(), bounds.getHeight());
-    bounds = bounds.withSizeKeepingCentre(x, x);
-  }
-  depthSliders.setBounds(bounds);
   const int inset = (int)((float)bounds.getWidth() / 6.0f);
-  slider.setBounds(bounds.reduced(inset));
+  auto sliderBounds = bounds.reduced(inset);
+  slider.setBounds(sliderBounds);
+  // now place the depth sliders based on that
+  const int sliderHeight = sliderBounds.getHeight() - slider.getTextBoxHeight();
+  const int dssWidth =
+      std::min(sliderBounds.getWidth() + inset, bounds.getWidth());
+  auto dssBounds = sliderBounds.removeFromTop(sliderHeight)
+                       .withSizeKeepingCentre(dssWidth, dssWidth);
+  depthSliders.setBounds(dssBounds);
+
   slider.toFront(false);
 }
 

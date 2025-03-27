@@ -2,9 +2,16 @@
 #include "Electrum/Common.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Identifiers.h"
+#include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+
+// stuff for calculating the angles
+constexpr float safeAngleLeft = 1.25f * juce::MathConstants<float>::pi;
+constexpr float safeAngleRight = 2.75f * juce::MathConstants<float>::pi;
+
+//
 
 // Depth Sliders ====================================
 static void _strokeArc(juce::Graphics& g,
@@ -94,10 +101,10 @@ void ModCloseButton::paintButton(juce::Graphics& g, bool over, bool) {
   g.strokePath(path, pst);
 }
 
-static juce::Slider::RotaryParameters _getDepthSliderParams() {
+static juce::Slider::RotaryParameters _getDepthSliderParams(float endAngle) {
   juce::Slider::RotaryParameters params;
-  params.startAngleRadians = juce::MathConstants<float>::pi * 1.35f;
-  params.endAngleRadians = juce::MathConstants<float>::pi * 2.65f;
+  params.startAngleRadians = safeAngleLeft;
+  params.endAngleRadians = endAngle;
   params.stopAtEnd = true;
   return params;
 }
@@ -108,7 +115,7 @@ DepthSlider::DepthSlider(int src)
   setLookAndFeel(&lnf);
   setRange(-1.0f, 1.0f, 0.0001f);
   setValue(0.0f);
-  setRotaryParameters(_getDepthSliderParams());
+  setRotaryParameters(_getDepthSliderParams(safeAngleRight));
 }
 
 DepthSlider::~DepthSlider() {
@@ -118,6 +125,10 @@ DepthSlider::~DepthSlider() {
   setLookAndFeel(nullptr);
 }
 
+void DepthSlider::setNewEndAngle(float totalBtnAngle) {
+  setRotaryParameters(_getDepthSliderParams(safeAngleRight - totalBtnAngle));
+  repaint();
+}
 //===================================================
 
 void DepthSliderStack::_setSliderForSrc(int src, float value) {
@@ -341,6 +352,24 @@ void DepthSliderStack::sliderValueChanged(juce::Slider* s) {
   }
 }
 
+// helpers for this terrible angle math
+static float totalButtonStackAngle(float minButtonAngle,
+                                   float maxButtonAngle,
+                                   int numSelectButtons) {
+  if (numSelectButtons < 1)
+    return minButtonAngle;
+  constexpr float maxStackAngle = 2.0f * juce::MathConstants<float>::pi / 3.0f;
+  const float buttonAngle =
+      std::min((maxStackAngle - minButtonAngle) / (float)numSelectButtons,
+               maxButtonAngle);
+  jassert(buttonAngle >= minButtonAngle);
+  float vTotal = minButtonAngle + (buttonAngle * (float)numSelectButtons);
+  float coeff = vTotal / juce::MathConstants<float>::pi;
+  DLog::log("Stack angle of " + String(coeff) + " * pi for " +
+            String(numSelectButtons) + " buttons");
+  return vTotal;
+}
+
 void DepthSliderStack::resized() {
   // if we have no sliders, we just need to make sure the close button is hidden
   if (selectedSrc == -1) {
@@ -352,10 +381,17 @@ void DepthSliderStack::resized() {
   auto lBounds = getLocalBounds().toFloat();
   auto r2 = lBounds.getWidth() / 2.0f;
   auto r1 = r2 - 10.0f;
-  float baseAngle = juce::MathConstants<float>::pi * 0.675f;
-  float minButtonAngle = juce::MathConstants<float>::pi / 8.0f;
-  float buttonAngle =
-      (juce::MathConstants<float>::pi * 0.65f) / (float)(sliders.size() + 1);
+  float baseAngle = 5.0f * juce::MathConstants<float>::pi / 4.0f;
+  constexpr float minButtonAngle = juce::MathConstants<float>::pi / 8.0f;
+  constexpr float maxButtonAngle = juce::MathConstants<float>::pi / 3.0f;
+  const float totalStackAngle = totalButtonStackAngle(
+      minButtonAngle, maxButtonAngle, selectButtons.size());
+  baseAngle += totalStackAngle;
+  //  TODO: now that we know the total stack angle, we should pass it to the
+  //   depthSliders to make sure they scale their endAngle correctly
+  float buttonAngle = (totalStackAngle - minButtonAngle) /
+                      (float)std::min(selectButtons.size(), 1);
+
   // place the close button
   closeButton.setStartAngle(baseAngle);
   closeButton.setEndAngle(baseAngle + minButtonAngle);
@@ -369,12 +405,16 @@ void DepthSliderStack::resized() {
   closeButton.toFront(false);
   // place the slider and select buttons
   baseAngle += minButtonAngle;
+
   for (int i = 0; i < sliders.size(); i++) {
     sliders[i]->setBounds(lBounds.toNearestInt());
     if (sliders[i]->sourceID == selectedSrc) {
+      // sliders[i]->setNewEndAngle(newSliderEndAngle);
       sliders[i]->setVisible(true);
       sliders[i]->setEnabled(true);
-      // sliders[i]->toFront(false);
+      // make sure the slider is sized appropriately for the # of buttons
+      sliders[i]->setNewEndAngle(totalStackAngle);
+      sliders[i]->toFront(false);
       selectButtons[i]->setEnabled(false);
     } else {
       sliders[i]->setVisible(false);

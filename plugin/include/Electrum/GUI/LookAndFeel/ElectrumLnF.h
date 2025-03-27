@@ -19,5 +19,6 @@ public:
                         float rotaryStartAngle,
                         float rotaryEndAngle,
                         juce::Slider& s) override;
+  juce::Slider::SliderLayout getSliderLayout(juce::Slider& slider) override;
   //--------------------------------------------------------------
 };

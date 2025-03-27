@@ -92,3 +92,68 @@ void ElectrumLnF::drawRotarySlider(juce::Graphics& g,
   g.setColour(trackRight);
   g.fillPath(tRight);
 }
+
+juce::Slider::SliderLayout ElectrumLnF::getSliderLayout(juce::Slider& slider) {
+  juce::Slider::SliderLayout layout;
+  int minXSpace = 0;
+  int minYSpace = 0;
+  auto textBoxPos = slider.getTextBoxPosition();
+  if (textBoxPos == juce::Slider::TextBoxLeft ||
+      textBoxPos == juce::Slider::TextBoxRight)
+    minXSpace = 30;
+  else
+    minYSpace = 12;
+
+  auto localBounds = slider.getLocalBounds();
+  auto textBoxWidth = std::max(0, std::min(slider.getTextBoxWidth(),
+                                           localBounds.getWidth() - minXSpace));
+  auto textBoxHeight = std::max(
+      0,
+      std::min(slider.getTextBoxHeight(), localBounds.getHeight() - minYSpace));
+
+  // set up the text box
+  if (textBoxPos != juce::Slider::NoTextBox) {
+    if (slider.isBar()) {
+      layout.textBoxBounds = localBounds;
+    } else {
+      layout.textBoxBounds.setWidth(textBoxWidth);
+      layout.textBoxBounds.setHeight(textBoxHeight);
+
+      if (textBoxPos == juce::Slider::TextBoxLeft)
+        layout.textBoxBounds.setX(0);
+      else if (textBoxPos == juce::Slider::TextBoxRight)
+        layout.textBoxBounds.setX(localBounds.getWidth() - textBoxWidth);
+      else /* above or below -> centre horizontally */
+        layout.textBoxBounds.setX((localBounds.getWidth() - textBoxWidth) / 2);
+
+      if (textBoxPos == juce::Slider::TextBoxAbove)
+        layout.textBoxBounds.setY(0);
+      else if (textBoxPos == juce::Slider::TextBoxBelow)
+        layout.textBoxBounds.setY(localBounds.getHeight() - textBoxHeight);
+      else /* left or right -> centre vertically */
+        layout.textBoxBounds.setY((localBounds.getHeight() - textBoxHeight) /
+                                  2);
+    }
+  }
+
+  // set the slider bounds
+  layout.sliderBounds = localBounds;
+  if (slider.isBar()) {
+    layout.sliderBounds.reduce(1, 1);  // bar border
+  } else {
+    if (textBoxPos == juce::Slider::TextBoxLeft)
+      layout.sliderBounds.removeFromLeft(textBoxWidth);
+    else if (textBoxPos == juce::Slider::TextBoxRight)
+      layout.sliderBounds.removeFromRight(textBoxWidth);
+    else if (textBoxPos == juce::Slider::TextBoxAbove)
+      layout.sliderBounds.removeFromTop(textBoxHeight);
+    else if (textBoxPos == juce::Slider::TextBoxBelow)
+      layout.sliderBounds.removeFromBottom(textBoxHeight);
+    const int thumbIndent = getSliderThumbRadius(slider);
+    if (slider.isHorizontal())
+      layout.sliderBounds.reduce(thumbIndent, 0);
+    else if (slider.isVertical())
+      layout.sliderBounds.reduce(0, thumbIndent);
+  }
+  return layout;
+}
