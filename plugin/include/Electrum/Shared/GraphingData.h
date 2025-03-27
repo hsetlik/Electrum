@@ -62,6 +62,9 @@ public:
   void updateOscPos(int oscID, float value) {
     newestOscPositions[(size_t)oscID] = value;
   }
+  float getOscPos(int oscID) const {
+    return newestOscPositions[(size_t)oscID].load();
+  }
   void updateEnvLevel(int envID, float value) {
     newestEnvLevels[(size_t)envID] = value;
   }

@@ -264,6 +264,18 @@ void Wavetable::handleAsyncUpdate() {
   fSize = (float)(pActive->size() - 1);
 }
 
+std::vector<float> Wavetable::normVectorForWave(int wave, int numPoints) const {
+  std::vector<float> vec = {};
+  const float freq = 20.0f / SampleRate::getf();
+  float phase;
+  for (int i = 0; i < numPoints; ++i) {
+    phase = (float)i / (float)numPoints;
+    float x = pActive->getUnchecked(wave)->getSample(phase, freq);
+    vec.push_back((x + 1.0f) * 0.5f);
+  }
+  return vec;
+}
+
 float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
   int idx = AudioUtil::fastFloor32(pos * fSize);
   return pActive->getUnchecked(idx)->getSample(phase, phaseDelt);

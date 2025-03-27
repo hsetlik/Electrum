@@ -24,7 +24,7 @@ public:
   DepthSlider(int src);
   ~DepthSlider() override;
   // call this to update the start/stop angles of the
-  // slider when the # o mod sources on the parent stack changes
+  // slider when the # of mod sources on the parent stack changes
   void setNewEndAngle(float end);
 };
 

@@ -96,4 +96,6 @@ public:
   inline float getPan() const { return pan; }
   inline float getCoarse() const { return coarse; }
   inline float getFine() const { return fine; }
+  // and these help render the graphs
+  std::vector<float> normVectorForWave(int wave, int numPoints = 512) const;
 };
