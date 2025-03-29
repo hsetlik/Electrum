@@ -1,5 +1,6 @@
 #pragma once
 
+#include <complex>
 #include "../Common.h"
 
 // some defines for the tuning range of our
@@ -8,6 +9,8 @@
 #define MIDI_NOTE_MIN 21
 #define MIDI_NOTE_MAX 108
 
+// # of samples in our wavetables
+#define TABLE_SIZE 2048
 /* Namespace for stuff that might
  * be useful in any number of situations
  * */
@@ -30,4 +33,10 @@ inline float signed_flerp(float min, float max, float current, float t) {
   return flerp(min, current, 1.0f - std::fabs(t));
 }
 
+// helpers for FFT stuff
+std::array<std::complex<float>, TABLE_SIZE> toComplexFFTArray(
+    float* data,
+    bool useImagPart = true);
+
+void wavetableFFTComplex(std::complex<float>* buf);
 }  // namespace AudioUtil

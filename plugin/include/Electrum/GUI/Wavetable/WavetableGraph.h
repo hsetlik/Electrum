@@ -6,6 +6,7 @@
 #include "Electrum/Shared/GraphingData.h"
 #include "Electrum/Shared/ElectrumState.h"
 
+#include "juce_core/system/juce_PlatformDefs.h"
 #include "juce_opengl/juce_opengl.h"
 
 //==================================================================
@@ -40,7 +41,6 @@ private:
 public:
   const int oscID;
   WavetableGraph(ElectrumState* s, int idx);
-  ~WavetableGraph() override;
   void graphingDataUpdated(GraphingData* gd) override;
   void wavePointsUpdated(GraphingData* gd, int id) override;
   void timerCallback() override;
@@ -49,4 +49,5 @@ public:
 private:
   void updateWavePaths(GraphingData* gd);
   void updateGraphImage();
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableGraph)
 };

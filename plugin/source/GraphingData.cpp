@@ -67,8 +67,10 @@ void GraphingData::updateGraphPoints(Wavetable* wt, int oscID, bool notify) {
   gp.waves.clear();
   for (int i = 0; i < wt->size(); ++i) {
     auto vec = wt->normVectorForWave(i, WAVE_GRAPH_POINTS);
-    single_wave_norm_t wave = {};
-    std::copy_n(vec.begin(), WAVE_GRAPH_POINTS, wave.begin());
+    single_wave_norm_t wave;
+    for (size_t x = 0; x < WAVE_GRAPH_POINTS; ++x) {
+      wave[x] = vec[x];
+    }
     gp.waves.push_back(wave);
   }
   if (notify) {

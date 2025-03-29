@@ -10,7 +10,7 @@ typedef std::atomic<int> int_at;
 typedef std::atomic<uint32_t> uint32_at;
 typedef std::atomic<bool> bool_at;
 
-#define WAVE_GRAPH_POINTS 512
+#define WAVE_GRAPH_POINTS 256
 typedef std::array<float, WAVE_GRAPH_POINTS> single_wave_norm_t;
 struct WavetableGraphingPoints {
   std::vector<single_wave_norm_t> waves = {};

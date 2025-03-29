@@ -118,6 +118,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   // 1c. check if the GUI wants wavtable point data
   if (state->graph.wantsGraphPoints()) {
     for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+      // DLog::log("Updating graph points for oscillator " + String(i));
       state->graph.updateGraphPoints(&audioSrc.wOsc[i], i);
     }
     state->graph.graphPointsLoaded();

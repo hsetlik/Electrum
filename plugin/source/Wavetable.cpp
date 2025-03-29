@@ -38,17 +38,18 @@ void randomizePhases(std::complex<float>* freqDomain,
 }  // namespace Wave
 //======================================================================
 
-BandLimitedWave::BandLimitedWave(float* firstWave) : fftProc(WAVE_FFT_ORDER) {
+BandLimitedWave::BandLimitedWave(float* firstWave) {
   // we need an array of 2X table size to hold the complex output
   // of the FFT
-  float complex[2 * TABLE_SIZE];
+  float complex[2 * TABLE_SIZE] = {};
   // load the wave into the first half
   for (int i = 0; i < TABLE_SIZE; ++i) {
     complex[i] = firstWave[i];
     complex[TABLE_SIZE + i] = 0.0f;
   }
   // do the first freq domain transformation
-  fftProc.performRealOnlyForwardTransform(complex);
+  // TODO: new forwardFFT
+  // fftProc.performRealOnlyForwardTransform(complex);
   // and the helpers bo the band-limiting work
   _initTablesComplex(complex);
 }
@@ -265,13 +266,23 @@ void Wavetable::handleAsyncUpdate() {
 }
 
 std::vector<float> Wavetable::normVectorForWave(int wave, int numPoints) const {
+  bool firstNegValue = false;
   std::vector<float> vec = {};
   const float freq = 20.0f / SampleRate::getf();
   float phase;
   for (int i = 0; i < numPoints; ++i) {
     phase = (float)i / (float)numPoints;
     float x = pActive->getUnchecked(wave)->getSample(phase, freq);
-    vec.push_back((x + 1.0f) * 0.5f);
+
+    const float value = (x + 1.0f) / 2.0f;
+
+    jassert(value >= 0.0f && value <= 1.0f);
+    if (value < 0.0f && !firstNegValue) {
+      DLog::log("Error: got negative norm value of " + String(value) +
+                " for wave input " + String(wave));
+      firstNegValue = true;
+    }
+    vec.push_back(value);
   }
   return vec;
 }

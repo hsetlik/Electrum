@@ -146,6 +146,8 @@ static juce::Point<float> projectToCanvas(vec3D_f point3d) {
   // back to 2d
   const float fX = ((dSurface.z / pt.z) * pt.x) + dSurface.x;
   const float fY = ((dSurface.z / pt.z) * pt.y) + dSurface.y;
+  jassert(fX >= 0.0f && fX < 1.0f);
+  // jassert(fY >= 0.0f);
   return {fX * (float)GRAPH_W, fY * (float)GRAPH_H};
 }
 
@@ -184,7 +186,12 @@ WavetableGraph::WavetableGraph(ElectrumState* s, int idx)
     : state(s), img(juce::Image::ARGB, GRAPH_W, GRAPH_H, true), oscID(idx) {
   // add itself as a listener to the graphingData
   state->graph.addListener(this);
+  // if its wave points already exist we can init this
+  if (!state->graph.wantsGraphPoints()) {
+    updateWavePaths(&state->graph);
+  }
   startTimerHz(GRAPH_REFRESH_HZ);
+  redrawRequested = true;
 }
 
 void WavetableGraph::graphingDataUpdated(GraphingData* gd) {
@@ -204,13 +211,23 @@ void WavetableGraph::timerCallback() {
 }
 
 void WavetableGraph::wavePointsUpdated(GraphingData* gd, int id) {
+  // DLog::log("Updating wave paths for oscillator: " + String(id));
   if (id == oscID) {
     updateWavePaths(gd);
     redrawRequested = true;
   }
 }
 
+void WavetableGraph::paint(juce::Graphics& g) {
+  auto lBounds = getLocalBounds();
+  g.drawImageWithin(img, lBounds.getX(), lBounds.getY(), lBounds.getWidth(),
+                    lBounds.getHeight(), juce::RectanglePlacement::centred);
+}
+
+//==========================================================================
+
 void WavetableGraph::updateWavePaths(GraphingData* gd) {
+  static bool firstPathsGenerated = false;
   wavePaths.clear();
   for (size_t i = 0; i < gd->graphPoints[oscID].waves.size(); ++i) {
     const float wavePos = (float)i / (float)gd->graphPoints[oscID].waves.size();
@@ -218,12 +235,18 @@ void WavetableGraph::updateWavePaths(GraphingData* gd) {
     auto vertices = getVerticesForWave(wave, wavePos + Z_SETBACK);
     wavePaths.push_back(convertToPath(vertices));
   }
+  if (!firstPathsGenerated) {
+    DLog::log("Generated " + String(wavePaths.size()) + " wave paths");
+    firstPathsGenerated = true;
+  }
 }
 
 static wave_path_t getVirtualWave(const std::vector<wave_path_t>& waves,
                                   float normPos) {
   if (waves.size() < 2)
     return waves[0];
+
+  static bool firstVirtual = false;
   const float fIdx = normPos * (float)waves.size();
   size_t lowIdx = std::min((size_t)std::floorf(fIdx), waves.size() - 2);
   size_t highIdx = lowIdx + 1;
@@ -233,20 +256,28 @@ static wave_path_t getVirtualWave(const std::vector<wave_path_t>& waves,
   // 1. calculate the path points
   auto& lowPath = waves[lowIdx].path;
   auto& highPath = waves[highIdx].path;
-  auto lo3D = pointFromCanvas(lowPath.getPointAlongPath(0.0f), normPos);
-  auto hi3D = pointFromCanvas(highPath.getPointAlongPath(0.0f), normPos);
+  auto lo3D =
+      pointFromCanvas(lowPath.getPointAlongPath(0.0f), waves[lowIdx].zPosition);
+  auto hi3D = pointFromCanvas(highPath.getPointAlongPath(0.0f),
+                              waves[highIdx].zPosition);
   vec3D_f startVert = {0.0f, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
   vPath.startNewSubPath(projectToCanvas(startVert));
   for (int i = 1; i < WAVE_GRAPH_POINTS; ++i) {
     float pRelative = (float)i / (float)WAVE_GRAPH_POINTS;
-    lo3D = pointFromCanvas(lowPath.getPointAlongPath(pRelative), normPos);
-    hi3D = pointFromCanvas(highPath.getPointAlongPath(pRelative), normPos);
+    lo3D = pointFromCanvas(lowPath.getPointAlongPath(pRelative),
+                           waves[lowIdx].zPosition);
+    hi3D = pointFromCanvas(highPath.getPointAlongPath(pRelative),
+                           waves[highIdx].zPosition);
     vec3D_f vert = {pRelative, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
     vPath.lineTo(projectToCanvas(vert));
   }
   // figure out the line width
   static frange_t strokeRange(1.8f, 4.0f);
   const float weight = strokeRange.convertFrom0to1(1.0f - normPos);
+  if (!firstVirtual) {
+    DLog::log("Generated first virtual wave");
+    firstVirtual = true;
+  }
   return {vPath, zPos, weight};
 }
 

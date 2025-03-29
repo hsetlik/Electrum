@@ -25,12 +25,12 @@ static void _logColorScheme(const LnFColorScheme& scheme) {
 
 static LnFColorScheme _getDefaultDarkScheme() {
   LnFColorScheme scheme = juce::LookAndFeel_V4::getDarkColourScheme();
-  _logColorScheme(scheme);
+  //_logColorScheme(scheme);
   return scheme;
 }
 
 static LnFColorScheme _getNightflyScheme() {
-  DLog::log("DEFAULT=================================");
+  // DLog::log("DEFAULT=================================");
   LnFColorScheme scheme = _getDefaultDarkScheme();
   scheme.setUIColour(UIColorE::windowBackground, Color::nearBlack);
   scheme.setUIColour(UIColorE::menuBackground, Color::darkBlue);
@@ -42,8 +42,8 @@ static LnFColorScheme _getNightflyScheme() {
   scheme.setUIColour(UIColorE::highlightedText, Color::assignmentPink);
   scheme.setUIColour(UIColorE::highlightedFill, Color::mintGreenBright);
 
-  DLog::log("NIGHTFLY=================================");
-  _logColorScheme(scheme);
+  // DLog::log("NIGHTFLY=================================");
+  //_logColorScheme(scheme);
   return scheme;
 }
 

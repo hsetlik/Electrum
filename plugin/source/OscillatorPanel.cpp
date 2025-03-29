@@ -11,15 +11,16 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
       sPos(s, (id * 5) + 2),
       sLevel(s, (id * 5) + 3),
       sPan(s, (id * 5) + 4),
+      graph(s, id),
       oscID(id) {
   addAndMakeVisible(sCoarse);
   addAndMakeVisible(sFine);
   addAndMakeVisible(sPos);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPan);
+  addAndMakeVisible(graph);
 }
 
-static bool _graphBoundsMeasured = false;
 void OscillatorPanel::resized() {
   auto fBounds = getLocalBounds().toFloat();
   auto grid = Layout::divideInto(fBounds, 3, 3);
@@ -32,11 +33,7 @@ void OscillatorPanel::resized() {
   frect_t remaining = {0.0f, 0.0f, grid[1][0].getRight(),
                        grid[0][1].getBottom()};
   auto graphBounds = remaining.toNearestInt();
-  if (!_graphBoundsMeasured) {
-    DLog::log("Graph should have width " + String(graphBounds.getWidth()) +
-              " and height " + String(graphBounds.getHeight()));
-    _graphBoundsMeasured = true;
-  }
+  graph.setBounds(graphBounds);
 }
 
 void OscillatorPanel::paint(juce::Graphics& g) {

@@ -68,5 +68,83 @@ static size_t _idxForNote(int note, float semis, float cents) {
 float phaseDeltForNote(int midiNote, float coarseSemis, float fineCents) {
   return _phaseDeltCurve[_idxForNote(midiNote, coarseSemis, fineCents)];
 }
-}  // namespace AudioUtil
+
 //===================================================
+std::array<std::complex<float>, TABLE_SIZE> toComplexFFTArray(
+    float* data,
+    bool useImagPart) {
+  std::array<std::complex<float>, TABLE_SIZE> comp;
+  if (useImagPart) {
+    for (size_t i = 0; i < TABLE_SIZE; ++i) {
+      comp[i].imag(data[i]);
+      comp[i].real(0.0f);
+    }
+  } else {
+    for (size_t i = 0; i < TABLE_SIZE; ++i) {
+      comp[i].real(data[i]);
+      comp[i].imag(0.0f);
+    }
+  }
+  return comp;
+}
+
+void wavetableFFTComplex(std::complex<float>* buf) {
+  int N = TABLE_SIZE;
+  int i, j, k, L;           /* indexes */
+  int M, TEMP, LE, LE1, ip; /* M = log N */
+  int NV2, NM1;
+  double t; /* temp */
+  float Ur, Ui, Wr, Wi, Tr, Ti;
+  float Ur_old;
+  // if ((N > 1) && !(N & (N - 1)))   // make sure we have a power of 2
+  NV2 = N >> 1;
+  NM1 = N - 1;
+  TEMP = N; /* get M = log N */
+  M = 0;
+  while (TEMP >>= 1)
+    ++M;
+  /* shuffle */
+  j = 1;
+  for (i = 1; i <= NM1; i++) {
+    if (i < j) { /* swap a[i] and a[j] */
+      t = (double)buf[j - 1].real();
+      buf[j - 1].real(buf[i - 1].real());
+      buf[i - 1].real((float)t);
+      t = buf[j - 1].imag();
+      buf[j - 1].imag(buf[i - 1].imag());
+      buf[i - 1].imag((float)t);
+    }
+    k = NV2; /* bit-reversed counter */
+    while (k < j) {
+      j -= k;
+      k /= 2;
+    }
+    j += k;
+  }
+  LE = 1.0f;
+  for (L = 1; L <= M; L++) {  // stage L
+    LE1 = LE;                 // (LE1 = LE/2)
+    LE *= 2;                  // (LE = 2^L)
+    Ur = 1.0f;
+    Ui = 0.0f;
+    Wr = std::cosf((float)M_PI / (float)LE1);
+    Wi = -std::sinf((float)M_PI /
+                    (float)LE1);  // Cooley, Lewis, and Welch have "+" here
+    for (j = 1; j <= LE1; j++) {
+      for (i = j; i <= N; i += LE) {  // butterfly
+        ip = i + LE1;
+        Tr = buf[ip - 1].real() * Ur - buf[ip - 1].imag() * Ui;
+        Ti = buf[ip - 1].real() * Ui + buf[ip - 1].imag() * Ur;
+        buf[ip - 1].real(buf[i - 1].real() - Tr);
+        buf[ip - 1].imag(buf[i - 1].imag() - Ti);
+        buf[i - 1].real(buf[i - 1].real() + Tr);
+        buf[i - 1].imag(buf[i - 1].imag() + Ti);
+      }
+      Ur_old = Ur;
+      Ur = Ur_old * Wr - Ui * Wi;
+      Ui = Ur_old * Wi + Ui * Wr;
+    }
+  }
+}
+
+}  // namespace AudioUtil
