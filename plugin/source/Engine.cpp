@@ -1,4 +1,5 @@
 #include "Electrum/Audio/Synth/Engine.h"
+#include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
 ElectrumVoice* SynthEngine::getFreeVoice() {
@@ -113,6 +114,13 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     jassert(v != nullptr);
     v->updateGraphData(&state->graph);
     state->graph.updateFinished();
+  }
+  // 1c. check if the GUI wants wavtable point data
+  if (state->graph.wantsGraphPoints()) {
+    for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+      state->graph.updateGraphPoints(&audioSrc.wOsc[i], i);
+    }
+    state->graph.graphPointsLoaded();
   }
   // 2. load any midi events into the queue (and load any events from the GUI
   // keyboard)

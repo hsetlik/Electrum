@@ -52,7 +52,51 @@ struct Mat3x3 {
       }
     }
   }
-  static Mat3x3<float> getRotationMatrix(float x, float y, float z);
+  static Mat3x3<float> getRotationMatrix(float x, float y, float z) {
+    Mat3x3<float> m1;
+
+    m1.data[0][0] = 1.0f;
+    m1.data[0][1] = 0.0f;
+    m1.data[0][2] = 0.0f;
+
+    m1.data[1][0] = 0.0f;
+    m1.data[1][1] = std::cosf(x);
+    m1.data[1][2] = std::sinf(x);
+
+    m1.data[2][0] = 0.0f;
+    m1.data[2][1] = std::sinf(x) * -1.0f;
+    m1.data[2][2] = std::cosf(x);
+
+    Mat3x3<float> m2;
+
+    m2.data[0][0] = std::cosf(y);
+    m2.data[0][1] = 0.0f;
+    m2.data[0][2] = std::sinf(y) * -1.0f;
+
+    m2.data[1][0] = 0.0f;
+    m2.data[1][1] = 1.0f;
+    m2.data[1][2] = 0.0f;
+
+    m2.data[2][0] = 0.0f;
+    m2.data[2][1] = std::sinf(x) * -1.0f;
+    m2.data[2][2] = std::cosf(x);
+
+    Mat3x3<float> m3;
+
+    m3.data[0][0] = std::cosf(z);
+    m3.data[0][1] = std::sinf(z);
+    m3.data[0][2] = 0.0f;
+
+    m3.data[1][0] = std::sinf(z) * -1.0f;
+    m3.data[1][1] = std::cosf(z);
+    m3.data[1][2] = 0.0f;
+
+    m3.data[2][0] = 0.0f;
+    m3.data[2][1] = 0.0f;
+    m3.data[2][2] = 1.0f;
+
+    return (m1 * m2) * m3;
+  }
 };
 
 //===================================================
@@ -94,7 +138,6 @@ static juce::Point<float> projectToCanvas(vec3D_f point3d) {
 }
 
 static wave_path_t convertToPath(const std::vector<vec3D_f>& vertices) {
-  // 1. draw the path
   juce::Path path;
   path.startNewSubPath(projectToCanvas(vertices[0]));
   for (size_t i = 1; i < vertices.size(); ++i) {

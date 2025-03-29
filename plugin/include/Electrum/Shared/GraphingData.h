@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/Audio/Wavetable.h"
 #include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
@@ -8,6 +9,13 @@ typedef std::atomic<float> float_at;
 typedef std::atomic<int> int_at;
 typedef std::atomic<uint32_t> uint32_at;
 typedef std::atomic<bool> bool_at;
+
+#define WAVE_GRAPH_POINTS 512
+typedef std::array<float, WAVE_GRAPH_POINTS> single_wave_norm_t;
+struct WavetableGraphingPoints {
+  std::vector<single_wave_norm_t> waves = {};
+  int oscID = 0;
+};
 
 class AtomicIntStack {
 private:
@@ -43,9 +51,16 @@ private:
   // keep track of when we want updates
   bool_at updateRequested;
 
+  // this graphing data can be non-atomic
+  bool_at graphPointsReady = false;
+
 public:
+  WavetableGraphingPoints graphPoints[NUM_OSCILLATORS];
   GraphingData();
   void timerCallback() override;
+
+  bool wantsGraphPoints() const { return !graphPointsReady.load(); }
+  void graphPointsLoaded() { graphPointsReady = true; }
   bool wantsUpdate() const {
     return updateRequested.load() && newestVoice != -1;
   }
@@ -59,15 +74,21 @@ public:
   int getNewestVoiceIndex() const { return newestVoice.load(); }
   // call these on the 'newestVoice' at update time to do the actual
   // data copying
-  void updateOscPos(int oscID, float value) {
+  void updateOscPos(int oscID, float value, bool notify = true) {
     newestOscPositions[(size_t)oscID] = value;
+    if (notify)
+      _notifyListeners();
   }
   float getOscPos(int oscID) const {
     return newestOscPositions[(size_t)oscID].load();
   }
-  void updateEnvLevel(int envID, float value) {
+  void updateEnvLevel(int envID, float value, bool notify = true) {
     newestEnvLevels[(size_t)envID] = value;
+    if (notify)
+      _notifyListeners();
   }
+  // update the graphing point data
+  void updateGraphPoints(Wavetable* wt, int oscID, bool notify = true);
   // Graphing components should inherit from this to get
   // updates-----------------------
   class Listener {
@@ -75,6 +96,11 @@ public:
     Listener() = default;
     virtual ~Listener() {}
     virtual void graphingDataUpdated(GraphingData* gd) {
+      juce::ignoreUnused(gd);
+    }
+    // this gets a special callback to avoid re-loading waves every time the
+    // position changes
+    virtual void wavePointsUpdated(GraphingData* gd, int oscID) {
       juce::ignoreUnused(gd);
     }
   };

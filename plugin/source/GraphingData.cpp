@@ -60,4 +60,21 @@ void GraphingData::removeListener(Listener* l) {
     }
   }
 }
+
+void GraphingData::updateGraphPoints(Wavetable* wt, int oscID, bool notify) {
+  auto& gp = graphPoints[oscID];
+  gp.oscID = oscID;
+  gp.waves.clear();
+  for (int i = 0; i < wt->size(); ++i) {
+    auto vec = wt->normVectorForWave(i, WAVE_GRAPH_POINTS);
+    single_wave_norm_t wave = {};
+    std::copy_n(vec.begin(), WAVE_GRAPH_POINTS, wave.begin());
+    gp.waves.push_back(wave);
+  }
+  if (notify) {
+    for (auto* l : graphListeners) {
+      l->wavePointsUpdated(this, oscID);
+    }
+  }
+}
 //===================================================
