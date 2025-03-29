@@ -1,6 +1,8 @@
 #include "Electrum/GUI/Wavetable/WavetableGraph.h"
+#include <cmath>
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/GraphingData.h"
 // Stuff for 3D matrix math
 
 template <typename T>
@@ -28,6 +30,16 @@ struct Mat3x3 {
       out.x = out.x + (vec.x * data[0][c]);
       out.y = out.y + (vec.y * data[1][c]);
       out.z = out.z + (vec.z * data[2][c]);
+    }
+    return out;
+  }
+
+  juce::Vector3D<T> operator/(const juce::Vector3D<T>& vec) {
+    juce::Vector3D<T> out = {0.0f, 0.0f, 0.0f};
+    for (int c = 0; c < 3; c++) {
+      out.x = out.x + (vec.x / data[0][c]);
+      out.y = out.y + (vec.y / data[1][c]);
+      out.z = out.z + (vec.z / data[2][c]);
     }
     return out;
   }
@@ -110,11 +122,11 @@ static Mat3x3<float> _graphRotationMatrix() {
 }
 // various 3D math helpers
 static std::vector<vec3D_f> getVerticesForWave(
-    const std::vector<float>& normPoints,
+    const single_wave_norm_t& normPoints,
     float zPos) {
   std::vector<vec3D_f> points = {};
-  for (size_t i = 0; i < normPoints.size(); ++i) {
-    const float xPos = (float)i / (float)normPoints.size();
+  for (size_t i = 0; i < WAVE_GRAPH_POINTS; ++i) {
+    const float xPos = (float)i / (float)WAVE_GRAPH_POINTS;
     points.push_back({xPos, normPoints[i], zPos});
   }
   return points;
@@ -125,16 +137,33 @@ static juce::Point<float> projectToCanvas(vec3D_f point3d) {
   constexpr float yHeight = 1.4f;
   vec3D_f cameraPos = {-0.5f, yHeight, 0.0f};
   // represents the display surface
-  vec3D_f e = {0.0f, 0.0f, CAMERA_DISTANCE};
+  vec3D_f dSurface = {0.0f, 0.0f, CAMERA_DISTANCE};
 
   // adjust by the camera position
   auto pt = point3d - cameraPos;
   // apply the rotation
   pt = rotation * pt;
   // back to 2d
-  const float fX = ((e.z / pt.z) * pt.x) + e.x;
-  const float fY = ((e.z / pt.z) * pt.y) + e.y;
+  const float fX = ((dSurface.z / pt.z) * pt.x) + dSurface.x;
+  const float fY = ((dSurface.z / pt.z) * pt.y) + dSurface.y;
   return {fX * (float)GRAPH_W, fY * (float)GRAPH_H};
+}
+
+// inverse of the above
+static vec3D_f pointFromCanvas(juce::Point<float> f, float zPos) {
+  static Mat3x3<float> rotation = _graphRotationMatrix();
+  constexpr float yHeight = 1.4f;
+  vec3D_f cameraPos = {-0.5f, yHeight, 0.0f};
+  // represents the display surface
+  vec3D_f dSurface = {0.0f, 0.0f, CAMERA_DISTANCE};
+
+  // fX = ((dZ / pZ) * pX) + dX
+  // pX = (fX - dX) / (dZ / pZ);
+  const float pX = (f.x - dSurface.x) / (dSurface.z / zPos);
+  const float pY = (f.y - dSurface.y) / (dSurface.z / zPos);
+  vec3D_f pt = {pX, pY, zPos};
+  pt = rotation / pt;
+  return pt + cameraPos;
 }
 
 static wave_path_t convertToPath(const std::vector<vec3D_f>& vertices) {
@@ -146,7 +175,7 @@ static wave_path_t convertToPath(const std::vector<vec3D_f>& vertices) {
   path.closeSubPath();
   const float zPos = vertices[0].z;
   const float strokeWeight = flerp(2.0f, 4.5f, 1.0f - zPos);
-  return {path, Color::mintGreenBright, zPos, strokeWeight};
+  return {path, zPos, strokeWeight};
 }
 
 //===================================================
@@ -174,20 +203,82 @@ void WavetableGraph::timerCallback() {
   }
 }
 
-void WavetableGraph::loadWaveDataFrom(Wavetable* wt) {
-  // so this needs (for each wave)
-  // 1. convert to a list of GRAPH_W floats in the range 0-1
-  // 2. assign the wave a z-plane position based on its position in the table
-  // 3. convert the norm. wave values and the z-plane into a list of 3D points
-  // 4. convert that to a 'wave_path_t' object and add it to the stack
-  //--------
-  // clear out wavePaths if it's not empty already
-  while (!wavePaths.empty()) {
-    wavePaths.pop();
-  }
-  for (int wave = 0; wave < wt->size(); ++wave) {
-    auto normValues = wt->normVectorForWave(wave, GRAPH_W);
-    const float zPos = ((float)wave / (float)wt->size()) + Z_SETBACK;
-    auto vertices = getVerticesForWave(normValues, zPos);
+void WavetableGraph::wavePointsUpdated(GraphingData* gd, int id) {
+  if (id == oscID) {
+    updateWavePaths(gd);
+    redrawRequested = true;
   }
 }
+
+void WavetableGraph::updateWavePaths(GraphingData* gd) {
+  wavePaths.clear();
+  for (size_t i = 0; i < gd->graphPoints[oscID].waves.size(); ++i) {
+    const float wavePos = (float)i / (float)gd->graphPoints[oscID].waves.size();
+    auto& wave = gd->graphPoints[oscID].waves[i];
+    auto vertices = getVerticesForWave(wave, wavePos + Z_SETBACK);
+    wavePaths.push_back(convertToPath(vertices));
+  }
+}
+
+static wave_path_t getVirtualWave(const std::vector<wave_path_t>& waves,
+                                  float normPos) {
+  if (waves.size() < 2)
+    return waves[0];
+  const float fIdx = normPos * (float)waves.size();
+  size_t lowIdx = std::min((size_t)std::floorf(fIdx), waves.size() - 2);
+  size_t highIdx = lowIdx + 1;
+  float lerpAmt = fIdx - (float)lowIdx;
+  juce::Path vPath;
+  const float zPos = normPos + Z_SETBACK;
+  // 1. calculate the path points
+  auto& lowPath = waves[lowIdx].path;
+  auto& highPath = waves[highIdx].path;
+  auto lo3D = pointFromCanvas(lowPath.getPointAlongPath(0.0f), normPos);
+  auto hi3D = pointFromCanvas(highPath.getPointAlongPath(0.0f), normPos);
+  vec3D_f startVert = {0.0f, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
+  vPath.startNewSubPath(projectToCanvas(startVert));
+  for (int i = 1; i < WAVE_GRAPH_POINTS; ++i) {
+    float pRelative = (float)i / (float)WAVE_GRAPH_POINTS;
+    lo3D = pointFromCanvas(lowPath.getPointAlongPath(pRelative), normPos);
+    hi3D = pointFromCanvas(highPath.getPointAlongPath(pRelative), normPos);
+    vec3D_f vert = {pRelative, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
+    vPath.lineTo(projectToCanvas(vert));
+  }
+  // figure out the line width
+  static frange_t strokeRange(1.8f, 4.0f);
+  const float weight = strokeRange.convertFrom0to1(1.0f - normPos);
+  return {vPath, zPos, weight};
+}
+
+void WavetableGraph::updateGraphImage() {
+  img.clear(img.getBounds(), Color::black);
+  juce::Graphics g(img);
+  if (wavePaths.size() < 1)
+    return;
+
+  static color_t vWaveColor = Color::qualifierPurple;
+  static color_t normWaveColor = Color::mintGreenPale;
+  // 1. create the virtual wave object
+  auto vWave = getVirtualWave(wavePaths, currentPos);
+  // 2. iterate through and draw each of the paths,
+  // starting from the highest Z position
+  for (size_t i = wavePaths.size() - 1; i >= 0; --i) {
+    // 1. draw this wave
+    auto sColor = vWaveColor.interpolatedWith(
+        normWaveColor, std::fabs(wavePaths[i].zPosition - vWave.zPosition));
+    juce::PathStrokeType pst(wavePaths[i].strokeWeight);
+    g.setColour(sColor);
+    g.strokePath(wavePaths[i].path, pst);
+    // don't check the 0th wave for the vPath
+    if (i > 0) {
+      if (wavePaths[i - 1].zPosition <= vWave.zPosition &&
+          wavePaths[i].zPosition > vWave.zPosition) {
+        g.setColour(vWaveColor);
+        juce::PathStrokeType vPst(vWave.strokeWeight);
+        g.strokePath(vWave.path, vPst);
+      }
+    }
+  }
+}
+
+//===================================================

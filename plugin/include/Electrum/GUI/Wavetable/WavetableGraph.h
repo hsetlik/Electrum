@@ -20,7 +20,6 @@ typedef juce::Vector3D<float> vec3D_f;
 
 struct wave_path_t {
   juce::Path path;
-  color_t color;
   float zPosition;
   float strokeWeight;
 };
@@ -31,25 +30,23 @@ class WavetableGraph : public GraphingData::Listener,
 private:
   ElectrumState* const state;
   juce::Image img;
-  bool wantsWaveData = true;
   bool redrawRequested = false;
   // position state stuff
   float lastDrawnPos = 0.0f;
   float currentPos = 0.0f;
   // and the sets of paths we need to draw
-  std::stack<wave_path_t> wavePaths;
+  std::vector<wave_path_t> wavePaths = {};
 
 public:
   const int oscID;
   WavetableGraph(ElectrumState* s, int idx);
   ~WavetableGraph() override;
-  bool needsWaveData() const { return wantsWaveData; }
   void graphingDataUpdated(GraphingData* gd) override;
+  void wavePointsUpdated(GraphingData* gd, int id) override;
   void timerCallback() override;
-  // this needs to be called at startup and
-  // then whenever a new wave is selected
-  void loadWaveDataFrom(Wavetable* wt);
+  void paint(juce::Graphics& g) override;
 
 private:
+  void updateWavePaths(GraphingData* gd);
   void updateGraphImage();
 };

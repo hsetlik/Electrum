@@ -101,7 +101,7 @@ public:
     // this gets a special callback to avoid re-loading waves every time the
     // position changes
     virtual void wavePointsUpdated(GraphingData* gd, int oscID) {
-      juce::ignoreUnused(gd);
+      juce::ignoreUnused(gd, oscID);
     }
   };
   //-----------------------
