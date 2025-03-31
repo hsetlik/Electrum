@@ -39,4 +39,5 @@ std::array<std::complex<float>, TABLE_SIZE> toComplexFFTArray(
     bool useImagPart = true);
 
 void wavetableFFTComplex(std::complex<float>* buf);
+void wavetableFFTSplit(float* real, float* imag);
 }  // namespace AudioUtil

@@ -42,6 +42,14 @@ void randomizePhases(std::complex<float>* freqDomain,
 class BandLimitedWave {
 private:
   std::array<banded_wave_t, WAVES_PER_TABLE> data;
+  // helpers for initializing the waves
+  void createTables(float* real, float* imag);
+  float makeTable(float* real,
+                  float* imag,
+                  float scale,
+                  float lowFreq,
+                  float hiFreq,
+                  banded_wave_t* dest);
 
 public:
   BandLimitedWave(float* firstWave);
