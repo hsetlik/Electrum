@@ -76,6 +76,7 @@ std::array<std::complex<float>, TABLE_SIZE> toComplexFFTArray(
   std::array<std::complex<float>, TABLE_SIZE> comp;
   if (useImagPart) {
     for (size_t i = 0; i < TABLE_SIZE; ++i) {
+      // jassert(std::fabs(data[i]) <= 1.0f);
       comp[i].imag(data[i]);
       comp[i].real(0.0f);
     }
@@ -107,12 +108,9 @@ void wavetableFFTComplex(std::complex<float>* buf) {
   j = 1;
   for (i = 1; i <= NM1; i++) {
     if (i < j) { /* swap a[i] and a[j] */
-      t = (double)buf[j - 1].real();
-      buf[j - 1].real(buf[i - 1].real());
-      buf[i - 1].real((float)t);
-      t = buf[j - 1].imag();
-      buf[j - 1].imag(buf[i - 1].imag());
-      buf[i - 1].imag((float)t);
+      auto previousI = buf[i - 1];
+      buf[i - 1] = buf[j - 1];
+      buf[j - 1] = previousI;
     }
     k = NV2; /* bit-reversed counter */
     while (k < j) {

@@ -2,6 +2,7 @@
 #include "../Common.h"
 #include "Electrum/Audio/AudioUtil.h"
 #include "juce_core/juce_core.h"
+#include "juce_core/system/juce_PlatformDefs.h"
 #include "juce_events/juce_events.h"
 #include <juce_dsp/juce_dsp.h>
 
@@ -11,6 +12,8 @@
 // the order is 11
 #define WAVE_FFT_ORDER 11
 // #define ALWAYS_RANDOMIZE_PHASES
+//
+typedef juce::dsp::FFT FFTProc;
 
 // helpers for string/wave conversion
 String stringEncodeWave(float* wave);
@@ -39,12 +42,6 @@ void randomizePhases(std::complex<float>* freqDomain,
 class BandLimitedWave {
 private:
   std::array<banded_wave_t, WAVES_PER_TABLE> data;
-  void _initTablesComplex(float* data);
-  float _makeTableComplex(float* data,
-                          float scale,
-                          float freqLo,
-                          float freqHi,
-                          int tablesAdded);
 
 public:
   BandLimitedWave(float* firstWave);
@@ -97,4 +94,5 @@ public:
   inline float getFine() const { return fine; }
   // and these help render the graphs
   std::vector<float> normVectorForWave(int wave, int numPoints = 512) const;
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Wavetable)
 };

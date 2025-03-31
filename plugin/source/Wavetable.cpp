@@ -2,25 +2,37 @@
 #include <limits>
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Common.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_core/juce_core.h"
 
-constexpr size_t tableBytes = TABLE_SIZE * sizeof(float);
+// stuff for encoding/decoding wavetables as strings
 
+constexpr size_t tableBytes = TABLE_SIZE * sizeof(float);
+static const String waveEndToken = "WAVE_END";
+// get the next wave's worth of stringified data from a
+// string containing multiple waves
 String stringEncodeWave(float* wave) {
   juce::MemoryBlock mb(tableBytes, true);
   mb.copyFrom(wave, 0, tableBytes);
-  return mb.toBase64Encoding() + "WAVE_END";
+  return mb.toBase64Encoding() + waveEndToken;
 }
-void stringDecodeWave(const String& str, float* dest) {
+
+void stringDecodeWave(const String& in, float* dest) {
   juce::MemoryBlock mb(tableBytes, true);
-  // trim the end
+  String str = in;
+  // if the string still contains the end token,
+  // trim it now
+  int endTokenPos = str.indexOf(waveEndToken);
+  if (endTokenPos != -1) {
+    str = str.substring(0, endTokenPos);
+  }
   if (!mb.fromBase64Encoding(str)) {
     DLog::log("Failed to decode string to memory block!");
   }
+  jassert(mb.getSize() == tableBytes);
   mb.copyTo(dest, 0, tableBytes);
 }
 
-// let's see if parsing it as UTF-8
 //======================================================================
 namespace Wave {
 void randomizePhases(std::complex<float>* freqDomain,
@@ -38,103 +50,146 @@ void randomizePhases(std::complex<float>* freqDomain,
 }  // namespace Wave
 //======================================================================
 
-BandLimitedWave::BandLimitedWave(float* firstWave) {
-  // we need an array of 2X table size to hold the complex output
-  // of the FFT
-  float complex[2 * TABLE_SIZE] = {};
-  // load the wave into the first half
-  for (int i = 0; i < TABLE_SIZE; ++i) {
-    complex[i] = firstWave[i];
-    complex[TABLE_SIZE + i] = 0.0f;
-  }
-  // do the first freq domain transformation
-  // TODO: new forwardFFT
-  // fftProc.performRealOnlyForwardTransform(complex);
-  // and the helpers bo the band-limiting work
-  _initTablesComplex(complex);
+// band-limiting helpers-----------------------------
+static float _getFFTBinMagnitude(float* data, int binIdx) {
+  jassert(binIdx < TABLE_SIZE);
+  const float real = data[2 * binIdx];
+  const float imag = data[(2 * binIdx) + 1];
+  return std::abs(std::complex<float>(real, imag));
 }
 
-// helper for accessing interleaved complex arrays
-void BandLimitedWave::_initTablesComplex(float* raw) {
-  // the juce FFT function interleaves this such that we can just
-  // cast straight to std::complex and make life easier
-  std::complex<float>* complex = reinterpret_cast<std::complex<float>*>(raw);
-  // zero the bins at DC and nyquist
-  complex[0] = 0.0f;
-  complex[TABLE_SIZE >> 1] = 0.0f;
-  constexpr float minMagnitude = 0.00000001f;
-  // ignore any other high frequency bins
-  // with very small amplitudes
-  int maxHarmonic = TABLE_SIZE >> 1;
-  while (std::abs(complex[maxHarmonic]) < minMagnitude && maxHarmonic) {
-    --maxHarmonic;
-  }
-  // allocate a new array
-  std::array<std::complex<float>, TABLE_SIZE> temp = {};
-  float topFreq = (float)(2.0f / 3.0f / (float)maxHarmonic);
-  int tablesAdded = 0;
-  float lastMinFreq = 0.0f;
-  float scale = 0.0f;
-  // and go through each of the tables
-  while (maxHarmonic > 0) {
-    // 1. zero out the temp array from the last pass
-    for (auto& d : temp) {
-      d = std::complex(0.0f, 0.0f);
-    }
-    // 2. fill the temp array with the needed harmonics from the input
-    for (size_t i = 0; i < (size_t)maxHarmonic; ++i) {
-      temp[i] = complex[i];
-      // the same # of upper harmonics from the end of the input get copied
-      temp[TABLE_SIZE - (i + 1)] = complex[TABLE_SIZE - (i + 1)];
-    }
-    // 3. make the wavetable
-    float* tPtr = reinterpret_cast<float*>(temp.data());
-    scale = _makeTableComplex(tPtr, scale, lastMinFreq, topFreq, tablesAdded);
-    ++tablesAdded;
-    lastMinFreq = topFreq;
-    topFreq *= 2.0f;
-    maxHarmonic >>= 1;
+static void _setFFTBinMagnitude(float* data, int binIdx, float magnitude) {
+  jassert(binIdx < TABLE_SIZE);
+  const float real = data[2 * binIdx];
+  const float imag = data[(2 * binIdx) + 1];
+  std::complex<float> vComp(real, imag);
+  const float phaseAngle = std::arg(vComp);
+  vComp = std::polar(magnitude, phaseAngle);
+  data[2 * binIdx] = vComp.real();
+  data[2 * binIdx + 1] = vComp.imag();
+}
+
+static void _copyFFTBin(float* srcData,
+                        float* destData,
+                        int binIdx,
+                        bool copyConjugate = false) {
+  // 1. copy the below-nyquist parts
+  const int rIdx = 2 * binIdx;
+  const int iIdx = 2 * binIdx + 1;
+  destData[rIdx] = srcData[rIdx];
+  destData[iIdx] = srcData[iIdx];
+  const int endIdx = (2 * TABLE_SIZE) - 1;
+  if (copyConjugate) {
+    destData[endIdx - rIdx] = srcData[endIdx - rIdx];
+    destData[endIdx - iIdx] = srcData[endIdx - iIdx];
   }
 }
 
-float BandLimitedWave::_makeTableComplex(float* raw,
-                                         float scale,
-                                         float freqLo,
-                                         float freqHi,
-                                         int tablesAdded) {
-  data[(size_t)tablesAdded].maxPhaseDelt = freqHi;
-  data[(size_t)tablesAdded].minPhaseDelt = freqLo;
-  // randomize phases
-#ifdef ALWAYS_RANDOMIZE_PHASES
-  auto* comp = reinterpret_cast<std::complex<float>*>(raw);
-  Wave::randomizePhases(comp);
-#endif
-  // inverse FFT back to time domain
-  fftProc.performRealOnlyInverseTransform(raw);
+static float _initBandedWave(float* dComplex,
+                             FFTProc& fft,
+                             banded_wave_t* bw,
+                             float minFreq,
+                             float maxfreq,
+                             float scale) {
+  // 1. set the min/max freq as appropriate
+  bw->maxPhaseDelt = maxfreq;
+  bw->minPhaseDelt = minFreq;
+  // 2. perform the inverse FFT to get our real wave
+  fft.performRealOnlyInverseTransform(dComplex);
+  // 3. figure out the scale if it's still set to zero
   if (fequal(scale, 0.0f)) {
     float maxMag = 0.0f;
     for (int i = 0; i < TABLE_SIZE; ++i) {
-      maxMag = std::max(std::fabs(raw[i]), maxMag);
+      float mag = std::fabs(dComplex[i]);
+      if (maxMag < mag)
+        maxMag = mag;
     }
-    scale = 1.0f / (maxMag * 0.000009f);
+    scale = 1.0f / (maxMag * 0.999f);
   }
-
-  float currentMin = std::numeric_limits<float>::max();
-  float currentMax = std::numeric_limits<float>::min();
-  // copy the wave into place and scale it as appropriate
-  // find the max and min levels for calculating the next round's
-  // scale
-  size_t table = (size_t)tablesAdded;
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    data[table].wave[i] = raw[i] * scale;
-    currentMin = std::min(currentMin, data[table].wave[i]);
-    currentMax = std::max(currentMax, data[table].wave[i]);
+  // 4. iterate over the wave to measure its min/max values to compensate for dc
+  // offset
+  float minLvl = std::numeric_limits<float>::max();
+  float maxLvl = std::numeric_limits<float>::min();
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    // also multiply by the scale here
+    dComplex[i] *= scale;
+    const float val = dComplex[i];
+    if (val < minLvl)
+      minLvl = val;
+    if (val > maxLvl)
+      maxLvl = val;
   }
-  const float offset = (currentMax + currentMin) / 2.0f;
-  // loop over the last wave again to correct any dc offset
-  for (size_t i = 0; i < TABLE_SIZE; ++i)
-    data[table].wave[i] -= offset;
+  const float gain = 2.0f / (maxLvl - minLvl);
+  // 5. iterate over the input again to
+  // correct for any DC offset and copy to the output
+  const float dc = (maxLvl + minLvl) / 2.0f;
+  minLvl = std::numeric_limits<float>::max();
+  maxLvl = std::numeric_limits<float>::min();
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    float val = (dComplex[i] - dc) * gain;
+    bw->wave[i] = val;
+    if (val < minLvl)
+      minLvl = val;
+    if (val > maxLvl)
+      maxLvl = val;
+  }
+  jassert(maxLvl - minLvl <= 2.01f);
   return scale;
+}
+
+constexpr size_t COMPLEX_SIZE = TABLE_SIZE * 2;
+
+static FFTProc forwardProc(WAVE_FFT_ORDER);
+static FFTProc inverseProc(WAVE_FFT_ORDER);
+BandLimitedWave::BandLimitedWave(float* firstWave) {
+  // 1. prepare a complex array for the first FFT
+  float dComplex[COMPLEX_SIZE];
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    jassert(std::fabs(firstWave[i]) <= 1.0f);
+    dComplex[i] = firstWave[i];
+    dComplex[TABLE_SIZE + i] = 0.0f;
+  }
+  // 2. create the FFT objects we'll use for the rest of this
+  jassert(forwardProc.getSize() == TABLE_SIZE);
+  // 3. do the first forward transform
+  forwardProc.performRealOnlyForwardTransform(dComplex);
+  const int tSize = TABLE_SIZE;
+  // 4. zero out the bins at 0hZ (dc offset)
+  // and nyquist
+  _setFFTBinMagnitude(dComplex, 0, 0.0f);
+  _setFFTBinMagnitude(dComplex, tSize / 2, 0.0f);
+  // 5. find the max harmonic, starting from nyquist
+  // and ignoring any other high frequency
+  // bins w very low magnitude
+  static const float minMagnitude = juce::Decibels::decibelsToGain(-100.0f);
+  int maxHarmonic = tSize >> 1;
+  while (_getFFTBinMagnitude(dComplex, maxHarmonic) < minMagnitude &&
+         maxHarmonic) {
+    --maxHarmonic;
+  }
+  // 6. create the band-limted tables
+  float maxPhaseDelt = 2.0f / 3.0f / (float)maxHarmonic;
+  float minPhaseDelt = 0.0f;
+  std::array<float, COMPLEX_SIZE> tempComplex;
+  float scale = 0.0f;
+  size_t tables = 0;
+  while (maxHarmonic && tables < WAVES_PER_TABLE) {
+    // 1. clear the temp array
+    std::fill(tempComplex.begin(), tempComplex.end(), 0.0f);
+    float* td = tempComplex.data();
+    // 2. copy the bins up to the max harmonic
+    for (int idx = 1; idx <= maxHarmonic; ++idx) {
+      _copyFFTBin(dComplex, td, idx);
+    }
+    // 3. convert back to time domain and init our wave object
+    scale = _initBandedWave(td, inverseProc, &data[tables], minPhaseDelt,
+                            maxPhaseDelt, scale);
+    // 4. increment/decrement stuff
+    ++tables;
+    minPhaseDelt = maxPhaseDelt;
+    maxPhaseDelt *= 2.0f;
+    maxHarmonic = (maxHarmonic >> 1);
+  }
 }
 
 float BandLimitedWave::getSample(float phase, float phaseDelt) const {
@@ -192,7 +247,7 @@ static std::array<float, TABLE_SIZE> getNarrowRamp(size_t rampWidth) {
   std::array<float, TABLE_SIZE> arr;
 
   const float dY = 2.0f / (float)rampWidth;
-  const size_t rampStart = (TABLE_SIZE >> 1) - (rampWidth >> 1);
+  const size_t rampStart = (TABLE_SIZE / 2) - (rampWidth / 2);
   const size_t rampEnd = rampStart + rampWidth;
   for (size_t i = 0; i < TABLE_SIZE; ++i) {
     if (i < rampStart) {
@@ -222,14 +277,16 @@ static void loadWavesetIntoArr(wave_set_t* arr, const String& input) {
   if (!arr->isEmpty())
     arr->clear();
   String str = input;
-  float wave[TABLE_SIZE] = {};
-  int endTagPos = str.indexOf("WAVE_END");
-  while (endTagPos != -1 && arr->size() < MAX_WAVES_PER_TABLE) {
-    String waveStr = str.substring(0, endTagPos);
-    str = str.substring(waveStr.length() + 8);
-    stringDecodeWave(waveStr, wave);
-    arr->add(new BandLimitedWave(wave));
-    endTagPos = str.indexOf("WAVE_END");
+  float tempWave[TABLE_SIZE];
+  int endTokenPos = str.indexOf(waveEndToken);
+  while (endTokenPos != -1 && str.length() > 0) {
+    String waveStr = str.substring(0, endTokenPos);
+    stringDecodeWave(waveStr, tempWave);
+    arr->add(new BandLimitedWave(tempWave));
+    // trim the string
+    const int newStart = waveStr.length() + waveEndToken.length();
+    str = str.substring(newStart);
+    endTokenPos = str.indexOf(waveEndToken);
   }
 }
 
