@@ -111,6 +111,27 @@ struct Mat3x3 {
   }
 };
 
+// Wave Path drawing================================
+
+void WavePath2D::draw(juce::Graphics& g, float strokeWeight) {
+  juce::PathStrokeType pst(strokeWeight);
+  // render our points as a juce path
+  juce::Path jPath;
+  jPath.startNewSubPath(points[0].getX(), points[0].getY());
+  for (size_t i = 1; i < WAVE_PATH_VERTS; ++i) {
+    jPath.lineTo(points[i].getX(), points[i].getY());
+  }
+  jPath.closeSubPath();
+  // do the drawing
+  g.strokePath(jPath, pst);
+}
+
+WavePath2D::WavePath2D(const WavePath2D& other) {
+  for (size_t i = 0; i < WAVE_PATH_VERTS; ++i) {
+    points[i] = other[i];
+  }
+}
+
 //===================================================
 // the rotation matrix that projects our 3D points
 // back onto a 2D bitmap
@@ -125,14 +146,16 @@ static std::vector<vec3D_f> getVerticesForWave(
     const single_wave_norm_t& normPoints,
     float zPos) {
   std::vector<vec3D_f> points = {};
+  points.push_back({0.0f, 1.0f, zPos});
   for (size_t i = 0; i < WAVE_GRAPH_POINTS; ++i) {
     const float xPos = (float)i / (float)WAVE_GRAPH_POINTS;
     points.push_back({xPos, normPoints[i], zPos});
   }
+  points.push_back({1.0f, 1.0f, zPos});
   return points;
 }
 
-static juce::Point<float> projectToCanvas(vec3D_f point3d) {
+static fpoint_t projectToCanvas(vec3D_f point3d) {
   static Mat3x3<float> rotation = _graphRotationMatrix();
   constexpr float yHeight = 1.4f;
   vec3D_f cameraPos = {-0.5f, yHeight, 0.0f};
@@ -146,8 +169,8 @@ static juce::Point<float> projectToCanvas(vec3D_f point3d) {
   // back to 2d
   const float fX = ((dSurface.z / pt.z) * pt.x) + dSurface.x;
   const float fY = ((dSurface.z / pt.z) * pt.y) + dSurface.y;
-  jassert(fX >= 0.0f && fX < 1.0f);
-  // jassert(fY >= 0.0f);
+  jassert(fX >= 0.0f && fX <= 1.0f);
+  jassert(fY >= 0.0f && fY <= 1.0f);
   return {fX * (float)GRAPH_W, fY * (float)GRAPH_H};
 }
 
@@ -169,15 +192,14 @@ static vec3D_f pointFromCanvas(juce::Point<float> f, float zPos) {
 }
 
 static wave_path_t convertToPath(const std::vector<vec3D_f>& vertices) {
-  juce::Path path;
-  path.startNewSubPath(projectToCanvas(vertices[0]));
-  for (size_t i = 1; i < vertices.size(); ++i) {
-    path.lineTo(projectToCanvas(vertices[i]));
+  wave_path_t out;
+  jassert(vertices.size() == WAVE_PATH_VERTS);
+  for (size_t i = 0; i < vertices.size(); ++i) {
+    out.path[i] = projectToCanvas(vertices[i]);
   }
-  path.closeSubPath();
-  const float zPos = vertices[0].z;
-  const float strokeWeight = flerp(2.0f, 4.5f, 1.0f - zPos);
-  return {path, zPos, strokeWeight};
+  out.zPosition = vertices[0].z;
+  out.strokeWeight = flerp(2.0f, 4.5f, 1.0f - out.zPosition);
+  return out;
 }
 
 //===================================================
@@ -186,12 +208,8 @@ WavetableGraph::WavetableGraph(ElectrumState* s, int idx)
     : state(s), img(juce::Image::ARGB, GRAPH_W, GRAPH_H, true), oscID(idx) {
   // add itself as a listener to the graphingData
   state->graph.addListener(this);
-  // if its wave points already exist we can init this
-  if (!state->graph.wantsGraphPoints()) {
-    updateWavePaths(&state->graph);
-  }
+  // start the timer
   startTimerHz(GRAPH_REFRESH_HZ);
-  redrawRequested = true;
 }
 
 void WavetableGraph::graphingDataUpdated(GraphingData* gd) {
@@ -201,17 +219,24 @@ void WavetableGraph::graphingDataUpdated(GraphingData* gd) {
   }
 }
 
+void WavetableGraph::drawWaveGraph() {
+  updateGraphImage();
+  repaint();
+  lastDrawnPos = currentPos;
+  redrawRequested = false;
+}
+
 void WavetableGraph::timerCallback() {
-  if (!fequal(lastDrawnPos, currentPos) || redrawRequested) {
-    updateGraphImage();
-    repaint();
-    lastDrawnPos = currentPos;
-    redrawRequested = false;
+  if (wavePaths.size() < 1) {
+    updateWavePaths(&state->graph);
+    drawWaveGraph();
+  } else if (!fequal(currentPos, lastDrawnPos)) {
+    drawWaveGraph();
   }
 }
 
 void WavetableGraph::wavePointsUpdated(GraphingData* gd, int id) {
-  // DLog::log("Updating wave paths for oscillator: " + String(id));
+  DLog::log("Updating wave paths for oscillator: " + String(id));
   if (id == oscID) {
     updateWavePaths(gd);
     redrawRequested = true;
@@ -226,17 +251,25 @@ void WavetableGraph::paint(juce::Graphics& g) {
 
 //==========================================================================
 
+static vec3D_f lerp3D(const vec3D_f& a, const vec3D_f& b, float t) {
+  return {flerp(a.x, b.x, t), flerp(a.y, b.y, t), flerp(a.z, b.z, t)};
+}
+
 void WavetableGraph::updateWavePaths(GraphingData* gd) {
   static bool firstPathsGenerated = false;
-  wavePaths.clear();
-  for (size_t i = 0; i < gd->graphPoints[oscID].waves.size(); ++i) {
-    const float wavePos = (float)i / (float)gd->graphPoints[oscID].waves.size();
-    auto& wave = gd->graphPoints[oscID].waves[i];
+  if (!wavePaths.empty())
+    wavePaths.clear();
+  int numWaves = gd->getNumWavesForOsc(oscID);
+  for (size_t i = 0; i < (size_t)numWaves; ++i) {
+    const float wavePos = (float)i / (float)numWaves;
+    auto wave = gd->getGraphPoints(oscID, (int)i);
     auto vertices = getVerticesForWave(wave, wavePos + Z_SETBACK);
     wavePaths.push_back(convertToPath(vertices));
   }
   if (!firstPathsGenerated) {
-    DLog::log("Generated " + String(wavePaths.size()) + " wave paths");
+    DLog::log("Oscillator " + String(oscID) + " has " +
+              String(wavePaths.size()) + " wave paths of an expected " +
+              String(numWaves));
     firstPathsGenerated = true;
   }
 }
@@ -245,40 +278,26 @@ static wave_path_t getVirtualWave(const std::vector<wave_path_t>& waves,
                                   float normPos) {
   if (waves.size() < 2)
     return waves[0];
-
-  static bool firstVirtual = false;
+  // static bool firstVirtual = false;
   const float fIdx = normPos * (float)waves.size();
   size_t lowIdx = std::min((size_t)std::floorf(fIdx), waves.size() - 2);
   size_t highIdx = lowIdx + 1;
   float lerpAmt = fIdx - (float)lowIdx;
-  juce::Path vPath;
-  const float zPos = normPos + Z_SETBACK;
-  // 1. calculate the path points
+  WavePath2D path;
+  // 1. calculate the points
   auto& lowPath = waves[lowIdx].path;
   auto& highPath = waves[highIdx].path;
-  auto lo3D =
-      pointFromCanvas(lowPath.getPointAlongPath(0.0f), waves[lowIdx].zPosition);
-  auto hi3D = pointFromCanvas(highPath.getPointAlongPath(0.0f),
-                              waves[highIdx].zPosition);
-  vec3D_f startVert = {0.0f, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
-  vPath.startNewSubPath(projectToCanvas(startVert));
-  for (int i = 1; i < WAVE_GRAPH_POINTS; ++i) {
-    float pRelative = (float)i / (float)WAVE_GRAPH_POINTS;
-    lo3D = pointFromCanvas(lowPath.getPointAlongPath(pRelative),
-                           waves[lowIdx].zPosition);
-    hi3D = pointFromCanvas(highPath.getPointAlongPath(pRelative),
-                           waves[highIdx].zPosition);
-    vec3D_f vert = {pRelative, flerp(lo3D.y, hi3D.y, lerpAmt), zPos};
-    vPath.lineTo(projectToCanvas(vert));
+
+  const float zPos =
+      flerp(waves[lowIdx].zPosition, waves[highIdx].zPosition, lerpAmt);
+  const float stroke = flerp(2.0f, 4.3f, zPos);
+  for (size_t i = 0; i < WAVE_PATH_VERTS; ++i) {
+    auto lowVert = pointFromCanvas(lowPath[i], waves[lowIdx].zPosition);
+    auto highVert = pointFromCanvas(highPath[i], waves[highIdx].zPosition);
+    auto vVert = lerp3D(lowVert, highVert, lerpAmt);
+    path[i] = projectToCanvas(vVert);
   }
-  // figure out the line width
-  static frange_t strokeRange(1.8f, 4.0f);
-  const float weight = strokeRange.convertFrom0to1(1.0f - normPos);
-  if (!firstVirtual) {
-    DLog::log("Generated first virtual wave");
-    firstVirtual = true;
-  }
-  return {vPath, zPos, weight};
+  return {path, zPos, stroke};
 }
 
 void WavetableGraph::updateGraphImage() {
@@ -297,16 +316,14 @@ void WavetableGraph::updateGraphImage() {
     // 1. draw this wave
     auto sColor = vWaveColor.interpolatedWith(
         normWaveColor, std::fabs(wavePaths[i].zPosition - vWave.zPosition));
-    juce::PathStrokeType pst(wavePaths[i].strokeWeight);
     g.setColour(sColor);
-    g.strokePath(wavePaths[i].path, pst);
+    wavePaths[i].path.draw(g, wavePaths[i].strokeWeight);
     // don't check the 0th wave for the vPath
     if (i > 0) {
       if (wavePaths[i - 1].zPosition <= vWave.zPosition &&
           wavePaths[i].zPosition > vWave.zPosition) {
         g.setColour(vWaveColor);
-        juce::PathStrokeType vPst(vWave.strokeWeight);
-        g.strokePath(vWave.path, vPst);
+        vWave.path.draw(g, vWave.strokeWeight);
       }
     }
   }

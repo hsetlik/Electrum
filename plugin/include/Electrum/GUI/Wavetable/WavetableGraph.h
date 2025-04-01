@@ -6,11 +6,14 @@
 #include "Electrum/Shared/GraphingData.h"
 #include "Electrum/Shared/ElectrumState.h"
 
+#include "juce_core/juce_core.h"
 #include "juce_core/system/juce_PlatformDefs.h"
+#include "juce_events/juce_events.h"
 #include "juce_opengl/juce_opengl.h"
 
 //==================================================================
 typedef juce::Vector3D<float> vec3D_f;
+typedef juce::Point<float> fpoint_t;
 
 #define GRAPH_REFRESH_HZ 24
 #define GRAPH_W 512
@@ -19,8 +22,28 @@ typedef juce::Vector3D<float> vec3D_f;
 #define Z_SETBACK 0.6f
 #define CAMERA_DISTANCE 0.3f
 
+// juce's builtin path class has done me wrong here
+constexpr size_t WAVE_PATH_VERTS = WAVE_GRAPH_POINTS + 2;
+class WavePath2D {
+private:
+  fpoint_t points[WAVE_PATH_VERTS] = {};
+
+public:
+  WavePath2D(const WavePath2D& other);
+  WavePath2D() = default;
+  fpoint_t& operator[](size_t idx) {
+    jassert(idx < WAVE_PATH_VERTS);
+    return points[idx];
+  }
+  fpoint_t operator[](size_t idx) const {
+    jassert(idx < WAVE_PATH_VERTS);
+    return points[idx];
+  }
+  void draw(juce::Graphics& g, float strokeWeight);
+};
+
 struct wave_path_t {
-  juce::Path path;
+  WavePath2D path;
   float zPosition;
   float strokeWeight;
 };
@@ -38,13 +61,15 @@ private:
   // and the sets of paths we need to draw
   std::vector<wave_path_t> wavePaths = {};
 
+  void drawWaveGraph();
+
 public:
   const int oscID;
   WavetableGraph(ElectrumState* s, int idx);
   void graphingDataUpdated(GraphingData* gd) override;
   void wavePointsUpdated(GraphingData* gd, int id) override;
-  void timerCallback() override;
   void paint(juce::Graphics& g) override;
+  void timerCallback() override;
 
 private:
   void updateWavePaths(GraphingData* gd);

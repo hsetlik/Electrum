@@ -1,18 +1,17 @@
 #include "Electrum/Shared/GraphingData.h"
+#include "Electrum/Audio/AudioUtil.h"
 
 GraphingData::GraphingData()
     : voicesState(0), newestVoice(-1), updateRequested(false) {
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     newestEnvLevels[(size_t)i] = 0.0f;
   }
+
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
+    graphPoints.add(new WavetableGraphingPoints());
+    graphPoints.getLast()->oscID = i;
   }
-  startTimerHz(30);
-}
-
-void GraphingData::timerCallback() {
-  updateRequested = true;
 }
 
 void GraphingData::voiceStarted(int idx) {
@@ -61,17 +60,30 @@ void GraphingData::removeListener(Listener* l) {
   }
 }
 
+single_wave_norm_t GraphingData::getGraphPoints(int oscID, int waveID) const {
+  single_wave_norm_t out = {};
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    out[i] = graphPoints[oscID]->waves[(size_t)waveID][i].load();
+  }
+  return out;
+}
+
+int GraphingData::getNumWavesForOsc(int osc) const {
+  DLog::log("Requesting waves for osc " + String(osc));
+
+  return graphPoints[osc]->numWaves.load();
+}
+
 void GraphingData::updateGraphPoints(Wavetable* wt, int oscID, bool notify) {
-  auto& gp = graphPoints[oscID];
-  gp.oscID = oscID;
-  gp.waves.clear();
+  graphPoints[oscID]->oscID = oscID;
+  graphPoints[oscID]->numWaves = wt->size();
+  DLog::log("Wavetable contains " + String(graphPoints[oscID]->numWaves) +
+            " waves");
   for (int i = 0; i < wt->size(); ++i) {
     auto vec = wt->normVectorForWave(i, WAVE_GRAPH_POINTS);
-    single_wave_norm_t wave;
     for (size_t x = 0; x < WAVE_GRAPH_POINTS; ++x) {
-      wave[x] = vec[x];
+      graphPoints[oscID]->waves[(size_t)i][x] = vec[x];
     }
-    gp.waves.push_back(wave);
   }
   if (notify) {
     for (auto* l : graphListeners) {

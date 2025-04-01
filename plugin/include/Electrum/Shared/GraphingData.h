@@ -3,6 +3,7 @@
 #include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
+#include "juce_core/system/juce_PlatformDefs.h"
 
 // handy type aliases
 typedef std::atomic<float> float_at;
@@ -12,9 +13,12 @@ typedef std::atomic<bool> bool_at;
 
 #define WAVE_GRAPH_POINTS 256
 typedef std::array<float, WAVE_GRAPH_POINTS> single_wave_norm_t;
+typedef std::array<float_at, WAVE_GRAPH_POINTS> wave_norm_at;
+
 struct WavetableGraphingPoints {
-  std::vector<single_wave_norm_t> waves = {};
-  int oscID = 0;
+  int_at numWaves;
+  std::array<wave_norm_at, 100> waves = {};
+  int_at oscID;
 };
 
 class AtomicIntStack {
@@ -39,8 +43,10 @@ public:
  * about the audio thread that our
  * various GUI components need to access
  * */
-class GraphingData : public juce::Timer {
+class GraphingData {
 private:
+  // just in case we need to lock maybe
+  juce::CriticalSection criticalSection;
   int_at voicesState;
   int_at newestVoice;
   AtomicIntStack voiceIndeces;
@@ -51,16 +57,16 @@ private:
   // keep track of when we want updates
   bool_at updateRequested;
 
-  // this graphing data can be non-atomic
-  bool_at graphPointsReady = false;
+  bool_at graphPointsReady;
+  juce::OwnedArray<WavetableGraphingPoints, juce::CriticalSection> graphPoints;
 
 public:
-  WavetableGraphingPoints graphPoints[NUM_OSCILLATORS];
   GraphingData();
-  void timerCallback() override;
-
+  single_wave_norm_t getGraphPoints(int oscID, int waveID) const;
+  int getNumWavesForOsc(int oscID) const;
   bool wantsGraphPoints() const { return !graphPointsReady.load(); }
   void graphPointsLoaded() { graphPointsReady = true; }
+  void requestUpdate() { updateRequested = true; }
   bool wantsUpdate() const {
     return updateRequested.load() && newestVoice != -1;
   }
@@ -112,4 +118,5 @@ private:
   std::vector<Listener*> graphListeners = {};
   void _notifyListeners();
   bool _isVoiceActive(int idx);
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GraphingData)
 };

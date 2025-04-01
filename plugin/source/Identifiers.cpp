@@ -7,8 +7,9 @@ static void addFloatParam(apvts::ParameterLayout* layout,
                           const String& name,
                           frange_t range,
                           float fDefault) {
+  juce::ParameterID pID{id, 1};
   layout->add(
-      std::make_unique<juce::AudioParameterFloat>(id, name, range, fDefault));
+      std::make_unique<juce::AudioParameterFloat>(pID, name, range, fDefault));
 }
 
 apvts::ParameterLayout ID::getParameterLayout() {
