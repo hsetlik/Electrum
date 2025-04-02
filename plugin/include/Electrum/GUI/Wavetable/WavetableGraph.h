@@ -6,11 +6,7 @@
 
 #include "Mat3x3.h"
 #include "juce_events/juce_events.h"
-#include "juce_opengl/juce_opengl.h"
-
-//==================================================================
-typedef juce::Vector3D<float> vec3D_f;
-typedef juce::Point<float> fpoint_t;
+#include "../GUITypedefs.h"
 
 #define GRAPH_REFRESH_HZ 24
 #define GRAPH_W 512

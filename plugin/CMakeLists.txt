@@ -96,6 +96,9 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/ModulatorPanel/MacroModSources.h
 				source/Mat3x3.cpp
 				${INCLUDE_DIR}/GUI/Wavetable/Mat3x3.h
+				source/DragPoint.cpp
+				${INCLUDE_DIR}/GUI/Util/DragPoint.h
+				${INCLUDE_DIR}/GUI/GUITypedefs.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
