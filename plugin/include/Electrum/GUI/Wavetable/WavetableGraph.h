@@ -1,12 +1,9 @@
 #pragma once
 
-#include <stack>
-#include "Electrum/Audio/Wavetable.h"
-#include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Shared/GraphingData.h"
 #include "Electrum/Shared/ElectrumState.h"
 
-#include "juce_core/juce_core.h"
+#include "Mat3x3.h"
 #include "juce_core/system/juce_PlatformDefs.h"
 #include "juce_events/juce_events.h"
 #include "juce_opengl/juce_opengl.h"
@@ -24,6 +21,8 @@ typedef juce::Point<float> fpoint_t;
 
 // juce's builtin path class has done me wrong here
 constexpr size_t WAVE_PATH_VERTS = WAVE_GRAPH_POINTS + 2;
+
+typedef std::array<vec3D_f, WAVE_PATH_VERTS> vertex_arr_t;
 class WavePath2D {
 private:
   fpoint_t points[WAVE_PATH_VERTS] = {};
@@ -58,10 +57,14 @@ private:
   // position state stuff
   float lastDrawnPos = 0.0f;
   float currentPos = 0.0f;
+  Mat3x3 matForward;
+  Mat3x3 matInverse;
   // and the sets of paths we need to draw
-  std::vector<wave_path_t> wavePaths = {};
+  juce::OwnedArray<wave_path_t, juce::CriticalSection> wavePaths;
 
   void drawWaveGraph();
+
+  bool firstPathsGenerated = false;
 
 public:
   const int oscID;
@@ -70,9 +73,30 @@ public:
   void wavePointsUpdated(GraphingData* gd, int id) override;
   void paint(juce::Graphics& g) override;
   void timerCallback() override;
+  static Mat3x3 graphRotationMatrix() {
+    const float xAngle = juce::MathConstants<float>::pi * 1.0f;
+    const float yAngle = juce::MathConstants<float>::pi * -0.6f;
+    const float zAngle = juce::MathConstants<float>::pi * -0.35f;
+    return Mat3x3::getRotationMatrix(xAngle, yAngle, zAngle);
+  }
 
 private:
+  // just so we don't reallocate these every time
+  single_wave_norm_t waveNorm;
+  vertex_arr_t vertArray;
+
   void updateWavePaths(GraphingData* gd);
   void updateGraphImage();
+
+  void addPathFor(const vertex_arr_t& vertices);
+
+  fpoint_t projectToCanvas(vec3D_f point);
+  vec3D_f vertexFromCanvas(fpoint_t f, float zPos);
+  std::vector<vec3D_f> getVerticesForWave(const single_wave_norm_t& normPoints,
+                                          float zPos);
+  void loadVerticesForWave(vertex_arr_t& dest,
+                           const single_wave_norm_t& normPoints,
+                           float zPos);
+  wave_path_t getVirtualWave(float normPos);
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableGraph)
 };

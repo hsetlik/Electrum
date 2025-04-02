@@ -11,14 +11,14 @@ typedef std::atomic<int> int_at;
 typedef std::atomic<uint32_t> uint32_at;
 typedef std::atomic<bool> bool_at;
 
-#define WAVE_GRAPH_POINTS 256
+#define WAVE_GRAPH_POINTS 70
 typedef std::array<float, WAVE_GRAPH_POINTS> single_wave_norm_t;
-typedef std::array<float_at, WAVE_GRAPH_POINTS> wave_norm_at;
+typedef std::array<float_at, WAVE_GRAPH_POINTS> single_wave_at;
 
 struct WavetableGraphingPoints {
-  int_at numWaves;
-  std::array<wave_norm_at, 100> waves = {};
-  int_at oscID;
+  int_at numWaves = 1;
+  std::array<single_wave_at, 100> waves = {};
+  int_at oscID = 0;
 };
 
 class AtomicIntStack {
@@ -58,11 +58,12 @@ private:
   bool_at updateRequested;
 
   bool_at graphPointsReady;
-  juce::OwnedArray<WavetableGraphingPoints, juce::CriticalSection> graphPoints;
+  WavetableGraphingPoints graphPoints[NUM_OSCILLATORS];
 
 public:
   GraphingData();
   single_wave_norm_t getGraphPoints(int oscID, int waveID) const;
+  void loadGraphPoints(single_wave_norm_t& wave, int oscID, int waveID) const;
   int getNumWavesForOsc(int oscID) const;
   bool wantsGraphPoints() const { return !graphPointsReady.load(); }
   void graphPointsLoaded() { graphPointsReady = true; }

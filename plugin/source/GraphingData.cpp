@@ -9,8 +9,6 @@ GraphingData::GraphingData()
 
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
-    graphPoints.add(new WavetableGraphingPoints());
-    graphPoints.getLast()->oscID = i;
   }
 }
 
@@ -61,28 +59,36 @@ void GraphingData::removeListener(Listener* l) {
 }
 
 single_wave_norm_t GraphingData::getGraphPoints(int oscID, int waveID) const {
-  single_wave_norm_t out = {};
+  // juce::ScopedLock sl(criticalSection);
+  single_wave_norm_t out;
   for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    out[i] = graphPoints[oscID]->waves[(size_t)waveID][i].load();
+    out[i] = graphPoints[oscID].waves[(size_t)waveID][i].load();
   }
   return out;
 }
 
-int GraphingData::getNumWavesForOsc(int osc) const {
-  DLog::log("Requesting waves for osc " + String(osc));
+void GraphingData::loadGraphPoints(single_wave_norm_t& wave,
+                                   int oscID,
+                                   int waveID) const {
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    wave[i] = graphPoints[oscID].waves[(size_t)waveID][i].load();
+  }
+}
 
-  return graphPoints[osc]->numWaves.load();
+int GraphingData::getNumWavesForOsc(int osc) const {
+  const int val = graphPoints[osc].numWaves;
+  return val;
 }
 
 void GraphingData::updateGraphPoints(Wavetable* wt, int oscID, bool notify) {
-  graphPoints[oscID]->oscID = oscID;
-  graphPoints[oscID]->numWaves = wt->size();
-  DLog::log("Wavetable contains " + String(graphPoints[oscID]->numWaves) +
+  graphPoints[oscID].oscID = oscID;
+  graphPoints[oscID].numWaves = wt->size();
+  DLog::log("Wavetable contains " + String(graphPoints[oscID].numWaves) +
             " waves");
   for (int i = 0; i < wt->size(); ++i) {
     auto vec = wt->normVectorForWave(i, WAVE_GRAPH_POINTS);
     for (size_t x = 0; x < WAVE_GRAPH_POINTS; ++x) {
-      graphPoints[oscID]->waves[(size_t)i][x] = vec[x];
+      graphPoints[oscID].waves[(size_t)i][x] = vec[x];
     }
   }
   if (notify) {
@@ -91,4 +97,4 @@ void GraphingData::updateGraphPoints(Wavetable* wt, int oscID, bool notify) {
     }
   }
 }
-//===================================================
+//==================================================
