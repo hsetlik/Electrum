@@ -62,8 +62,9 @@ void WavetableGraph::updateVirtualVertices() {
 
 // 3D math stuff---------------
 
-void WavetableGraph::projectToPoints(const wave_vertices_t& verts,
-                                     wave_points_t& points) {
+static void projectToPoints(const wave_vertices_t& verts,
+                            wave_points_t& points,
+                            Mat3x3 rotationMatrix) {
   const float yHeight = 1.4f;
   vec3D_f c = {-0.5f, yHeight, 0.0f};         // represents the camera pinhole
   vec3D_f e = {0.0f, 0.0f, CAMERA_DISTANCE};  // represents
@@ -80,19 +81,21 @@ void WavetableGraph::projectToPoints(const wave_vertices_t& verts,
 
 static color_t _getWaveColor(float waveNorm, float virtualNorm) {
   static color_t nColor = Color::qualifierPurple.darker(0.5f);
-  static color_t vColor = Color::qualifierPurple;
-  return nColor.interpolatedWith(vColor,
-                                 1.0f - std::fabs(waveNorm - virtualNorm));
+  static color_t vColor = Color::qualifierPurple.brighter(0.3f);
+  static frange_t tRange = rangeWithCenter(0.0f, 1.0f, 0.2f);
+  const float tLin = std::fabs(waveNorm - virtualNorm);
+  const float t = tRange.convertFrom0to1(tLin);
+  return nColor.interpolatedWith(vColor, t);
 }
 
 static float _getStrokeWidth(float waveZ) {
-  static frange_t strokeRange = rangeWithCenter(2.1f, 4.3f, 3.1f);
+  static frange_t strokeRange = rangeWithCenter(1.8f, 3.8f, 3.3f);
   return strokeRange.convertFrom0to1(1.0f - (waveZ - Z_SETBACK));
 }
 
-void WavetableGraph::drawWave(juce::Graphics& g,
-                              const wave_points_t& points,
-                              float stroke) {
+static void drawWave(juce::Graphics& g,
+                     const wave_points_t& points,
+                     float stroke) {
   // 1. convert to juce::Path object
   juce::Path path;
   path.startNewSubPath(points[0]);
@@ -115,7 +118,7 @@ void WavetableGraph::redrawBitmap() {
   for (size_t i = 0; i < waveVertArrays.size(); ++i) {
     // 1. project to 2d points
     float zPos = waveVertArrays[i][0].z;
-    projectToPoints(waveVertArrays[i], pathPoints);
+    projectToPoints(waveVertArrays[i], pathPoints, rotationMatrix);
     // 2. set color and stroke width
     auto color = _getWaveColor(zPos - Z_SETBACK, currentWavePos);
     auto stroke = _getStrokeWidth(zPos);
@@ -125,7 +128,7 @@ void WavetableGraph::redrawBitmap() {
     // 4. check if it's time to draw the virtual wave
     if (i == virtualIdx) {
       zPos = virtualVerts[0].z;
-      projectToPoints(virtualVerts, pathPoints);
+      projectToPoints(virtualVerts, pathPoints, rotationMatrix);
       g.setColour(Color::qualifierPurple);
       stroke = _getStrokeWidth(zPos) * 1.035f;
       drawWave(g, pathPoints, stroke);
@@ -148,8 +151,14 @@ WavetableGraph::WavetableGraph(ElectrumState* s, int osc)
   const float yAngle = juce::MathConstants<float>::pi * -0.6f;
   const float zAngle = juce::MathConstants<float>::pi * -0.35f;
   rotationMatrix = Mat3x3::getRotationMatrix(xAngle, yAngle, zAngle);
-  // 3. start the timer
+  // 3. attach the GraphingData::Listener
+  state->graph.addListener(this);
+  // 4. start the timer
   startTimerHz(GRAPH_REFRESH_HZ);
+}
+
+WavetableGraph::~WavetableGraph() {
+  state->graph.removeListener(this);
 }
 
 void WavetableGraph::timerCallback() {

@@ -24,7 +24,9 @@ typedef juce::Point<float> fpoint_t;
 typedef std::array<vec3D_f, WAVE_PATH_POINTS> wave_vertices_t;
 typedef std::array<fpoint_t, WAVE_PATH_POINTS> wave_points_t;
 
-class WavetableGraph : public Component, public juce::Timer {
+class WavetableGraph : public Component,
+                       public juce::Timer,
+                       public GraphingData::Listener {
 private:
   ElectrumState* const state;
   juce::Image img;
@@ -39,13 +41,17 @@ private:
 public:
   const int oscID;
   WavetableGraph(ElectrumState* s, int idx);
+  ~WavetableGraph() override;
   void timerCallback() override;
   void paint(juce::Graphics& g) override;
+  void graphingDataUpdated(GraphingData* gd) override {
+    if (gd->wavetablesChanged()) {
+      wavesReady = false;
+    }
+  }
 
 private:
   void updateVertices(const String& wavetableStr);
-  void projectToPoints(const wave_vertices_t& verts, wave_points_t& points);
   void updateVirtualVertices();
   void redrawBitmap();
-  void drawWave(juce::Graphics& g, const wave_points_t& points, float stroke);
 };
