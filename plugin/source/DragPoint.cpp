@@ -38,3 +38,40 @@ bool DragPoint::isWithin(const juce::MouseEvent& e, float radius) {
 }
 
 //===================================================
+DragPointAttach::DragPointAttach(ElectrumState* s,
+                                 DragPoint* p,
+                                 const String& id,
+                                 PosToParamFunc f1,
+                                 ParamToPosFunc f2)
+    : state(s), point(p), paramID(id), posToParam(f1), paramToPos(f2) {
+  point->addListener(this);
+  auto callback = [this](float value) {
+    auto pos = paramToPos(value);
+    point->movePoint(pos.x, pos.y, false);
+  };
+  auto param = state->getParameter(paramID);
+  pAttach.reset(
+      new juce::ParameterAttachment(*param, callback, state->undoManager));
+  pAttach->sendInitialUpdate();
+}
+
+DragPointAttach::~DragPointAttach() {
+  point->removeListener(this);
+}
+
+void DragPointAttach::moveStarted(DragPoint*) {
+  pAttach->beginGesture();
+  isMoving = true;
+}
+
+void DragPointAttach::moveEnded(DragPoint*) {
+  if (isMoving.load()) {
+    pAttach->endGesture();
+    isMoving = false;
+  }
+}
+
+void DragPointAttach::moved(DragPoint* p) {
+  auto val = posToParam({p->getX(), p->getY()});
+  pAttach->setValueAsPartOfGesture(val);
+}

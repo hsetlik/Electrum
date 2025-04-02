@@ -4,6 +4,7 @@
 // read or write shared state!
 #include "Electrum/Identifiers.h"
 #include "../GUITypedefs.h"
+#include "Electrum/Shared/ElectrumState.h"
 struct DragPoint {
 public:
   Component* const parent;
@@ -30,8 +31,9 @@ public:
   float yF() { return point.getY() / (float)parent->getHeight(); }
   float getX() { return point.x; }
   float getY() { return point.y; }
+
   // these are the functions that (optionally) call the listeners
-  // NOTE: the 'notify' parameter should be false when calling these methods
+  // NOTE: 'notify' should be false when calling these methods
   // from the atttachment class
   void startMove(bool notify = true);
   void endMove(bool notify = true);
@@ -41,5 +43,34 @@ public:
 
 private:
   std::vector<Listener*> listeners;
+};
+
+//===================================================
+// typedefs for the function pointers we'll use to translate between
+// parameter values and xy positions
+typedef std::function<float(fpoint_t)> PosToParamFunc;
+typedef std::function<fpoint_t(float)> ParamToPosFunc;
+
+class DragPointAttach : public ::DragPoint::Listener {
+private:
+  ElectrumState* const state;
+  DragPoint* const point;
+  const String paramID;
+  PosToParamFunc posToParam;
+  ParamToPosFunc paramToPos;
+  std::atomic<bool> isMoving;
+  std::unique_ptr<juce::ParameterAttachment> pAttach;
+
+public:
+  DragPointAttach(ElectrumState* s,
+                  DragPoint* p,
+                  const String& id,
+                  PosToParamFunc f1,
+                  ParamToPosFunc f2);
+  ~DragPointAttach() override;
+  // listener overrides
+  void moveStarted(DragPoint* p) override;
+  void moveEnded(DragPoint* p) override;
+  void moved(DragPoint* p) override;
 };
 
