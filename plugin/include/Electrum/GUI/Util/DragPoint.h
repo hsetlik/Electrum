@@ -39,6 +39,7 @@ public:
   void endMove(bool notify = true);
   void movePoint(float x, float y, bool notify = true);
   void moveTo(fpoint_t pt, bool notify = true);
+
   bool isWithin(const juce::MouseEvent& e, float radius);
 
 private:
@@ -63,8 +64,8 @@ private:
 
 public:
   DragPointAttach(ElectrumState* s,
-                  DragPoint* p,
                   const String& id,
+                  DragPoint* p,
                   PosToParamFunc f1,
                   ParamToPosFunc f2);
   ~DragPointAttach() override;
@@ -74,3 +75,4 @@ public:
   void moved(DragPoint* p) override;
 };
 
+typedef std::unique_ptr<DragPointAttach> drag_attach_ptr;

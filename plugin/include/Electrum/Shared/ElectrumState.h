@@ -85,7 +85,10 @@ public:
   // up to date
   bool modulationExists(int src, int dest);
   float modulationDepth(int src, int dest);
-  // wavetable string stuff
+
+  float getFloatParamValue(const String& id) {
+    return getRawParameterValue(id)->load();
+  }
 
   //-----------------------------------------------
   bool getSustainPedal() const { return sustainPedal; }

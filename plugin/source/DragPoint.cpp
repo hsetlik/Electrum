@@ -39,8 +39,8 @@ bool DragPoint::isWithin(const juce::MouseEvent& e, float radius) {
 
 //===================================================
 DragPointAttach::DragPointAttach(ElectrumState* s,
-                                 DragPoint* p,
                                  const String& id,
+                                 DragPoint* p,
                                  PosToParamFunc f1,
                                  ParamToPosFunc f2)
     : state(s), point(p), paramID(id), posToParam(f1), paramToPos(f2) {

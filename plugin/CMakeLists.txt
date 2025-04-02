@@ -99,6 +99,8 @@ target_sources(${PROJECT_NAME}
 				source/DragPoint.cpp
 				${INCLUDE_DIR}/GUI/Util/DragPoint.h
 				${INCLUDE_DIR}/GUI/GUITypedefs.h
+				source/EnvelopeGraph.cpp
+				${INCLUDE_DIR}/GUI/ModulatorPanel/EnvelopeGraph.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
