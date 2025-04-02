@@ -55,8 +55,8 @@ private:
   // that our graphics code can (god willing) safely
   // access
   std::array<String, NUM_OSCILLATORS> waveStrings;
-  bool needsWaveStrings = true;
-  bool waveStringsHaveChanged = false;
+  bool_at needsWaveStrings;
+  bool_at waveStringsHaveChanged;
 
 public:
   GraphingData();

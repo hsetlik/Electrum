@@ -2,7 +2,11 @@
 #include "Electrum/Audio/AudioUtil.h"
 
 GraphingData::GraphingData()
-    : voicesState(0), newestVoice(0), updateRequested(false) {
+    : voicesState(0),
+      newestVoice(0),
+      updateRequested(false),
+      needsWaveStrings(true),
+      waveStringsHaveChanged(false) {
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     newestEnvLevels[(size_t)i] = 0.0f;
   }
@@ -19,6 +23,7 @@ void GraphingData::updateWavetableString(const String& wave, int oscID) {
   DLog::log("Updated wavetable string for osc " + String(oscID));
 }
 
+//-----------------------
 void GraphingData::voiceStarted(int idx) {
   newestVoice = idx;
   voiceIndeces.push(idx);

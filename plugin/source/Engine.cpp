@@ -124,7 +124,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     state->graph.updateFinished();
   }
 
-  // 2. load any midi events into the queue (and load any events from the GUI
+  // 2. load midi events into the queue (and load any events from the GUI
   // keyboard)
   masterKeyboardState.processNextMidiBuffer(midiBuf, 0,
                                             audioBuf.getNumSamples(), true);

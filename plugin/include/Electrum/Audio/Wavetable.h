@@ -18,7 +18,7 @@ typedef juce::dsp::FFT FFTProc;
 // helpers for string/wave conversion
 String stringEncodeWave(float* wave);
 void stringDecodeWave(const String& str, float* dest);
-
+juce::StringArray splitWaveStrings(const String& fullStr);
 // holds a wave array with its max and min
 // frequency (expressed in phase change/sample)
 

@@ -33,6 +33,19 @@ void stringDecodeWave(const String& in, float* dest) {
   mb.copyTo(dest, 0, tableBytes);
 }
 
+juce::StringArray splitWaveStrings(const String& input) {
+  String tableStr = input;
+  juce::StringArray arr;
+  int tokenStartIdx = tableStr.indexOf(waveEndToken);
+  while (tokenStartIdx != -1 && tableStr.length() > waveEndToken.length()) {
+    String waveStr = tableStr.substring(0, tokenStartIdx);
+    arr.add(waveStr);
+    tableStr = tableStr.substring(waveStr.length() + waveEndToken.length());
+    tokenStartIdx = tableStr.indexOf(waveEndToken);
+  }
+  return arr;
+}
+
 //======================================================================
 namespace Wave {
 void randomizePhases(std::complex<float>* freqDomain,
