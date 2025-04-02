@@ -278,6 +278,14 @@ void Wavetable::handleAsyncUpdate() {
   fSize = (float)(pActive->size() - 1);
 }
 
+String Wavetable::toString() const noexcept {
+  String str = "";
+  for (int i = 0; i < pActive->size(); ++i) {
+    str += pActive->getUnchecked(i)->toString();
+  }
+  return str;
+}
+
 std::vector<float> Wavetable::normVectorForWave(int wave, int numPoints) const {
   bool firstNegValue = false;
   std::vector<float> vec = {};

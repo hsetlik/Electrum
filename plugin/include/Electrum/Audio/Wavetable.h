@@ -102,5 +102,6 @@ public:
   inline float getFine() const { return fine; }
   // and these help render the graphs
   std::vector<float> normVectorForWave(int wave, int numPoints = 512) const;
+  String toString() const noexcept;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Wavetable)
 };

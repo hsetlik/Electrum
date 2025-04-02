@@ -13,6 +13,8 @@ typedef std::atomic<bool> bool_at;
 
 #define WAVE_GRAPH_POINTS 70
 
+typedef std::array<float, WAVE_GRAPH_POINTS> graph_wave_t;
+
 class AtomicIntStack {
 private:
   std::array<int_at, 32> data = {};
@@ -35,7 +37,7 @@ public:
  * about the audio thread that our
  * various GUI components need to access
  * */
-class GraphingData {
+class GraphingData : public juce::Timer {
 private:
   // just in case we need to lock maybe
   juce::CriticalSection criticalSection;
@@ -49,15 +51,24 @@ private:
   // keep track of when we want updates
   bool_at updateRequested;
 
+  // string-encoded versions of our wavetables
+  // that our graphics code can (god willing) safely
+  // access
+  std::array<String, NUM_OSCILLATORS> waveStrings;
+  bool needsWaveStrings = true;
+  bool waveStringsHaveChanged = false;
+
 public:
   GraphingData();
-  void requestUpdate() { updateRequested = true; }
+  void timerCallback() override { updateRequested = true; }
   bool wantsUpdate() const {
     return updateRequested.load() && newestVoice != -1;
   }
   void updateFinished() {
-    updateRequested = false;
     _notifyListeners();
+    updateRequested = false;
+    waveStringsHaveChanged = false;
+    needsWaveStrings = false;
   }
   // call this so we can keep track of which voice to be tracking from
   void voiceStarted(int idx);
@@ -65,19 +76,23 @@ public:
   int getNewestVoiceIndex() const { return newestVoice.load(); }
   // call these on the 'newestVoice' at update time to do the actual
   // data copying
-  void updateOscPos(int oscID, float value, bool notify = true) {
+  void updateOscPos(int oscID, float value) {
     newestOscPositions[(size_t)oscID] = value;
-    if (notify)
-      _notifyListeners();
   }
   float getOscPos(int oscID) const {
     return newestOscPositions[(size_t)oscID].load();
   }
-  void updateEnvLevel(int envID, float value, bool notify = true) {
+  void updateEnvLevel(int envID, float value) {
     newestEnvLevels[(size_t)envID] = value;
-    if (notify)
-      _notifyListeners();
   }
+  // wave string stuff
+  bool needsWavetableData() const { return needsWaveStrings; }
+  bool wavetablesChanged() const { return waveStringsHaveChanged; }
+  void updateWavetableString(const String& wave, int oscID);
+  String getWavetableString(int oscID) const noexcept {
+    return waveStrings[(size_t)oscID];
+  }
+
   // Graphing components should inherit from this to get
   // updates-----------------------
   class Listener {

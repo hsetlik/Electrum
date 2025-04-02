@@ -85,11 +85,13 @@ public:
   // up to date
   bool modulationExists(int src, int dest);
   float modulationDepth(int src, int dest);
+  // wavetable string stuff
 
   //-----------------------------------------------
   bool getSustainPedal() const { return sustainPedal; }
   void setSustainPedal(bool pedalDown) { sustainPedal = pedalDown; }
   void setModWheel(float val) { modWheelValue = val; }
+
   // modulation data for the audio thread to access
   ModMap modulations;
   // atomic data holder for our GUI graphing

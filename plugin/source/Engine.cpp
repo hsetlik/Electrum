@@ -113,6 +113,14 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     auto* v = voices[state->graph.getNewestVoiceIndex()];
     jassert(v != nullptr);
     v->updateGraphData(&state->graph);
+    // update the wavetable strings if necessary
+    if (state->graph.needsWavetableData()) {
+      for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+        auto str = audioSrc.wOsc[i].toString();
+        state->graph.updateWavetableString(str, i);
+      }
+      DLog::log("Wavetable strings updated");
+    }
     state->graph.updateFinished();
   }
 

@@ -2,7 +2,7 @@
 #include "Electrum/Audio/AudioUtil.h"
 
 GraphingData::GraphingData()
-    : voicesState(0), newestVoice(-1), updateRequested(false) {
+    : voicesState(0), newestVoice(0), updateRequested(false) {
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     newestEnvLevels[(size_t)i] = 0.0f;
   }
@@ -10,6 +10,13 @@ GraphingData::GraphingData()
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
   }
+  startTimerHz(30);
+}
+
+void GraphingData::updateWavetableString(const String& wave, int oscID) {
+  waveStrings[(size_t)oscID] = wave;
+  waveStringsHaveChanged = true;
+  DLog::log("Updated wavetable string for osc " + String(oscID));
 }
 
 void GraphingData::voiceStarted(int idx) {
@@ -18,6 +25,7 @@ void GraphingData::voiceStarted(int idx) {
   const int mask = 1 << idx;
   voicesState |= mask;
 }
+
 void GraphingData::voiceEnded(int idx) {
   if (idx == newestVoice) {
     voiceIndeces.pop();

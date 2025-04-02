@@ -16,6 +16,7 @@ public:
   float baseValueForModDest(int destID) const;
   // this callback should run once per buffer
   void updateForBlock(ElectrumState* tree);
+  AudioSourceState() = default;
 };
 
 //========================================================
