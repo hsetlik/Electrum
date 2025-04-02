@@ -2,7 +2,7 @@
 
 #include "../Modulation/DestinationSlider.h"
 #include "juce_core/system/juce_PlatformDefs.h"
-#include "WavetableGraph.h"
+// #include "WavetableGraph.h"
 
 class OscillatorPanel : public Component {
 private:
@@ -14,7 +14,7 @@ private:
   DestinationSlider sLevel;
   DestinationSlider sPan;
 
-  WavetableGraph graph;
+  // WavetableGraph graph;
 
 public:
   const int oscID;

@@ -11,14 +11,14 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
       sPos(s, (id * 5) + 2),
       sLevel(s, (id * 5) + 3),
       sPan(s, (id * 5) + 4),
-      graph(s, id),
+      // graph(s, id),
       oscID(id) {
   addAndMakeVisible(sCoarse);
   addAndMakeVisible(sFine);
   addAndMakeVisible(sPos);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPan);
-  addAndMakeVisible(graph);
+  // addAndMakeVisible(graph);
 }
 
 void OscillatorPanel::resized() {
@@ -33,7 +33,8 @@ void OscillatorPanel::resized() {
   frect_t remaining = {0.0f, 0.0f, grid[1][0].getRight(),
                        grid[0][1].getBottom()};
   auto graphBounds = remaining.toNearestInt();
-  graph.setBounds(graphBounds);
+  juce::ignoreUnused(graphBounds);
+  // graph.setBounds(graphBounds);
 }
 
 void OscillatorPanel::paint(juce::Graphics& g) {

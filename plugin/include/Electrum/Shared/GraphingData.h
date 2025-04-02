@@ -12,14 +12,6 @@ typedef std::atomic<uint32_t> uint32_at;
 typedef std::atomic<bool> bool_at;
 
 #define WAVE_GRAPH_POINTS 70
-typedef std::array<float, WAVE_GRAPH_POINTS> single_wave_norm_t;
-typedef std::array<float_at, WAVE_GRAPH_POINTS> single_wave_at;
-
-struct WavetableGraphingPoints {
-  int_at numWaves = 1;
-  std::array<single_wave_at, 100> waves = {};
-  int_at oscID = 0;
-};
 
 class AtomicIntStack {
 private:
@@ -57,16 +49,8 @@ private:
   // keep track of when we want updates
   bool_at updateRequested;
 
-  bool_at graphPointsReady;
-  WavetableGraphingPoints graphPoints[NUM_OSCILLATORS];
-
 public:
   GraphingData();
-  single_wave_norm_t getGraphPoints(int oscID, int waveID) const;
-  void loadGraphPoints(single_wave_norm_t& wave, int oscID, int waveID) const;
-  int getNumWavesForOsc(int oscID) const;
-  bool wantsGraphPoints() const { return !graphPointsReady.load(); }
-  void graphPointsLoaded() { graphPointsReady = true; }
   void requestUpdate() { updateRequested = true; }
   bool wantsUpdate() const {
     return updateRequested.load() && newestVoice != -1;
@@ -94,8 +78,6 @@ public:
     if (notify)
       _notifyListeners();
   }
-  // update the graphing point data
-  void updateGraphPoints(Wavetable* wt, int oscID, bool notify = true);
   // Graphing components should inherit from this to get
   // updates-----------------------
   class Listener {
@@ -104,11 +86,6 @@ public:
     virtual ~Listener() {}
     virtual void graphingDataUpdated(GraphingData* gd) {
       juce::ignoreUnused(gd);
-    }
-    // this gets a special callback to avoid re-loading waves every time the
-    // position changes
-    virtual void wavePointsUpdated(GraphingData* gd, int oscID) {
-      juce::ignoreUnused(gd, oscID);
     }
   };
   //-----------------------

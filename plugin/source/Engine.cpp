@@ -115,14 +115,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     v->updateGraphData(&state->graph);
     state->graph.updateFinished();
   }
-  // 1c. check if the GUI wants wavtable point data
-  if (state->graph.wantsGraphPoints()) {
-    for (int i = 0; i < NUM_OSCILLATORS; ++i) {
-      // DLog::log("Updating graph points for oscillator " + String(i));
-      state->graph.updateGraphPoints(&audioSrc.wOsc[i], i);
-    }
-    state->graph.graphPointsLoaded();
-  }
+
   // 2. load any midi events into the queue (and load any events from the GUI
   // keyboard)
   masterKeyboardState.processNextMidiBuffer(midiBuf, 0,
