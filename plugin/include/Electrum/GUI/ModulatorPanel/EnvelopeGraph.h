@@ -1,6 +1,7 @@
 #pragma once
 #include "../Util/DragPoint.h"
 #include "Electrum/GUI/GUITypedefs.h"
+#include "Electrum/Shared/GraphingData.h"
 #include "juce_events/juce_events.h"
 
 #define FATTACK 0.2f
@@ -11,7 +12,9 @@
 #define HANDLE_STROKE 0.75f
 #define HOLD_BUF 4.0f
 
-class EnvelopeGraph : public Component, public juce::AsyncUpdater {
+class EnvelopeGraph : public Component,
+                      public juce::AsyncUpdater,
+                      public GraphingData::Listener {
 private:
   ElectrumState* const state;
   void drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g);
@@ -19,6 +22,7 @@ private:
 public:
   const int envID;
   EnvelopeGraph(ElectrumState* s, int id);
+  ~EnvelopeGraph() override { state->graph.removeListener(this); }
   void paint(juce::Graphics& g) override;
   void handleAsyncUpdate() override;
   void mouseDown(const juce::MouseEvent& e) override;
@@ -27,6 +31,8 @@ public:
   // make sure things are synced with the state when the component is brought
   // into focus
   void broughtToFront() override { triggerAsyncUpdate(); }
+  // handle the graphingData updates
+  void graphingDataUpdated(GraphingData* gd) override;
 
 private:
   // DragPoints/attachments
@@ -52,6 +58,9 @@ private:
 
   DragPoint releaseCurve;
   drag_attach_ptr releaseCurveAttach;
+
+  float prevLvl = 0.0f;
+  float currentLvl = 0.0f;
 
   // handy for iterating over all the points
   // NOTE: these are in left to right order

@@ -1,4 +1,5 @@
 #include "Electrum/GUI/ModulatorPanel/EnvelopeGraph.h"
+#include "Electrum/Common.h"
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 // geometry helpers----------------------------------
@@ -49,7 +50,7 @@ static void drawHandle(juce::Graphics& g,
                        bool isSelected) {
   frect_t bounds(radius * 2.0f, radius * 2.0f);
   bounds = bounds.withCentre(center);
-  g.setColour(Color::literalOrangePale);
+  // g.setColour(Color::literalOrangePale);
   if (isSelected) {
     g.fillEllipse(bounds);
   } else {
@@ -61,11 +62,17 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
   // fill the background first
   g.setColour(Color::darkBlue);
   g.fillRoundedRectangle(bounds, 2.5f);
+  // set the color to draw the active line
+  g.setColour(Color::qualifierPurple);
 
   static const int curvePoints = 60;
   if (bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f) {
     return;
   }
+
+  // y value for the env level
+  const float leadingYPos = bounds.getHeight() * (1.0f - currentLvl);
+  bool activeLineDrawn = fequal(currentLvl, 0.0f);
   // draw the path
   juce::Path p;
   p.startNewSubPath(bounds.getX(), bounds.getBottom());
@@ -73,6 +80,7 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
   juce::Path p2;
   p2.startNewSubPath(bounds.getX(), bounds.getBottom());
   const float yMax = bounds.getHeight() - 5.0f;
+  bool activeInAtk = activeLineDrawn ? false : prevLvl < currentLvl;
   for (int i = 0; i < curvePoints; i++) {
     // DLog::log("Drawing attack curve point #" + String(i));
     float t = ((float)i / (float)curvePoints);
@@ -80,13 +88,32 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
     float fY = bounds.getBottom() - 5.0f -
                onEasingCurve(0.0f, yMax - attackCurve.getY(), yMax, t);
     fY = std::max({fY, 5.0f});
+    if (activeInAtk && fY <= leadingYPos) {
+      juce::Path aPath;
+      aPath.startNewSubPath(fX, 0.0f);
+      aPath.lineTo(fX, yMax);
+      juce::PathStrokeType pst(1.5f);
+      g.strokePath(aPath, pst);
+      activeLineDrawn = true;
+      activeInAtk = false;
+    }
     p.lineTo(fX, fY);
   }
 
+  bool activeInHold = activeLineDrawn ? false : fequal(1.0f, currentLvl);
   p.lineTo(attackEnd.getX(), attackEnd.getY());
+  if (activeInHold) {
+    juce::Path aPath;
+    aPath.startNewSubPath(holdEnd.getX(), 0.0f);
+    aPath.lineTo(holdEnd.getX(), yMax);
+    juce::PathStrokeType pst(1.5f);
+    g.strokePath(aPath, pst);
+    activeLineDrawn = true;
+  }
 
   p.lineTo(holdEnd.getX(), holdEnd.getY());
 
+  bool activeInDecay = activeLineDrawn ? false : leadingYPos > decayEnd.getY();
   for (int i = 0; i < curvePoints; i++) {
     float t = ((float)i / (float)curvePoints);
     float fX = flerp(holdEnd.getX(), decayEnd.getX(), t);
@@ -107,10 +134,30 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
     fY = std::max(fY, holdEnd.getY());
     if (std::isnan(fX) || std::isnan(fY)) {
       DLog::log("NAN coords on decay curve at point: " + String(i));
-    } else
+    } else {
       p.lineTo(fX, fY);
+      if (activeInDecay && fY >= leadingYPos) {
+        juce::Path aPath;
+        aPath.startNewSubPath(fX, 0.0f);
+        aPath.lineTo(fX, yMax);
+        juce::PathStrokeType pst(1.5f);
+        g.strokePath(aPath, pst);
+        activeLineDrawn = true;
+        activeInDecay = false;
+      }
+    }
   }
+  bool activeInSustain =
+      activeLineDrawn ? false : fequal(leadingYPos, sustainEnd.getY());
   p.lineTo(decayEnd.getX(), decayEnd.getY());
+  if (activeInSustain) {
+    juce::Path aPath;
+    aPath.startNewSubPath(decayEnd.getX(), 0.0f);
+    aPath.lineTo(decayEnd.getX(), yMax);
+    juce::PathStrokeType pst(1.5f);
+    g.strokePath(aPath, pst);
+    activeLineDrawn = true;
+  }
   p.lineTo(sustainEnd.getX(), sustainEnd.getY());
   // DLog::log("Drawing line to bottom corner");
   for (int i = 0; i < curvePoints; i++) {
@@ -120,13 +167,21 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
     float height = bottom - sustainEnd.getY();
     float yCurve = bottom - releaseCurve.getY();
     float fY = bottom - onEasingCurve(0.0f, yCurve, height, 1.0f - t);
+    if (!activeLineDrawn && fY >= leadingYPos) {
+      juce::Path aPath;
+      aPath.startNewSubPath(fX, 0.0f);
+      aPath.lineTo(fX, yMax);
+      juce::PathStrokeType pst(1.5f);
+      g.strokePath(aPath, pst);
+      activeLineDrawn = true;
+    }
     p.lineTo(fX, fY);
   }
   p.lineTo(bounds.getRight(), bounds.getBottom());
   g.setColour(Color::qualifierPurple);
   juce::PathStrokeType pst(1.2f);
   g.strokePath(p, pst);
-
+  jassert(activeLineDrawn);
   // draw the handles
   drawHandle(g, attackEnd.getPos(), 3.0f, selectedPoint != &attackEnd);
   drawHandle(g, attackCurve.getPos(), 3.0f, selectedPoint != &attackCurve);
@@ -241,6 +296,8 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       [this, releaseCurveID](float val) {
         return getPosFromParam(releaseCurveID, &releaseCurve, val);
       }));
+  // attach the listener
+  state->graph.addListener(this);
   triggerAsyncUpdate();
 }
 
@@ -538,5 +595,14 @@ void EnvelopeGraph::syncWithState() {
     // DLog::log("Updating release curve position: " +
     // String(releaseCurvePos.toString()));
     releaseCurve.moveTo(releaseCurvePos);
+  }
+}
+
+void EnvelopeGraph::graphingDataUpdated(GraphingData* gd) {
+  const float _lvl = gd->getEnvLevel(envID);
+  if (!fequal(_lvl, currentLvl)) {
+    prevLvl = currentLvl;
+    currentLvl = _lvl;
+    triggerAsyncUpdate();
   }
 }

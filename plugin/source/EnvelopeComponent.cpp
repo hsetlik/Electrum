@@ -141,6 +141,8 @@ void EnvelopeComponent::paint(juce::Graphics& g) {
   g.fillRect(fBounds);
 }
 
+//========================================================================
+
 EnvGroupComponent::EnvGroupComponent(ElectrumState* s) : state(s) {
   // create the env components
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
@@ -148,10 +150,12 @@ EnvGroupComponent::EnvGroupComponent(ElectrumState* s) : state(s) {
     addAndMakeVisible(env);
     String txt = "Env " + String(i + 1);
     auto* btn = buttons.add(new ModSourceButton(state, i, txt));
+
     // set up the lambda for each button
     btn->onClick = [this, i]() { setSelectedEnv(i); };
     addAndMakeVisible(btn);
   }
+  buttons.getLast()->setSelected(true);
 }
 
 void EnvGroupComponent::setSelectedEnv(int idx) {
@@ -159,9 +163,11 @@ void EnvGroupComponent::setSelectedEnv(int idx) {
     selectedEnv = idx;
     for (int i = 0; i < NUM_ENVELOPES; ++i) {
       if (i == selectedEnv) {
+        buttons[i]->setSelected(true);
         envs[i]->setVisible(true);
         envs[i]->setEnabled(true);
       } else {
+        buttons[i]->setSelected(false);
         envs[i]->setVisible(false);
         envs[i]->setEnabled(false);
       }

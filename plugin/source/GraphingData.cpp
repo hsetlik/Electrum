@@ -10,7 +10,6 @@ GraphingData::GraphingData()
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     newestEnvLevels[(size_t)i] = 0.0f;
   }
-
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     newestOscPositions[(size_t)i] = OSC_POS_DEFAULT;
   }

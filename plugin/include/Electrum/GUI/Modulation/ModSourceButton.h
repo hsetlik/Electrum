@@ -12,9 +12,14 @@ private:
   frect_t getSrcBounds();
   juce::TextLayout getTextLayout(float leftTrim, bool highlighted);
   String btnText;
+  bool isSelected = false;
 
 public:
   ModSourceButton(ElectrumState* s, int srcID, const String& text = "null");
+  void setSelected(bool s) {
+    isSelected = s;
+    repaint();
+  }
   void setBtnText(const String& txt) { btnText = txt; }
   void paintButton(juce::Graphics& g,
                    bool btnHighlighted,

@@ -49,12 +49,15 @@ void ModSourceButton::paintButton(juce::Graphics& g,
   static const float corner = 3.5f;
   g.setColour(getLookAndFeel().findColour(juce::TextButton::buttonColourId));
   g.fillRoundedRectangle(fBounds, corner);
-  auto outline = btnDown ? Color::darkBlue : Color::darkBlue.brighter(0.2f);
+  auto outline = (btnHighlighted || btnDown || isSelected)
+                     ? Color::darkBlue
+                     : Color::darkBlue.brighter(0.2f);
   g.setColour(outline);
-  g.drawRoundedRectangle(fBounds, corner, 1.3f);
+  auto stroke = isSelected ? 3.1f : 1.8f;
+  g.drawRoundedRectangle(fBounds, corner, stroke);
 
   auto sBounds = getSrcBounds();
-  auto tl = getTextLayout(sBounds.getRight(), btnHighlighted || btnDown);
+  auto tl = getTextLayout(sBounds.getRight(), isSelected);
   auto lBounds = fBounds;
   lBounds.removeFromLeft(sBounds.getRight());
   tl.draw(g, lBounds);

@@ -85,6 +85,9 @@ public:
   void updateEnvLevel(int envID, float value) {
     newestEnvLevels[(size_t)envID] = value;
   }
+  float getEnvLevel(int envID) const {
+    return newestEnvLevels[(size_t)envID].load();
+  }
   // wave string stuff
   bool needsWavetableData() const { return needsWaveStrings; }
   bool wavetablesChanged() const { return waveStringsHaveChanged; }
