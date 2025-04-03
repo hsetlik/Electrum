@@ -8,10 +8,13 @@ project(Electrum VERSION 0.1.0)
 # font files
 set(FONTFILES
     "${CMAKE_CURRENT_LIST_DIR}/fonts/RobotoMediumItalic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/RobotoThinItalic.ttf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/RobotoThin.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaBoldOblique.otf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaMediumOblique.otf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/FuturaLightCondensed.otf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/AcierDisplayNoir.otf"
+    "${CMAKE_CURRENT_LIST_DIR}/fonts/HighwayGothicWide.ttf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/HelveticaNeueMedium.otf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/HelveticaNeueRegular.otf"
     "${CMAKE_CURRENT_LIST_DIR}/fonts/Futura.ttf")

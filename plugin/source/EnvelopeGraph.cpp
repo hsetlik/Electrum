@@ -58,6 +58,10 @@ static void drawHandle(juce::Graphics& g,
 }
 
 void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
+  // fill the background first
+  g.setColour(Color::darkBlue);
+  g.fillRoundedRectangle(bounds, 2.5f);
+
   static const int curvePoints = 60;
   if (bounds.getHeight() < 1.0f || bounds.getWidth() < 1.0f) {
     return;
@@ -119,7 +123,7 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
     p.lineTo(fX, fY);
   }
   p.lineTo(bounds.getRight(), bounds.getBottom());
-  g.setColour(Color::literalOrangePale);
+  g.setColour(Color::qualifierPurple);
   juce::PathStrokeType pst(1.2f);
   g.strokePath(p, pst);
 

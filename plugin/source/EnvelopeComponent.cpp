@@ -1,6 +1,7 @@
 #include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
+#include "Electrum/GUI/Modulation/ModSourceButton.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
@@ -136,35 +137,17 @@ void EnvelopeComponent::paint(juce::Graphics& g) {
   g.fillRect(fBounds);
 }
 
-//===================================================================================
-
-EnvGroupComponent::EnvTabs::EnvTabs(EnvGroupComponent* eg)
-    : TabBar(TabBar::TabsAtLeft), parent(eg) {
-  for (int i = 0; i < NUM_ENVELOPES; ++i) {
-    String txt = "Env " + String(i + 1);
-    auto bkgnd = Color::nearBlack;
-    addTab(txt, bkgnd, i);
-  }
-}
-
-void EnvGroupComponent::EnvTabs::currentTabChanged(int idx,
-                                                   const String& name) {
-  if (!parent->isVisible())
-    return;
-  juce::ignoreUnused(name);
-  parent->setSelectedEnv(idx);
-}
-
-//-----------------------------------------------------------------------------------
-
-EnvGroupComponent::EnvGroupComponent(ElectrumState* s) : state(s), tabs(this) {
+EnvGroupComponent::EnvGroupComponent(ElectrumState* s) : state(s) {
   // create the env components
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
     auto* env = envs.add(new EnvelopeComponent(s, i));
     addAndMakeVisible(env);
+    String txt = "Env " + String(i + 1);
+    auto* btn = buttons.add(new ModSourceButton(state, i, txt));
+    // set up the lambda for each button
+    btn->onClick = [this, i]() { setSelectedEnv(i); };
+    addAndMakeVisible(btn);
   }
-  addAndMakeVisible(tabs);
-  tabs.setCurrentTabIndex(2, false);
 }
 
 void EnvGroupComponent::setSelectedEnv(int idx) {
@@ -185,10 +168,14 @@ void EnvGroupComponent::setSelectedEnv(int idx) {
 
 void EnvGroupComponent::resized() {
   auto fBounds = getLocalBounds().toFloat();
-  static constexpr float tabWidth = 40.0f;
+  static constexpr float tabWidth = 85.0f;
+  static constexpr float maxTabHeight = 37.0f;
+  const float tabHeight =
+      std::min(fBounds.getHeight() / (float)NUM_ENVELOPES, maxTabHeight);
   auto tabBounds = fBounds.removeFromLeft(tabWidth);
-  tabs.setBounds(tabBounds.toNearestInt());
   for (int i = 0; i < envs.size(); ++i) {
     envs[i]->setBounds(fBounds.toNearestInt());
+    auto tBounds = tabBounds.removeFromTop(tabHeight);
+    buttons[i]->setBounds(tBounds.toNearestInt());
   }
 }

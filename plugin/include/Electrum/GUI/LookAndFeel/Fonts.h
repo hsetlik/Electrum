@@ -11,10 +11,13 @@ enum FontE {
   FuturaLC,
   HelveticaMed,
   HelveticaReg,
-  RobotoMI
+  RobotoMI,
+  RobotoTI,
+  RobotoThin,
+  HighwayGothhicW
 };
 
-#define NUM_BINARY_FONTS 8
+#define NUM_BINARY_FONTS 11
 namespace FontData {
 
 juce::String getFontName(int idx);

@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/GUI/Modulation/ModSourceButton.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "EnvelopeGraph.h"
 #include "../Modulation/ModSourceComponent.h"
@@ -50,17 +51,7 @@ class EnvGroupComponent : public Component {
 private:
   ElectrumState* const state;
   juce::OwnedArray<EnvelopeComponent> envs;
-  //---------------------------------------------------
-  // we can inherit TabBar and override the callbacks
-  // to handle selecting tabs
-  friend class EnvTabs;
-  class EnvTabs : public TabBar {
-  public:
-    EnvGroupComponent* const parent;
-    EnvTabs(EnvGroupComponent* eg);
-    void currentTabChanged(int idx, const String& name) override;
-  };
-  EnvTabs tabs;
+  juce::OwnedArray<ModSourceButton> buttons;
   //---------------------------------------------------
   int selectedEnv = -1;
   void setSelectedEnv(int idx);

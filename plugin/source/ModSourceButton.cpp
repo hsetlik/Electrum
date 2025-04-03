@@ -19,14 +19,14 @@ juce::TextLayout ModSourceButton::getTextLayout(float leftEdge,
                                                 bool highlighted) {
   auto safeTextBounds = getLocalBounds().toFloat();
   safeTextBounds.removeFromLeft(leftEdge);
-  safeTextBounds = safeTextBounds.reduced(1.2f);
+  safeTextBounds = safeTextBounds.reduced(3.2f);
   AttString aStr(btnText);
   auto color = getLookAndFeel().findColour(juce::TextButton::textColourOffId);
   if (highlighted) {
     color = getLookAndFeel().findColour(juce::TextButton::textColourOnId);
   }
   aStr.setColour(color);
-  aStr.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 14.0f));
+  aStr.setFont(FontData::getFontWithHeight(FontE::HelveticaMed, 16.0f));
   aStr.setJustification(juce::Justification::centredRight);
   juce::TextLayout tl;
   tl.createLayout(aStr, safeTextBounds.getWidth());
@@ -46,7 +46,7 @@ void ModSourceButton::paintButton(juce::Graphics& g,
                                   bool btnDown) {
   // 1. draw the button background
   auto fBounds = getLocalBounds().toFloat();
-  static const float corner = 2.5f;
+  static const float corner = 3.5f;
   g.setColour(getLookAndFeel().findColour(juce::TextButton::buttonColourId));
   g.fillRoundedRectangle(fBounds, corner);
   auto outline = btnDown ? Color::darkBlue : Color::darkBlue.brighter(0.2f);

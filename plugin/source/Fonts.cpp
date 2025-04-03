@@ -33,6 +33,18 @@ static typeface_ptr _ptrForEFont(FontE id) {
           FontData::RobotoMediumItalic_ttf,
           FontData::RobotoMediumItalic_ttfSize);
       break;
+    case FontE::RobotoTI:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::RobotoThinItalic_ttf, FontData::RobotoThinItalic_ttfSize);
+      break;
+    case FontE::RobotoThin:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::RobotoThin_ttf, FontData::RobotoThin_ttfSize);
+      break;
+    case FontE::HighwayGothhicW:
+      return juce::Typeface::createSystemTypefaceFor(
+          FontData::HighwayGothicWide_ttf, FontData::HighwayGothicWide_ttfSize);
+      break;
     case FontE::HelveticaMed:
       return juce::Typeface::createSystemTypefaceFor(
           FontData::HelveticaNeueMedium_otf,
@@ -92,6 +104,15 @@ juce::String getFontName(int idx) {
       break;
     case RobotoMI:
       return "Roboto Medium Italic";
+      break;
+    case RobotoTI:
+      return "Roboto Thin Italic";
+      break;
+    case RobotoThin:
+      return "Roboto Thin";
+      break;
+    case HighwayGothhicW:
+      return "Highway Gothic Wide";
       break;
   }
   return "null";
