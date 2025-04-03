@@ -70,5 +70,6 @@ private:
   fpoint_t constrainPositionFor(DragPoint* dp, fpoint_t pos);
   frect_t getLimitsFor(DragPoint* dp);
 
+public:
   void syncWithState();
 };

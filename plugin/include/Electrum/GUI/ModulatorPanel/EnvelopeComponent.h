@@ -16,6 +16,8 @@ private:
 
   juce::Label label;
 
+  float currentParamVal = 0.0f;
+
 public:
   EnvParamLabel(ElectrumState* s, const String& id);
   void labelTextChanged(juce::Label* l) override;
@@ -37,6 +39,10 @@ public:
   EnvelopeComponent(ElectrumState* s, int id);
   void resized() override;
   void paint(juce::Graphics& g) override;
+  void refreshGraph() {
+    graph.syncWithState();
+    repaint();
+  }
 
 private:
   juce::OwnedArray<EnvParamLabel> labels;

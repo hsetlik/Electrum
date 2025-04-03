@@ -280,7 +280,7 @@ void EnvelopeGraph::mouseDrag(const juce::MouseEvent& e) {
     isMoving = false;
 }
 
-void EnvelopeGraph::mouseUp(const juce::MouseEvent& e) {
+void EnvelopeGraph::mouseUp(const juce::MouseEvent&) {
   if (selectedPoint != nullptr) {
     selectedPoint->endMove();
     triggerAsyncUpdate();

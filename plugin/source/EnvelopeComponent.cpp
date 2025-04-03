@@ -22,7 +22,7 @@ static env_label_t labelTypeFor(const String& paramID) {
 
 static String stringForMs(float value) {
   if (value > 55.0f) {
-    int iVal = (int)std::floor(value);
+    int iVal = (int)value;
     return String(iVal);
   }
   String vStr(value);
@@ -83,10 +83,14 @@ void EnvParamLabel::labelTextChanged(juce::Label* l) {
   auto str = l->getText();
   str = str.retainCharacters("0123456789.");
   const float fVal = std::stof(str.toStdString());
-  auto* param = state->getParameter(paramID);
-  param->beginChangeGesture();
-  param->setValueNotifyingHost(fVal);
-  param->endChangeGesture();
+  if (!fequal(fVal, currentParamVal)) {
+    currentParamVal = fVal;
+    pAttach->setValueAsCompleteGesture(fVal);
+    EnvelopeComponent* ec =
+        dynamic_cast<EnvelopeComponent*>(getParentComponent());
+    jassert(ec != nullptr);
+    ec->refreshGraph();
+  }
 }
 
 void EnvParamLabel::setTextForValue(float val) {
@@ -116,7 +120,7 @@ EnvelopeComponent::EnvelopeComponent(ElectrumState* s, int id)
   addAndMakeVisible(&graph);
 }
 
-#define F_BORDER 12.0f
+#define F_BORDER 3.0f
 void EnvelopeComponent::resized() {
   auto fBounds = getLocalBounds().toFloat().reduced(F_BORDER);
   // place the labels
@@ -133,7 +137,7 @@ void EnvelopeComponent::resized() {
 
 void EnvelopeComponent::paint(juce::Graphics& g) {
   auto fBounds = getLocalBounds().toFloat();
-  g.setColour(Color::darkSeaGreen);
+  g.setColour(Color::darkBlue);
   g.fillRect(fBounds);
 }
 
