@@ -464,15 +464,6 @@ frect_t EnvelopeGraph::getLimitsFor(DragPoint* pt) {
   }
 }
 
-DragPoint* EnvelopeGraph::getPointWithinRadius(const juce::MouseEvent& e,
-                                               float radius) {
-  for (auto p : points) {
-    if (p->isWithin(e, radius))
-      return p;
-  }
-  return nullptr;
-}
-
 fpoint_t EnvelopeGraph::constrainPositionFor(DragPoint* point, fpoint_t pos) {
   auto bounds = getLimitsFor(point);
   return bounds.getConstrainedPoint(pos);
@@ -545,4 +536,3 @@ void EnvelopeGraph::syncWithState() {
     releaseCurve.moveTo(releaseCurvePos);
   }
 }
-

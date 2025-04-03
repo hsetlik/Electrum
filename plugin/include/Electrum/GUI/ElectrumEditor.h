@@ -2,6 +2,7 @@
 
 #include "Electrum/GUI/KeyboardView.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
+#include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
 #include "Electrum/GUI/ModulatorPanel/MacroModSources.h"
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/PluginProcessor.h"
@@ -22,6 +23,8 @@ private:
   juce::OwnedArray<OscillatorPanel> oscs;
   // Left panel modulators
   MacroModSources macroPanel;
+  // Envelope panel
+  EnvGroupComponent envPanel;
 
 public:
   ElectrumEditor(ElectrumState* s, audio_plugin::ElectrumAudioProcessor* p);

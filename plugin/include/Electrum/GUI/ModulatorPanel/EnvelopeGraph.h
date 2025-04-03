@@ -52,6 +52,7 @@ private:
 
   DragPoint releaseCurve;
   drag_attach_ptr releaseCurveAttach;
+
   // handy for iterating over all the points
   // NOTE: these are in left to right order
   const std::array<DragPoint*, 7> points = {
@@ -68,7 +69,6 @@ private:
   // positioning/constraining logic
   fpoint_t constrainPositionFor(DragPoint* dp, fpoint_t pos);
   frect_t getLimitsFor(DragPoint* dp);
-  DragPoint* getPointWithinRadius(const juce::MouseEvent& e, float radius);
 
   void syncWithState();
 };
