@@ -103,6 +103,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/ModulatorPanel/EnvelopeGraph.h
 				source/EnvelopeComponent.cpp
 				${INCLUDE_DIR}/GUI/ModulatorPanel/EnvelopeComponent.h
+				source/ModSourceButton.cpp
+				${INCLUDE_DIR}/GUI/Modulation/ModSourceButton.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

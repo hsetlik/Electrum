@@ -165,7 +165,6 @@ EnvGroupComponent::EnvGroupComponent(ElectrumState* s) : state(s), tabs(this) {
   }
   addAndMakeVisible(tabs);
   tabs.setCurrentTabIndex(2, false);
-  // setSelectedEnv(0);
 }
 
 void EnvGroupComponent::setSelectedEnv(int idx) {

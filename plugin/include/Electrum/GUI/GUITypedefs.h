@@ -7,3 +7,4 @@
 typedef juce::Vector3D<float> vec3D_f;
 typedef juce::Point<float> fpoint_t;
 typedef juce::TabbedButtonBar TabBar;
+typedef juce::AttributedString AttString;
