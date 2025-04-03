@@ -113,7 +113,7 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
 
   p.lineTo(holdEnd.getX(), holdEnd.getY());
 
-  bool activeInDecay = activeLineDrawn ? false : leadingYPos > decayEnd.getY();
+  bool activeInDecay = activeLineDrawn ? false : leadingYPos < decayEnd.getY();
   for (int i = 0; i < curvePoints; i++) {
     float t = ((float)i / (float)curvePoints);
     float fX = flerp(holdEnd.getX(), decayEnd.getX(), t);

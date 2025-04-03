@@ -11,7 +11,7 @@
 // points, so for our 2048 point tables
 // the order is 11
 #define WAVE_FFT_ORDER 11
-// #define ALWAYS_RANDOMIZE_PHASES
+#define ALWAYS_RANDOMIZE_PHASES
 //
 typedef juce::dsp::FFT FFTProc;
 
@@ -28,28 +28,27 @@ struct banded_wave_t {
   float wave[TABLE_SIZE];
 };
 
+typedef std::array<banded_wave_t, WAVES_PER_TABLE> banded_wave_set;
+
 // transforms and utilities full-spectrum waves---------------------------
 namespace Wave {
 void randomizePhases(std::complex<float>* freqDomain,
                      int numBins = TABLE_SIZE,
                      size_t seed = 56392);
-}
+void forwardFFT(float* data);
+void inverseFFT(float* data);
+// Some handy frequency domain stuff
+float getBinMagnitude(float* data, int bin);
+}  // namespace Wave
 //------------------------------------------------------------------------
 // this guy handles the band-limiting
 // on initialization and is accessed
 // via pointer by the rest of our
 // oscillator code
+
 class BandLimitedWave {
 private:
-  std::array<banded_wave_t, WAVES_PER_TABLE> data;
-  // helpers for initializing the waves
-  void createTables(float* real, float* imag);
-  float makeTable(float* real,
-                  float* imag,
-                  float scale,
-                  float lowFreq,
-                  float hiFreq,
-                  banded_wave_t* dest);
+  banded_wave_set data;
 
 public:
   BandLimitedWave(float* firstWave);
@@ -70,7 +69,7 @@ private:
   wave_set_t* pWaiting = &setB;
   float fSize;
 
-  static String& getDefaultSetString();
+  static String getDefaultSetString(int idx);
 
   // the GUI parameters for each oscillator
   // since these are shared across voices they'll
