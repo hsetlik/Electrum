@@ -21,6 +21,7 @@ typedef juce::NormalisableRange<float> frange_t;
 
 typedef juce::Rectangle<float> frect_t;
 typedef juce::Rectangle<int> irect_t;
+typedef juce::File File;
 
 // very helpful
 inline frange_t rangeWithCenter(float min, float max, float center) {
@@ -109,6 +110,15 @@ DECLARE_ID(sustainLevel)
 DECLARE_ID(velocityTracking)
 DECLARE_ID(releaseMs)
 DECLARE_ID(releaseCurve)
+
+//--------
+// patch metadata stuff
+DECLARE_ID(PATCH_INFO)
+DECLARE_ID(patchName)
+DECLARE_ID(patchPath)
+DECLARE_ID(patchAuthor)
+DECLARE_ID(patchDesc)
+DECLARE_ID(patchCategory)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID

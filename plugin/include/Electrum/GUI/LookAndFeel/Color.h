@@ -38,6 +38,8 @@ DECLARE_COLOR(assignmentPink, 255, 68, 109)
 DECLARE_COLOR(nameOffWhite, 217, 227, 244)
 DECLARE_COLOR(commentGray, 132, 156, 154)
 DECLARE_COLOR(qualifierPurple, 234, 157, 255)
+DECLARE_COLOR(marginGray, 44, 48, 67)
+DECLARE_COLOR(lineNumGray, 76, 100, 121)
 
 #undef DECLARE_COLOR
 

@@ -34,12 +34,12 @@ static LnFColorScheme _getNightflyScheme() {
   LnFColorScheme scheme = _getDefaultDarkScheme();
   scheme.setUIColour(UIColorE::windowBackground, Color::nearBlack);
   scheme.setUIColour(UIColorE::menuBackground, Color::darkBlue);
-  scheme.setUIColour(UIColorE::widgetBackground, Color::nearBlack);
+  scheme.setUIColour(UIColorE::widgetBackground, Color::marginGray);
   scheme.setUIColour(UIColorE::outline, Color::commentGray);
   scheme.setUIColour(UIColorE::defaultText, Color::literalOrangePale);
   scheme.setUIColour(UIColorE::menuText, Color::literalOrangePale);
   scheme.setUIColour(UIColorE::defaultFill, Color::mintGreenPale);
-  scheme.setUIColour(UIColorE::highlightedText, Color::assignmentPink);
+  scheme.setUIColour(UIColorE::highlightedText, Color::literalOrangeBright);
   scheme.setUIColour(UIColorE::highlightedFill, Color::mintGreenBright);
 
   // DLog::log("NIGHTFLY=================================");
@@ -60,9 +60,9 @@ void ElectrumLnF::drawRotarySlider(juce::Graphics& g,
                                    float rotaryStartAngle,
                                    float rotaryEndAngle,
                                    juce::Slider& slider) {
-  const color_t trackLeft =
-      slider.findColour(juce::Slider::rotarySliderOutlineColourId);
   const color_t trackRight =
+      slider.findColour(juce::Slider::rotarySliderOutlineColourId).darker(0.4f);
+  const color_t trackLeft =
       slider.findColour(juce::Slider::rotarySliderFillColourId);
   auto fBounds =
       juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);

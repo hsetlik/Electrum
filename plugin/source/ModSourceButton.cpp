@@ -26,8 +26,8 @@ juce::TextLayout ModSourceButton::getTextLayout(float leftEdge,
     color = getLookAndFeel().findColour(juce::TextButton::textColourOnId);
   }
   aStr.setColour(color);
-  aStr.setFont(FontData::getFontWithHeight(FontE::HelveticaMed, 16.0f));
-  aStr.setJustification(juce::Justification::centredRight);
+  aStr.setFont(FontData::getFontWithHeight(FontE::RobotoMI, 16.0f));
+  aStr.setJustification(juce::Justification::centred);
   juce::TextLayout tl;
   tl.createLayout(aStr, safeTextBounds.getWidth());
   return tl;
@@ -48,10 +48,11 @@ void ModSourceButton::paintButton(juce::Graphics& g,
   auto fBounds = getLocalBounds().toFloat();
   static const float corner = 3.5f;
   g.setColour(getLookAndFeel().findColour(juce::TextButton::buttonColourId));
+  auto outline =
+      getLookAndFeel().findColour(juce::TabbedButtonBar::tabOutlineColourId);
   g.fillRoundedRectangle(fBounds, corner);
-  auto outline = (btnHighlighted || btnDown || isSelected)
-                     ? Color::darkBlue
-                     : Color::darkBlue.brighter(0.2f);
+  outline = (btnHighlighted || btnDown || isSelected) ? outline
+                                                      : outline.brighter(0.2f);
   g.setColour(outline);
   auto stroke = isSelected ? 3.1f : 1.8f;
   g.drawRoundedRectangle(fBounds, corner, stroke);
