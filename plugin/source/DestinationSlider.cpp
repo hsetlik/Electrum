@@ -5,7 +5,7 @@
 DestinationSlider::DestinationSlider(ElectrumState* s, int d)
     : ModDestAttachment(d),
       state(s),
-      slider(juce::Slider::Rotary, juce::Slider::TextBoxBelow),
+      slider(juce::Slider::Rotary, juce::Slider::NoTextBox),
       depthSliders(s, d) {
   addAndMakeVisible(&slider);
   addAndMakeVisible(&depthSliders);
@@ -25,18 +25,17 @@ void DestinationSlider::itemDropped(
 }
 
 void DestinationSlider::resized() {
-  auto bounds = getLocalBounds();
-  const int inset = (int)((float)bounds.getWidth() / 6.0f);
-  auto sliderBounds = bounds.reduced(inset);
-  slider.setBounds(sliderBounds);
-  // now place the depth sliders based on that
-  const int sliderHeight = sliderBounds.getHeight() - slider.getTextBoxHeight();
-  const int dssWidth =
-      std::min(sliderBounds.getWidth() + inset, bounds.getWidth());
-  auto dssBounds = sliderBounds.removeFromTop(sliderHeight)
-                       .withSizeKeepingCentre(dssWidth, dssWidth);
-  depthSliders.setBounds(dssBounds);
-
+  auto fBounds = getLocalBounds().toFloat();
+  // 1. make the bounds square
+  auto shortSide = std::min(fBounds.getWidth(), fBounds.getHeight());
+  fBounds = fBounds.withSizeKeepingCentre(shortSide, shortSide);
+  // 2. place the dss
+  depthSliders.setBounds(fBounds.toNearestInt());
+  // 3. figure out the inset and place the main slider
+  constexpr float minInset = 18.0f;
+  float inset = std::max(shortSide / 5.0f, minInset);
+  fBounds = fBounds.reduced(inset);
+  slider.setBounds(fBounds.toNearestInt());
   slider.toFront(false);
 }
 

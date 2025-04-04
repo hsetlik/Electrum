@@ -72,6 +72,7 @@ private:
 public:
   const int destID;
   DepthSliderStack(ElectrumState* s, int dest);
+  void paint(juce::Graphics& g) override;
   // the drag & drop interface interacts with these
   bool hasComponentsForSrc(int src);
   void addModulation(int src);
