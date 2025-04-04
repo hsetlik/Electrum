@@ -91,6 +91,8 @@ ElectrumUserLib::ElectrumUserLib()
     : patches(UserFiles::getAvailiblePatches()) {}
 
 bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
+  if (name.length() < 4)
+    return false;
   if (name.compare(File::createLegalFileName(name)) != 0)
     return false;
   for (auto& p : patches) {

@@ -25,6 +25,9 @@ struct patch_meta_t {
  * */
 namespace UserFiles {
 
+const juce::StringArray PatchCategStrings = {"Bass", "Lead", "Keys", "Pad",
+                                             "Other"};
+
 const String patchFileExt = ".epf";
 const String waveFileExt = ".ewf";
 File getPatchesFolder();
