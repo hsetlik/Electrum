@@ -1,4 +1,6 @@
 #include "Electrum/GUI/Modulation/DestinationSlider.h"
+#include "Electrum/GUI/GUITypedefs.h"
+#include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/GUI/Modulation/ModContextComponent.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_audio_processors/juce_audio_processors.h"
@@ -32,7 +34,27 @@ void DestinationLabel::labelTextChanged(juce::Label* l) {
     pAttach->setValueAsCompleteGesture(fVal);
   }
 }
+
+//------------------------------------------------------------
+static String oscParamNames[5] = {"Coarse tune", "Fine Tune", "Position",
+                                  "Level", "Pan"};
+
+static String getModDestName(int idx) {
+  if (idx <= (int)ModDestE::osc3Pan) {
+    return oscParamNames[idx % 5];
+  }
+  return "null";
+}
+
+static AttString getDestAttString(int id) {
+  AttString aStr(getModDestName(id));
+  auto font = FontData::getFontWithHeight(FontE::RobotoMI, 16.0f);
+  aStr.setFont(font);
+  aStr.setJustification(juce::Justification::centred);
+  return aStr;
+}
 //=============================================================
+
 DestinationSlider::DestinationSlider(ElectrumState* s, int d)
     : ModDestAttachment(d),
       state(s),
@@ -59,6 +81,10 @@ void DestinationSlider::itemDropped(
 
 void DestinationSlider::resized() {
   auto fBounds = getLocalBounds().toFloat();
+  static const float maxNameHeight = 35.0f;
+  float nameHeight = std::min(maxNameHeight, fBounds.getHeight() / 5.0f);
+  fBounds.removeFromTop(nameHeight);
+
   // 1. grab an area for the label
   static const float minLabelHeight = 24.0f;
   auto lBounds = fBounds.removeFromBottom(minLabelHeight);
@@ -76,8 +102,16 @@ void DestinationSlider::resized() {
   slider.toFront(false);
 }
 
-void DestinationSlider::paint(juce::Graphics&) {
+void DestinationSlider::paint(juce::Graphics& g) {
   // we don't need to do anything here I don't think
+  auto fBounds = getLocalBounds().toFloat();
+  static const float maxNameHeight = 35.0f;
+  float nameHeight = std::min(maxNameHeight, fBounds.getHeight() / 5.0f);
+  auto lBounds = fBounds.removeFromTop(nameHeight);
+  auto aStr = getDestAttString(destID);
+  auto color = getLookAndFeel().findColour(juce::Label::textColourId);
+  aStr.setColour(color);
+  aStr.draw(g, lBounds);
 }
 
 void DestinationSlider::reinit() {
