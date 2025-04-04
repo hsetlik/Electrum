@@ -3,13 +3,34 @@
 #include "Electrum/GUI/Modulation/ModContextComponent.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+
+class DestinationLabel : public Component, public juce::Label::Listener {
+private:
+  ElectrumState* const state;
+  juce::Label label;
+  std::unique_ptr<juce::ParameterAttachment> pAttach;
+  // callback for the parameter attachment
+  void setLabelForValue(float val);
+
+  float currentParamVal = 0.0f;
+
+public:
+  const int destID;
+  DestinationLabel(ElectrumState* s, int id);
+  void labelTextChanged(juce::Label* l) override;
+  void resized() override { label.setBounds(getLocalBounds()); }
+};
+
+//============================================================
 
 class DestinationSlider : public ModDestAttachment,
                           public juce::DragAndDropTarget {
 private:
   ElectrumState* const state;
   juce::Slider slider;
+  DestinationLabel label;
   slider_attach_ptr attach;
 
 public:
@@ -27,7 +48,6 @@ public:
   bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails&
                                     dragSourceDetails) override {
     int srcID = dragSourceDetails.description;
-    // DLog::log("Asked about drag source with ID: " + String(srcID));
     return !depthSliders.hasComponentsForSrc(srcID);
   }
 };
