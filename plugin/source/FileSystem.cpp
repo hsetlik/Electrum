@@ -2,7 +2,7 @@
 #include "Electrum/Identifiers.h"
 #include "juce_data_structures/juce_data_structures.h"
 
-ValueTree patch_t::toValueTree(const patch_t& patch) {
+ValueTree patch_meta_t::toValueTree(const patch_meta_t& patch) {
   ValueTree vt(ID::PATCH_INFO);
   vt.setProperty(ID::patchName, patch.name, nullptr);
   vt.setProperty(ID::patchPath, patch.path, nullptr);
@@ -12,8 +12,8 @@ ValueTree patch_t::toValueTree(const patch_t& patch) {
   return vt;
 }
 
-patch_t patch_t::fromValueTree(ValueTree& vt) {
-  patch_t patch;
+patch_meta_t patch_meta_t::fromValueTree(ValueTree& vt) {
+  patch_meta_t patch;
   patch.name = vt[ID::patchName];
   patch.path = vt[ID::patchPath];
   patch.author = vt[ID::patchAuthor];
@@ -69,8 +69,8 @@ bool attemptPatchSave(ValueTree& state) {
   return file.replaceWithText(xml);
 }
 
-std::vector<patch_t> getAvailiblePatches() {
-  std::vector<patch_t> vec;
+std::vector<patch_meta_t> getAvailiblePatches() {
+  std::vector<patch_meta_t> vec;
   auto patches = getPatchesFolder();
   auto files = patches.findChildFiles(File::findFiles, true, patchFileExt);
   for (auto& f : files) {
@@ -78,7 +78,7 @@ std::vector<patch_t> getAvailiblePatches() {
     auto parent = juce::ValueTree::fromXml(str);
     auto child = parent.getChildWithName(ID::PATCH_INFO);
     if (child.isValid()) {
-      vec.push_back(patch_t::fromValueTree(child));
+      vec.push_back(patch_meta_t::fromValueTree(child));
     }
   }
   return vec;
@@ -86,3 +86,64 @@ std::vector<patch_t> getAvailiblePatches() {
 
 }  // namespace UserFiles
 //===================================================
+
+ElectrumUserLib::ElectrumUserLib()
+    : patches(UserFiles::getAvailiblePatches()) {}
+
+bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
+  if (name.compare(File::createLegalFileName(name)) != 0)
+    return false;
+  for (auto& p : patches) {
+    if (name.compareIgnoreCase(p.name))
+      return false;
+  }
+  return true;
+}
+
+bool ElectrumUserLib::validatePatchData(patch_meta_t* patch) const {
+  if (!isPatchNameLegal(patch->name))
+    return false;
+  if (patch->category > (int)patch_categ_t::Other || patch->category < 0)
+    return false;
+  if (patch->author.length() > 15 || patch->description.length() > 200)
+    return false;
+  return true;
+}
+
+patch_meta_t* ElectrumUserLib::getPatchAtIndex(int index) {
+  if (index >= numPatches())
+    return nullptr;
+  return &patches[(size_t)index];
+}
+
+patch_meta_t* ElectrumUserLib::getPatch(const String& name) {
+  for (auto& p : patches) {
+    if (p.name == name)
+      return &p;
+  }
+  return nullptr;
+}
+
+bool ElectrumUserLib::attemptPatchSave(apvts* tree,
+                                       const patch_meta_t& patchData) {
+  auto state = tree->copyState();
+  // 1. remove the existing PATCH_INFO child and
+  // replace it with a new one
+  auto oldPI = state.getChildWithName(ID::PATCH_INFO);
+  if (oldPI.isValid()) {
+    state.removeChild(oldPI, nullptr);
+  }
+  auto newPI = patch_meta_t::toValueTree(patchData);
+  state.appendChild(newPI, nullptr);
+  return UserFiles::attemptPatchSave(state);
+}
+
+ValueTree ElectrumUserLib::getMasterTreeForPatch(patch_meta_t* patch) {
+  File patchFile = UserFiles::getPatchesFolder().getChildFile(patch->path);
+  if (!patchFile.existsAsFile() || !UserFiles::isValidPatch(patchFile)) {
+    jassert(false);
+    return ValueTree();
+  }
+  auto str = patchFile.loadFileAsString();
+  return ValueTree::fromXml(str);
+}

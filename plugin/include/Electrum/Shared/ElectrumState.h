@@ -1,5 +1,6 @@
 #pragma once
 #include "../Identifiers.h"
+#include "Electrum/Shared/FileSystem.h"
 #include "GraphingData.h"
 #include "juce_data_structures/juce_data_structures.h"
 
@@ -99,6 +100,8 @@ public:
   ModMap modulations;
   // atomic data holder for our GUI graphing
   GraphingData graph;
+  // manager for all our patch and wave files
+  ElectrumUserLib userLib;
 
 private:
   ValueTree findTreeForRouting(const ValueTree& modTree, int src, int dest);
