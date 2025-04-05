@@ -113,6 +113,8 @@ target_sources(${PROJECT_NAME}
 				source/PatchBrowser.cpp
 				${INCLUDE_DIR}/GUI/PatchBrowser.h
 				${INCLUDE_DIR}/GUI/Util/ClickableComponent.h
+				source/MovingAverage.cpp
+				${INCLUDE_DIR}/Audio/Filters/MovingAverage.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
