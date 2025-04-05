@@ -1,46 +1,46 @@
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/Common.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
-#include "Electrum/Identifiers.h"
 #include "juce_gui_basics/juce_gui_basics.h"
-
-static void _logColor(const String& name, color_t color) {
-  DLog::log("Color for \"" + name + "\" is:");
-  DLog::log("R, G, B: " + String(color.getRed()) + ", " +
-            String(color.getGreen()) + ", " + String(color.getBlue()));
-}
-
-static void _logColorScheme(const LnFColorScheme& scheme) {
-  // the 9 colors in the juce ColourScheme enum
-  _logColor("window bkgnd", scheme.getUIColour(UIColorE::windowBackground));
-  _logColor("widget bkgnd", scheme.getUIColour(UIColorE::widgetBackground));
-  _logColor("menu bkgnd", scheme.getUIColour(UIColorE::menuBackground));
-  _logColor("outline", scheme.getUIColour(UIColorE::outline));
-  _logColor("default text", scheme.getUIColour(UIColorE::defaultText));
-  _logColor("default fill", scheme.getUIColour(UIColorE::defaultFill));
-  _logColor("highlighted text", scheme.getUIColour(UIColorE::highlightedText));
-  _logColor("highlighted fill", scheme.getUIColour(UIColorE::highlightedFill));
-  _logColor("menu text", scheme.getUIColour(UIColorE::menuText));
-}
-
-static LnFColorScheme _getDefaultDarkScheme() {
-  LnFColorScheme scheme = juce::LookAndFeel_V4::getDarkColourScheme();
-  //_logColorScheme(scheme);
-  return scheme;
-}
-
-static LnFColorScheme _getNightflyScheme() {
+//
+// static void _logColor(const String& name, color_t color) {
+//   DLog::log("Color for \"" + name + "\" is:");
+//   DLog::log("R, G, B: " + String(color.getRed()) + ", " +
+//             String(color.getGreen()) + ", " + String(color.getBlue()));
+// }
+//
+// static void _logColorScheme(const LnFColorScheme& scheme) {
+//   // the 9 colors in the juce ColourScheme enum
+//   _logColor("window bkgnd", scheme.getUIColour(UIColorE::windowBackground));
+//   _logColor("widget bkgnd", scheme.getUIColour(UIColorE::widgetBackground));
+//   _logColor("menu bkgnd", scheme.getUIColour(UIColorE::menuBackground));
+//   _logColor("outline", scheme.getUIColour(UIColorE::outline));
+//   _logColor("default text", scheme.getUIColour(UIColorE::defaultText));
+//   _logColor("default fill", scheme.getUIColour(UIColorE::defaultFill));
+//   _logColor("highlighted text",
+//   scheme.getUIColour(UIColorE::highlightedText)); _logColor("highlighted
+//   fill", scheme.getUIColour(UIColorE::highlightedFill)); _logColor("menu
+//   text", scheme.getUIColour(UIColorE::menuText));
+// }
+//
+// static LnFColorScheme _getDefaultDarkScheme() {
+//   LnFColorScheme scheme = juce::LookAndFeel_V4::getDarkColourScheme();
+//   //_logColorScheme(scheme);
+//   return scheme;
+// }
+//
+static LnFColorScheme _getColorScheme() {
   // DLog::log("DEFAULT=================================");
-  LnFColorScheme scheme = _getDefaultDarkScheme();
-  scheme.setUIColour(UIColorE::windowBackground, Color::nearBlack);
-  scheme.setUIColour(UIColorE::menuBackground, Color::darkBlue);
-  scheme.setUIColour(UIColorE::widgetBackground, Color::marginGray);
-  scheme.setUIColour(UIColorE::outline, Color::commentGray);
-  scheme.setUIColour(UIColorE::defaultText, Color::literalOrangePale);
-  scheme.setUIColour(UIColorE::menuText, Color::literalOrangePale);
-  scheme.setUIColour(UIColorE::defaultFill, Color::mintGreenPale);
-  scheme.setUIColour(UIColorE::highlightedText, Color::literalOrangeBright);
-  scheme.setUIColour(UIColorE::highlightedFill, Color::mintGreenBright);
+  LnFColorScheme scheme = juce::LookAndFeel_V4::getDarkColourScheme();
+  scheme.setUIColour(UIColorE::windowBackground, UIColor::windowBkgnd);
+  scheme.setUIColour(UIColorE::menuBackground, UIColor::menuBkgnd);
+  scheme.setUIColour(UIColorE::widgetBackground, UIColor::widgetBkgnd);
+  scheme.setUIColour(UIColorE::outline, UIColor::outline);
+  scheme.setUIColour(UIColorE::defaultText, UIColor::defaultText);
+  scheme.setUIColour(UIColorE::menuText, UIColor::menuText);
+  scheme.setUIColour(UIColorE::defaultFill, UIColor::defaultFill);
+  scheme.setUIColour(UIColorE::highlightedText, UIColor::highlightedText);
+  scheme.setUIColour(UIColorE::highlightedFill, UIColor::highlightedFill);
 
   // DLog::log("NIGHTFLY=================================");
   //_logColorScheme(scheme);
@@ -49,7 +49,7 @@ static LnFColorScheme _getNightflyScheme() {
 
 //===================================================
 
-ElectrumLnF::ElectrumLnF() : juce::LookAndFeel_V4(_getNightflyScheme()) {}
+ElectrumLnF::ElectrumLnF() : juce::LookAndFeel_V4(_getColorScheme()) {}
 
 void ElectrumLnF::drawRotarySlider(juce::Graphics& g,
                                    int x,

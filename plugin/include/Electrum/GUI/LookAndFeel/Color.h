@@ -7,14 +7,15 @@
 #include "juce_graphics/juce_graphics.h"
 #include "../../Shared/ElectrumState.h"
 
+#define DECLARE_COLOR(name, r, g, b) \
+  const color_t name = color_t::fromRGB(r, g, b);
 // had to do it sorry
 typedef juce::Colour color_t;
 
 namespace Color {
 
 //
-#define DECLARE_COLOR(name, r, g, b) \
-  const color_t name = color_t::fromRGB(r, g, b);
+
 DECLARE_COLOR(closeRedBright, 209, 67, 67)
 DECLARE_COLOR(closeRedDark, 147, 49, 49)
 DECLARE_COLOR(black, 0, 0, 0)
@@ -41,8 +42,21 @@ DECLARE_COLOR(qualifierPurple, 234, 157, 255)
 DECLARE_COLOR(marginGray, 44, 48, 67)
 DECLARE_COLOR(lineNumGray, 76, 100, 121)
 
-#undef DECLARE_COLOR
-
 // returns the
 color_t getModSourceColor(ModSourceE src);
 }  // namespace Color
+
+#undef DECLARE_COLOR
+// easier/clearer access to the UI colors using this namespace
+namespace UIColor {
+const color_t windowBkgnd = Color::nearBlack;
+const color_t menuBkgnd = Color::darkBlue;
+const color_t widgetBkgnd = Color::marginGray;
+const color_t outline = Color::darkBlue.brighter();
+const color_t defaultText = Color::literalOrangePale;
+const color_t menuText = Color::literalOrangePale;
+const color_t defaultFill = Color::periwinkle;
+const color_t highlightedText = Color::literalOrangeBright;
+const color_t highlightedFill = Color::periwinkle;
+
+}  // namespace UIColor

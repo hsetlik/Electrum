@@ -112,6 +112,7 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Shared/FileSystem.h
 				source/PatchBrowser.cpp
 				${INCLUDE_DIR}/GUI/PatchBrowser.h
+				${INCLUDE_DIR}/GUI/Util/ClickableComponent.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

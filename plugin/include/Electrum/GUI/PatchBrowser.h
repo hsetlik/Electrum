@@ -1,5 +1,7 @@
 #pragma once
+#include "Electrum/GUI/Util/ClickableComponent.h"
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/FileSystem.h"
 #include "GUITypedefs.h"
 #include "../Shared/ElectrumState.h"
 #include "juce_graphics/juce_graphics.h"
@@ -32,4 +34,21 @@ public:
   void paint(juce::Graphics& g) override;
 };
 //===========================================
+// component to represent a single patch to be displayed in
+// a list
+class PatchListEntry : public ClickableComponent {
+private:
+  patch_meta_t* const patch;
+  bool isSelected = false;
+  AttString nameText;
+  AttString authorText;
+
+public:
+  PatchListEntry(patch_meta_t* p);
+  void paint(juce::Graphics& g) override;
+  void setSelected(bool sel) {
+    isSelected = sel;
+    repaint();
+  }
+};
 

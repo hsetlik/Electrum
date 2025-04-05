@@ -2,6 +2,7 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/Shared/FileSystem.h"
+#include "juce_graphics/juce_graphics.h"
 
 PatchSaver::PatchSaver(ElectrumState* s) : state(s) {
   // 1. set up labels
@@ -120,3 +121,14 @@ void PatchSaver::paint(juce::Graphics& g) {
   g.fillRect(fBounds);
 }
 //===================================================
+
+PatchListEntry::PatchListEntry(patch_meta_t* p) : patch(p) {
+  nameText.setText(patch->name);
+  authorText.setText(patch->author);
+  nameText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
+  authorText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
+}
+
+void PatchListEntry::paint(juce::Graphics& g) {
+  // 1. set the text color
+}
