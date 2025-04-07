@@ -33,7 +33,8 @@ public:
   void resized() override;
   void paint(juce::Graphics& g) override;
 };
-//===========================================
+
+//===================================================================
 // component to represent a single patch to be displayed in
 // a list
 class PatchListEntry : public ClickableComponent {
@@ -50,5 +51,23 @@ public:
     isSelected = sel;
     repaint();
   }
+};
+
+//===================================================================
+// drop-down menu button
+class DropDownBtn : public juce::Button {
+public:
+  DropDownBtn() : juce::Button("dropdown") { setToggleable(true); }
+  void paintButton(juce::Graphics& g, bool highlighted, bool down) override;
+};
+
+//===================================================================
+class PatchCategHeader : public Component {
+private:
+  DropDownBtn btn;
+  AttString nameText;
+
+public:
+  PatchCategHeader(int category);
 };
 

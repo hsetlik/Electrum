@@ -10,6 +10,7 @@ private:
 
 public:
   std::function<void()> onClick;
+  std::function<void()> onDoubleClick;
   ClickableComponent() = default;
   void mouseDown(const juce::MouseEvent&) override {
     lastMouseDown = juce::Time::getApproximateMillisecondCounter();
@@ -22,4 +23,5 @@ public:
       }
     }
   }
+  void mouseDoubleClick(const juce::MouseEvent&) override { onDoubleClick(); }
 };

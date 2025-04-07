@@ -127,8 +127,55 @@ PatchListEntry::PatchListEntry(patch_meta_t* p) : patch(p) {
   authorText.setText(patch->author);
   nameText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
   authorText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
+  nameText.setJustification(juce::Justification::centredLeft);
+  authorText.setJustification(juce::Justification::centredRight);
 }
 
 void PatchListEntry::paint(juce::Graphics& g) {
-  // 1. set the text color
+  // 1. fill the background
+  auto fBounds = getLocalBounds().toFloat();
+  g.setColour(UIColor::menuBkgnd);
+  g.fillRect(fBounds);
+  // 2. set the text color
+  auto color = isSelected ? UIColor::highlightedText : UIColor::defaultText;
+  // 3. draw the outline if this is the selected entry
+  if (isSelected) {
+    g.setColour(color);
+    g.drawRect(fBounds);
+  }
+  // 4. place and draw the text
+  fBounds = fBounds.reduced(3.0f);
+  nameText.setColour(color);
+  authorText.setColour(color);
+  juce::TextLayout nLayout;
+  juce::TextLayout aLayout;
+  nLayout.createLayout(nameText, fBounds.getWidth() / 2.0f);
+  aLayout.createLayout(authorText, fBounds.getWidth() / 2.0f);
+  auto nBounds = fBounds.removeFromLeft(nLayout.getWidth());
+  auto aBounds = fBounds.removeFromLeft(aLayout.getWidth());
+  nLayout.draw(g, nBounds);
+  aLayout.draw(g, aBounds);
 }
+
+//===================================================
+
+void DropDownBtn::paintButton(juce::Graphics& g, bool, bool) {
+  auto fBounds = getLocalBounds().toFloat();
+  juce::Path path;
+  path.startNewSubPath(0.0f, 0.0f);
+  if (getToggleState()) {  // arrow down
+    auto xMid = fBounds.getWidth() / 2.0f;
+    path.lineTo(xMid, fBounds.getHeight());
+    path.lineTo(fBounds.getWidth(), 0.0f);
+  } else {
+    auto yMid = fBounds.getHeight() / 2.0f;
+    path.lineTo(fBounds.getWidth(), yMid);
+    path.lineTo(0.0f, fBounds.getHeight());
+  }
+  path.closeSubPath();
+  g.setColour(UIColor::defaultFill);
+  g.fillPath(path);
+}
+
+//===================================================
+
