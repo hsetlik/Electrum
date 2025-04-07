@@ -103,16 +103,17 @@ public:
 
 class PatchViewport : public Component {
 private:
+  PatchList pl;
   juce::Viewport vpt;
 
 public:
-  PatchList& getPL() {
-    auto* pl = dynamic_cast<PatchList*>(vpt.getViewedComponent());
-    return *pl;
-  }
-  PatchViewport(ElectrumState* s) {
-    vpt.setViewedComponent(new PatchList(s), true);
+  PatchList& getPL() { return pl; }
+  PatchViewport(ElectrumState* s) : pl(s) {
+    vpt.setViewedComponent(&pl, false);
+    vpt.setViewPosition(0, 0);
+    vpt.setInterceptsMouseClicks(true, true);
     addAndMakeVisible(vpt);
+    pl.resized();
   }
   void resized() override { vpt.setBounds(getLocalBounds()); }
 };

@@ -130,6 +130,8 @@ void PatchSaver::paint(juce::Graphics& g) {
 PatchListEntry::PatchListEntry(patch_meta_t* p) : patch(p) {
   nameText.setText(patch->name);
   authorText.setText(patch->author);
+  authorText.setColour(UIColor::defaultText);
+  nameText.setColour(UIColor::defaultText);
   nameText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
   authorText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
   nameText.setJustification(juce::Justification::centredLeft);
@@ -148,7 +150,7 @@ int PatchListEntry::compareElements(PatchListEntry* a, PatchListEntry* b) {
 
 void PatchListEntry::paint(juce::Graphics& g) {
   // 1. fill the background
-  auto fBounds = getLocalBounds().toFloat();
+  auto fBounds = getBounds().toFloat();
   g.setColour(UIColor::menuBkgnd);
   g.fillRect(fBounds);
   // 2. set the text color
@@ -159,7 +161,7 @@ void PatchListEntry::paint(juce::Graphics& g) {
     g.drawRect(fBounds);
   }
   // 4. place and draw the text
-  fBounds = fBounds.reduced(3.0f);
+  fBounds = fBounds.reduced(1.0f);
   nameText.setColour(color);
   authorText.setColour(color);
   juce::TextLayout nLayout;
@@ -194,6 +196,8 @@ void DropDownBtn::paintButton(juce::Graphics& g, bool, bool) {
 
 PatchCategHeader::PatchCategHeader(int c) {
   addAndMakeVisible(btn);
+  btn.setClickingTogglesState(true);
+  setInterceptsMouseClicks(true, true);
   // set up button callback
   btn.onClick = [this]() {
     auto* parent = getParentComponent();
@@ -212,7 +216,9 @@ void PatchCategHeader::resized() {
   auto tHeight = fBounds.getHeight() - 3.0f;
   auto tWidth = fBounds.getWidth() - 5.0f;
   fBounds = fBounds.withSizeKeepingCentre(tWidth, tHeight);
+  static const float maxBtnSize = 13.0f;
   auto btnBox = fBounds.removeFromRight(tHeight);
+  btnBox = btnBox.withSizeKeepingCentre(maxBtnSize, maxBtnSize);
   btn.setBounds(btnBox.toNearestInt());
   maxTextBounds = fBounds;
 }
@@ -290,6 +296,7 @@ void PatchList::resized() {
           p->setVisible(true);
           p->setEnabled(true);
           p->setBounds(0, currentY, width, hEntry);
+          p->repaint();
           currentY += hEntry;
         } else {
           p->setVisible(false);
@@ -299,6 +306,7 @@ void PatchList::resized() {
     }
   }
   setSize(width, currentY);
+  setBounds(0, 0, width, currentY);
 }
 
 //==================================================================
@@ -310,10 +318,10 @@ PatchBrowser::PatchBrowser(ElectrumState* s) : state(s), loader(s), saver(s) {
   saveBtn.onClick = [this]() { openSaveView(); };
   addAndMakeVisible(loadBtn);
   addAndMakeVisible(saveBtn);
+  addAndMakeVisible(loader);
   addAndMakeVisible(saver);
   saver.setVisible(false);
   saver.setEnabled(false);
-  addAndMakeVisible(loader);
 }
 
 void PatchBrowser::resized() {
@@ -322,6 +330,7 @@ void PatchBrowser::resized() {
     loadBtn.setEnabled(true);
     loader.setEnabled(true);
     loader.setVisible(true);
+    loader.toFront(true);
   }
   auto fBounds = getLocalBounds().toFloat();
   auto bBounds = fBounds.removeFromBottom(35.0f);

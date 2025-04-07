@@ -93,10 +93,8 @@ ElectrumUserLib::ElectrumUserLib()
 bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
   if (name.length() < 4)
     return false;
-  if (name.compare(File::createLegalFileName(name)) != 0)
-    return false;
   for (auto& p : patches) {
-    if (name.compareIgnoreCase(p.name))
+    if (name.compareIgnoreCase(p.name) == 0)
       return false;
   }
   return true;
@@ -105,6 +103,7 @@ bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
 bool ElectrumUserLib::validatePatchData(patch_meta_t* patch) const {
   if (!isPatchNameLegal(patch->name)) {
     DLog::log("Illegal patch name: " + patch->name);
+    return false;
   }
   if (patch->category > (int)patch_categ_t::Other || patch->category < 0) {
     DLog::log("Illegal patch category: " + String(patch->category));

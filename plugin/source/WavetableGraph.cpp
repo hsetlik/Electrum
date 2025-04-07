@@ -12,7 +12,7 @@
 static void loadVertsForWave(wave_vertices_t& dest,
                              float* waveData,
                              float zPos) {
-  dest[0] = {0.0f, 1.0f, zPos};
+  dest[0] = {0.0f, 0.0f, zPos};
   for (size_t i = 0; i < WAVE_GRAPH_POINTS; ++i) {
     const float xPos = (float)i / (float)WAVE_GRAPH_POINTS;
     const size_t wIdx = (size_t)(xPos * (float)TABLE_SIZE);
