@@ -277,7 +277,7 @@ void PatchList::setSelectedPatch(patch_meta_t* current) {
 void PatchList::resized() {
   static const int hHeader = 22;
   static const int hEntry = 18;
-  const int width = std::max(getLocalBounds().getWidth(), 50);
+  const int width = std::max(getLocalBounds().getWidth(), 250);
   int currentY = 0;
   for (int i = 0; i < NUM_PATCH_CATEGORIES; ++i) {
     // 1. place the header
@@ -290,6 +290,7 @@ void PatchList::resized() {
           p->setVisible(true);
           p->setEnabled(true);
           p->setBounds(0, currentY, width, hEntry);
+          currentY += hEntry;
         } else {
           p->setVisible(false);
           p->setEnabled(false);
@@ -309,19 +310,21 @@ PatchBrowser::PatchBrowser(ElectrumState* s) : state(s), loader(s), saver(s) {
   saveBtn.onClick = [this]() { openSaveView(); };
   addAndMakeVisible(loadBtn);
   addAndMakeVisible(saveBtn);
-  addAndMakeVisible(loader);
   addAndMakeVisible(saver);
   saver.setVisible(false);
   saver.setEnabled(false);
+  addAndMakeVisible(loader);
 }
 
 void PatchBrowser::resized() {
   if (!saver.isVisible()) {
     saveBtn.setEnabled(true);
     loadBtn.setEnabled(true);
+    loader.setEnabled(true);
+    loader.setVisible(true);
   }
   auto fBounds = getLocalBounds().toFloat();
-  auto bBounds = fBounds.removeFromBottom(25.0f);
+  auto bBounds = fBounds.removeFromBottom(35.0f);
   auto sBounds = bBounds.removeFromLeft(bBounds.getWidth() / 2.0f);
   loadBtn.setBounds(sBounds.reduced(3.5f).toNearestInt());
   saveBtn.setBounds(bBounds.reduced(3.5f).toNearestInt());

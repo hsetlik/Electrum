@@ -19,7 +19,7 @@ static void loadVertsForWave(wave_vertices_t& dest,
     const float yPos = (waveData[wIdx] + 1.0f) / 2.0f;
     dest[i + 1] = {xPos, yPos, zPos};
   }
-  dest[WAVE_PATH_POINTS - 1] = {1.0f, 1.0f, zPos};
+  dest[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
 }
 
 void WavetableGraph::updateVertices(const String& waveStr) {
@@ -50,14 +50,14 @@ void WavetableGraph::updateVirtualVertices() {
   const float t = (zPos - waveVertArrays[lowIdx][0].z) /
                   (waveVertArrays[highIdx][0].z - waveVertArrays[lowIdx][0].z);
   // 3. calculate each vertex
-  virtualVerts[0] = {0.0f, 1.0f, zPos};
+  virtualVerts[0] = {0.0f, 0.0f, zPos};
   float xPos, yPos;
   for (size_t i = 1; i <= WAVE_GRAPH_POINTS; ++i) {
     xPos = (float)i / (float)WAVE_GRAPH_POINTS;
     yPos = flerp(waveVertArrays[lowIdx][i].y, waveVertArrays[highIdx][i].y, t);
     virtualVerts[i] = {xPos, yPos, zPos};
   }
-  virtualVerts[WAVE_PATH_POINTS - 1] = {1.0f, 1.0f, zPos};
+  virtualVerts[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
 }
 
 // 3D math stuff---------------
@@ -99,12 +99,11 @@ static void drawWave(juce::Graphics& g,
   // 1. convert to juce::Path object
   juce::Path path;
   path.startNewSubPath(points[0]);
-  for (size_t i = 1; i <= WAVE_GRAPH_POINTS; ++i) {
+  for (size_t i = 1; i < WAVE_PATH_POINTS; ++i) {
     path.lineTo(points[i]);
   }
-  path.lineTo(points[WAVE_PATH_POINTS - 1]);
-  path.closeSubPath();
-  // 2. draw it
+  // path.closeSubPath();
+  //  2. draw it
   juce::PathStrokeType pst(stroke);
   g.strokePath(path, pst);
 }
