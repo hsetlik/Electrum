@@ -138,10 +138,9 @@ juce::AudioProcessorEditor* ElectrumAudioProcessor::createEditor() {
 void ElectrumAudioProcessor::getStateInformation(
 
     juce::MemoryBlock& destData) {
-  // You should use this method to store your parameters in the memory block.
-  // You could do that either as raw data, or use the XML or ValueTree classes
-  // as intermediaries to make it easy to save and load complex data.
-  juce::ignoreUnused(destData);
+  auto stateCpy = tree.copyState();
+  String stateXml = stateCpy.toXmlString();
+  destData.replaceAll(stateXml.toRawUTF8(), stateXml.getNumBytesAsUTF8());
 }
 
 void ElectrumAudioProcessor::setStateInformation(const void* data,
@@ -149,7 +148,10 @@ void ElectrumAudioProcessor::setStateInformation(const void* data,
   // You should use this method to restore your parameters from this memory
   // block, whose contents will have been created by the getStateInformation()
   // call.
-  juce::ignoreUnused(data, sizeInBytes);
+  String xmlStr((const char*)data, (size_t)sizeInBytes);
+  auto vt = ValueTree::fromXml(xmlStr);
+  jassert(vt.isValid());
+  tree.replaceState(vt);
 }
 
 }  // namespace audio_plugin
