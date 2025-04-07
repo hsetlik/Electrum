@@ -72,7 +72,7 @@ bool attemptPatchSave(ValueTree& state) {
 std::vector<patch_meta_t> getAvailiblePatches() {
   std::vector<patch_meta_t> vec;
   auto patches = getPatchesFolder();
-  auto files = patches.findChildFiles(File::findFiles, true, patchFileExt);
+  auto files = patches.findChildFiles(File::findFiles, true);
   for (auto& f : files) {
     auto str = f.loadFileAsString();
     auto parent = juce::ValueTree::fromXml(str);
@@ -103,12 +103,17 @@ bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
 }
 
 bool ElectrumUserLib::validatePatchData(patch_meta_t* patch) const {
-  if (!isPatchNameLegal(patch->name))
+  if (!isPatchNameLegal(patch->name)) {
+    DLog::log("Illegal patch name: " + patch->name);
+  }
+  if (patch->category > (int)patch_categ_t::Other || patch->category < 0) {
+    DLog::log("Illegal patch category: " + String(patch->category));
     return false;
-  if (patch->category > (int)patch_categ_t::Other || patch->category < 0)
+  }
+  if (patch->author.length() > 18 || patch->description.length() > 200) {
+    DLog::log("Illegal author/description");
     return false;
-  if (patch->author.length() > 15 || patch->description.length() > 200)
-    return false;
+  }
   return true;
 }
 
@@ -129,6 +134,7 @@ patch_meta_t* ElectrumUserLib::getPatch(const String& name) {
 bool ElectrumUserLib::attemptPatchSave(apvts* tree,
                                        const patch_meta_t& patchData) {
   auto state = tree->copyState();
+  patches.push_back(patchData);
   // 1. remove the existing PATCH_INFO child and
   // replace it with a new one
   auto oldPI = state.getChildWithName(ID::PATCH_INFO);
@@ -137,7 +143,15 @@ bool ElectrumUserLib::attemptPatchSave(apvts* tree,
   }
   auto newPI = patch_meta_t::toValueTree(patchData);
   state.appendChild(newPI, nullptr);
-  return UserFiles::attemptPatchSave(state);
+  bool success = UserFiles::attemptPatchSave(state);
+  if (success) {
+    // notify the listeners
+    for (auto* l : listeners) {
+      l->patchWasSaved(&patches[patches.size() - 1]);
+    }
+    return true;
+  }
+  return false;
 }
 
 ValueTree ElectrumUserLib::getMasterTreeForPatch(patch_meta_t* patch) {

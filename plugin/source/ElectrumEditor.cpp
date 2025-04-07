@@ -12,12 +12,14 @@ ElectrumEditor::ElectrumEditor(ElectrumState* s,
       processor(p),
       kbdView(p->engine.masterKeyboardState),
       macroPanel(s),
+      browser(s),
       envPanel(s) {
   // set the lookandfeel before adding child components
   setLookAndFeel(&lnf);
   addAndMakeVisible(&kbdView);
   addAndMakeVisible(&macroPanel);
   addAndMakeVisible(&envPanel);
+  addAndMakeVisible(&browser);
   // add the oscs
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     auto* osc = oscs.add(new OscillatorPanel(state, i));
@@ -38,6 +40,7 @@ void ElectrumEditor::resized() {
   auto leftPanel = iBounds.removeFromLeft(leftPanelWidth);
   const int macroPanelHeight = std::max(leftPanel.getHeight() / 7, 110);
   macroPanel.setBounds(leftPanel.removeFromTop(macroPanelHeight));
+  browser.setBounds(leftPanel);
 
   auto fOscArea = iBounds.removeFromTop(oscPanelHeight).toFloat();
   const float fOscWidth = fOscArea.getWidth() / 3.0f;

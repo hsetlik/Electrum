@@ -4,6 +4,7 @@
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
 #include "Electrum/GUI/ModulatorPanel/MacroModSources.h"
+#include "Electrum/GUI/PatchBrowser.h"
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/PluginProcessor.h"
 #include "Modulation/ModContextComponent.h"
@@ -23,6 +24,8 @@ private:
   juce::OwnedArray<OscillatorPanel> oscs;
   // Left panel modulators
   MacroModSources macroPanel;
+  // patch browser panel
+  PatchBrowser browser;
   // Envelope panel
   EnvGroupComponent envPanel;
 

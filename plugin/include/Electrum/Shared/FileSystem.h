@@ -28,6 +28,7 @@ namespace UserFiles {
 const juce::StringArray PatchCategStrings = {"Bass", "Lead", "Keys", "Pad",
                                              "Other"};
 
+#define NUM_PATCH_CATEGORIES 5
 const String patchFileExt = ".epf";
 const String waveFileExt = ".ewf";
 File getPatchesFolder();
@@ -55,6 +56,13 @@ private:
   bool isPatchNameLegal(const String& name) const;
 
 public:
+  // components can inherit this to update
+  // when patches are loaded or saved
+  struct Listener {
+    Listener() {}
+    virtual ~Listener() {}
+    virtual void patchWasSaved(patch_meta_t* patch) {}
+  };
   ElectrumUserLib();
   // GUI should call this to check if
   // the user's entered metadata is legal
@@ -64,8 +72,20 @@ public:
   patch_meta_t* getPatchAtIndex(int index);
   patch_meta_t* getPatch(const String& name);
 
-private:
+  // listener stuff
+  void addListener(Listener* l) { listeners.push_back(l); }
+  void removeListener(Listener* l) {
+    for (auto it = listeners.begin(); it != listeners.end(); ++it) {
+      if (*it == l) {
+        listeners.erase(it);
+        return;
+      }
+    }
+  }
+
   ValueTree getMasterTreeForPatch(patch_meta_t* patch);
 
+private:
+  std::vector<Listener*> listeners;
   //
 };

@@ -26,6 +26,9 @@ private:
   juce::TextButton cancelBtn;
   juce::TextButton saveBtn;
 
+  std::array<BoundedAttString*, 5> attStrings = {
+      &topLabel, &nameLabel, &categLabel, &authorLabel, &descLabel};
+
 public:
   PatchSaver(ElectrumState* s);
   void textEditorTextChanged(juce::TextEditor& te) override;
@@ -46,11 +49,13 @@ private:
 
 public:
   PatchListEntry(patch_meta_t* p);
+  patch_meta_t* getPatch() { return patch; }
   void paint(juce::Graphics& g) override;
   void setSelected(bool sel) {
     isSelected = sel;
     repaint();
   }
+  static int compareElements(PatchListEntry* first, PatchListEntry* second);
 };
 
 //===================================================================
@@ -61,13 +66,71 @@ public:
   void paintButton(juce::Graphics& g, bool highlighted, bool down) override;
 };
 
-//===================================================================
 class PatchCategHeader : public Component {
 private:
   DropDownBtn btn;
   AttString nameText;
+  frect_t maxTextBounds;
 
 public:
   PatchCategHeader(int category);
+  bool isOpen() const { return btn.getToggleState(); }
+  void resized() override;
+  void paint(juce::Graphics& g) override;
 };
 
+//===================================================================
+typedef juce::OwnedArray<PatchListEntry> patch_list_t;
+
+class PatchList : public Component, public ElectrumUserLib::Listener {
+private:
+  ElectrumState* const state;
+  juce::OwnedArray<PatchCategHeader> categHeaders;
+  patch_list_t patches;
+  void setSelectedPatch(patch_meta_t* p);
+  patch_meta_t* selectedPatch = nullptr;
+
+public:
+  PatchList(ElectrumState* s);
+  ~PatchList() override;
+  patch_meta_t* getSelected() { return selectedPatch; }
+  void patchWasSaved(patch_meta_t* patch) override;
+  void resized() override;
+
+  // private:
+  // void sortPatchList();
+};
+
+class PatchViewport : public Component {
+private:
+  juce::Viewport vpt;
+
+public:
+  PatchList& getPL() {
+    auto* pl = dynamic_cast<PatchList*>(vpt.getViewedComponent());
+    return *pl;
+  }
+  PatchViewport(ElectrumState* s) {
+    vpt.setViewedComponent(new PatchList(s), true);
+    addAndMakeVisible(vpt);
+  }
+  void resized() override { vpt.setBounds(getLocalBounds()); }
+};
+
+//==================================================================
+// the top-level panel for all saving and loading business
+class PatchBrowser : public Component {
+private:
+  ElectrumState* const state;
+  PatchViewport loader;
+  PatchSaver saver;
+  juce::TextButton loadBtn;
+  juce::TextButton saveBtn;
+
+  void openSaveView();
+  void loadCurrentPatch();
+
+public:
+  PatchBrowser(ElectrumState* s);
+  void resized() override;
+};
