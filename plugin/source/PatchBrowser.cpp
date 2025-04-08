@@ -254,6 +254,13 @@ PatchList::PatchList(ElectrumState* s) : state(s) {
     auto comp = patches.add(new PatchListEntry(p));
     addAndMakeVisible(comp);
     comp->onClick = [this, p]() { setSelectedPatch(p); };
+    comp->onDoubleClick = [this, p]() {
+      setSelectedPatch(p);
+      auto* pBrowser = findParentComponentOfClass<PatchBrowser>();
+      if (pBrowser != nullptr) {
+        pBrowser->loadCurrentPatch();
+      }
+    };
   }
   // sortPatchList();
   //  3. attach the listener
@@ -273,14 +280,17 @@ void PatchList::patchWasSaved(patch_meta_t* p) {
 }
 
 void PatchList::setSelectedPatch(patch_meta_t* current) {
-  for (auto* p : patches) {
-    if (p->getPatch() == current) {
-      p->setSelected(true);
-    } else {
-      p->setSelected(false);
+  if (selectedPatch != current) {
+    selectedPatch = current;
+    for (auto* p : patches) {
+      if (p->getPatch() == current) {
+        p->setSelected(true);
+      } else {
+        p->setSelected(false);
+      }
     }
+    resized();
   }
-  resized();
 }
 
 void PatchList::resized() {

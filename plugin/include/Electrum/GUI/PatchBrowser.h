@@ -129,9 +129,9 @@ private:
   juce::TextButton saveBtn;
 
   void openSaveView();
-  void loadCurrentPatch();
 
 public:
+  void loadCurrentPatch();
   PatchBrowser(ElectrumState* s);
   void resized() override;
 };
