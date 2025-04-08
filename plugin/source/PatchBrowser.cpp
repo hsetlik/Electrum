@@ -134,8 +134,8 @@ PatchListEntry::PatchListEntry(patch_meta_t* p) : patch(p) {
   nameText.setColour(UIColor::defaultText);
   nameText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
   authorText.setFont(FontData::getFontWithHeight(FontE::FuturaLC, 13.0f));
-  nameText.setJustification(juce::Justification::centredLeft);
-  authorText.setJustification(juce::Justification::centredRight);
+  nameText.setJustification(juce::Justification::centred);
+  authorText.setJustification(juce::Justification::centred);
 }
 
 int PatchListEntry::compareElements(PatchListEntry* a, PatchListEntry* b) {
@@ -149,8 +149,10 @@ int PatchListEntry::compareElements(PatchListEntry* a, PatchListEntry* b) {
 }
 
 void PatchListEntry::paint(juce::Graphics& g) {
+  nameText.setText(patch->name);
+  authorText.setText(patch->author);
   // 1. fill the background
-  auto fBounds = getBounds().toFloat();
+  auto fBounds = getLocalBounds().toFloat();
   g.setColour(UIColor::menuBkgnd);
   g.fillRect(fBounds);
   // 2. set the text color
@@ -160,8 +162,10 @@ void PatchListEntry::paint(juce::Graphics& g) {
     g.setColour(color);
     g.drawRect(fBounds);
   }
+
+  fBounds.removeFromLeft(3.5f);
   // 4. place and draw the text
-  fBounds = fBounds.reduced(1.0f);
+  // fBounds = fBounds.reduced(1.0f);
   nameText.setColour(color);
   authorText.setColour(color);
   juce::TextLayout nLayout;
@@ -169,9 +173,8 @@ void PatchListEntry::paint(juce::Graphics& g) {
   nLayout.createLayout(nameText, fBounds.getWidth() / 2.0f);
   aLayout.createLayout(authorText, fBounds.getWidth() / 2.0f);
   auto nBounds = fBounds.removeFromLeft(nLayout.getWidth());
-  auto aBounds = fBounds.removeFromLeft(aLayout.getWidth());
   nLayout.draw(g, nBounds);
-  aLayout.draw(g, aBounds);
+  aLayout.draw(g, fBounds);
 }
 
 //===================================================
@@ -281,8 +284,8 @@ void PatchList::setSelectedPatch(patch_meta_t* current) {
 }
 
 void PatchList::resized() {
-  static const int hHeader = 22;
-  static const int hEntry = 18;
+  static const int hHeader = 25;
+  static const int hEntry = 21;
   const int width = std::max(getLocalBounds().getWidth(), 250);
   int currentY = 0;
   for (int i = 0; i < NUM_PATCH_CATEGORIES; ++i) {
@@ -295,6 +298,7 @@ void PatchList::resized() {
         if (categHeaders[i]->isOpen()) {
           p->setVisible(true);
           p->setEnabled(true);
+          p->toFront(true);
           p->setBounds(0, currentY, width, hEntry);
           p->repaint();
           currentY += hEntry;
