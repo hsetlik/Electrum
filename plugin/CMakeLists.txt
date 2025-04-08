@@ -115,6 +115,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/Util/ClickableComponent.h
 				source/MovingAverage.cpp
 				${INCLUDE_DIR}/Audio/Filters/MovingAverage.h
+				source/TPTFilter.cpp
+				${INCLUDE_DIR}/Audio/Filters/TPTFilter.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
