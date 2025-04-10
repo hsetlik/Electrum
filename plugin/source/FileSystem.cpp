@@ -22,6 +22,26 @@ patch_meta_t patch_meta_t::fromValueTree(ValueTree& vt) {
   return patch;
 }
 
+//--------------------------------------------------
+
+ValueTree wave_meta_t::toValueTree(const wave_meta_t& wave) {
+  ValueTree vt(ID::WAVE_INFO);
+  vt.setProperty(ID::waveName, wave.name, nullptr);
+  vt.setProperty(ID::wavePath, wave.path, nullptr);
+  vt.setProperty(ID::waveAuthor, wave.author, nullptr);
+  vt.setProperty(ID::waveCategory, wave.category, nullptr);
+
+  return vt;
+}
+
+wave_meta_t wave_meta_t::fromValueTree(ValueTree& vt) {
+  wave_meta_t wave;
+  wave.name = vt[ID::waveName];
+  wave.author = vt[ID::waveAuthor];
+  wave.path = vt[ID::wavePath];
+  wave.category = vt[ID::waveCategory];
+  return wave;
+}
 //===================================================
 namespace UserFiles {
 
@@ -32,7 +52,6 @@ File getPatchesFolder() {
           .getChildFile("Patches");
   if (!folder.exists() || !folder.isDirectory())
     folder.createDirectory();
-  DLog::log("Patches folder is at: " + String(folder.getFullPathName()));
   return folder;
 }
 
@@ -55,6 +74,14 @@ bool isValidPatch(const File& file) {
   return child.isValid();
 }
 
+bool isValidWave(const File& file) {
+  auto str = file.loadFileAsString();
+  ValueTree parent = ValueTree::fromXml(str);
+  if (!parent.isValid())
+    return false;
+  return parent.hasType(ID::PATCH_INFO);
+}
+
 bool attemptPatchSave(ValueTree& state) {
   auto patchTree = state.getChildWithName(ID::PATCH_INFO);
   if (!patchTree.isValid())
@@ -69,6 +96,17 @@ bool attemptPatchSave(ValueTree& state) {
   return file.replaceWithText(xml);
 }
 
+bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString) {
+  wave_meta_t wd = waveData;
+  auto dir = getWavetablesFolder();
+  auto file = dir.getNonexistentChildFile(wd.name, waveFileExt, false);
+  wd.path = file.getRelativePathFrom(dir);
+  auto vt = wave_meta_t::toValueTree(wd);
+  vt.setProperty(ID::waveStringData, waveString, nullptr);
+  auto xml = vt.toXmlString();
+  return file.replaceWithText(xml);
+}
+
 std::vector<patch_meta_t> getAvailiblePatches() {
   std::vector<patch_meta_t> vec;
   auto patches = getPatchesFolder();
@@ -79,6 +117,20 @@ std::vector<patch_meta_t> getAvailiblePatches() {
     auto child = parent.getChildWithName(ID::PATCH_INFO);
     if (child.isValid()) {
       vec.push_back(patch_meta_t::fromValueTree(child));
+    }
+  }
+  return vec;
+}
+
+std::vector<wave_meta_t> getAvailableWaves() {
+  std::vector<wave_meta_t> vec;
+  auto folder = getWavetablesFolder();
+  auto waves = folder.findChildFiles(File::findFiles, true);
+  for (auto& wave : waves) {
+    auto str = wave.loadFileAsString();
+    auto parent = ValueTree::fromXml(str);
+    if (parent.isValid()) {
+      vec.push_back(wave_meta_t::fromValueTree(parent));
     }
   }
   return vec;

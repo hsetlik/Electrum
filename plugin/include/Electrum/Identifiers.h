@@ -120,6 +120,14 @@ DECLARE_ID(patchAuthor)
 DECLARE_ID(patchDesc)
 DECLARE_ID(patchCategory)
 
+// wave metadata stuff
+DECLARE_ID(WAVE_INFO)
+DECLARE_ID(waveName)
+DECLARE_ID(wavePath)
+DECLARE_ID(waveAuthor)
+DECLARE_ID(waveCategory)
+DECLARE_ID(waveStringData)
+
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID
 
