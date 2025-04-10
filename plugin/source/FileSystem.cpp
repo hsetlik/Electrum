@@ -161,7 +161,17 @@ ElectrumUserLib::ElectrumUserLib()
       waves(UserFiles::getAvailableWaves()) {}
 
 bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
-  if (name.length() < 4)
+  if (name.length() < 4 || name.length() > 20)
+    return false;
+  for (auto& p : patches) {
+    if (name.compareIgnoreCase(p.name) == 0)
+      return false;
+  }
+  return true;
+}
+
+bool ElectrumUserLib::isWaveNameLegal(const String& name) const {
+  if (name.length() < 4 || name.length() > 20)
     return false;
   for (auto& p : patches) {
     if (name.compareIgnoreCase(p.name) == 0)
@@ -221,6 +231,13 @@ bool ElectrumUserLib::attemptPatchSave(apvts* tree,
     return true;
   }
   return false;
+}
+
+bool ElectrumUserLib::attemptWaveSave(const wave_meta_t& waveData,
+                                      const String& waveString) {
+  if (!isWaveNameLegal(waveData.name))
+    return false;
+  return UserFiles::attemptWaveSave(waveData, waveString);
 }
 
 ValueTree ElectrumUserLib::getMasterTreeForPatch(patch_meta_t* patch) {

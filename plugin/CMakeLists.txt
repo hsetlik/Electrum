@@ -119,6 +119,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/Filters/TPTFilter.h
 				source/Ladder.cpp
 				${INCLUDE_DIR}/Audio/Filters/Ladder.h
+				source/ModalParent.cpp
+				${INCLUDE_DIR}/GUI/Util/ModalParent.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

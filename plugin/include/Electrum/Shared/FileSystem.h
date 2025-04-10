@@ -74,6 +74,7 @@ private:
   std::vector<patch_meta_t> patches;
   std::vector<wave_meta_t> waves;
   bool isPatchNameLegal(const String& name) const;
+  bool isWaveNameLegal(const String& name) const;
 
 public:
   // components can inherit this to update
@@ -82,12 +83,14 @@ public:
     Listener() {}
     virtual ~Listener() {}
     virtual void patchWasSaved(patch_meta_t*) {}
+    virtual void waveWasSaved(wave_meta_t*) {}
   };
   ElectrumUserLib();
   // GUI should call this to check if
   // the user's entered metadata is legal
   bool validatePatchData(patch_meta_t* patch) const;
   int numPatches() const { return (int)patches.size(); }
+  int numWavetables() const { return (int)waves.size(); }
   bool attemptPatchSave(apvts* tree, const patch_meta_t& patchData);
   bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString);
   patch_meta_t* getPatchAtIndex(int index);
