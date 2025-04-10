@@ -109,12 +109,18 @@ String _paramIDForModDest(int destID) {
 ElectrumState::ElectrumState(juce::AudioProcessor& proc,
                              juce::UndoManager* undo)
     : apvts(proc, undo, ID::ELECTRUM_STATE, ID::getParameterLayout()) {
+  // 1. add the default modulation tree
   ValueTree mod(ID::ELECTRUM_MOD_TREE);
   state.appendChild(mod, undo);
   // now we initialize the modDestRanges array
   // remember this is in order of the ModDestE enum
   for (int i = 0; i < MOD_DESTS; ++i) {
     modDestRanges[i] = getParameterRange(_paramIDForModDest(i));
+  }
+  // 2. set the wavetable paths for each of the oscs
+  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    juce::Identifier id = ID::oscWavePath.toString() + String(i);
+    state.setProperty(id, "Default", undo);
   }
 }
 

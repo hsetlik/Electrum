@@ -95,6 +95,7 @@ public:
   bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString);
   patch_meta_t* getPatchAtIndex(int index);
   patch_meta_t* getPatch(const String& name);
+  // wave getters
 
   // listener stuff
   void addListener(Listener* l) { listeners.push_back(l); }

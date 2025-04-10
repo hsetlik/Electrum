@@ -128,6 +128,9 @@ DECLARE_ID(waveAuthor)
 DECLARE_ID(waveCategory)
 DECLARE_ID(waveStringData)
 
+// Oscillator wave names
+DECLARE_ID(oscWavePath)
+
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID
 

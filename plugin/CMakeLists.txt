@@ -121,6 +121,12 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/Filters/Ladder.h
 				source/ModalParent.cpp
 				${INCLUDE_DIR}/GUI/Util/ModalParent.h
+				source/WaveEditor.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/WaveEditor.h
+				source/EditValueTree.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/EditValueTree.h
+				source/WaveThumbnail.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/WaveThumbnail.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
