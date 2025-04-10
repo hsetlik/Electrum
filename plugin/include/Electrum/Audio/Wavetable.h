@@ -93,6 +93,7 @@ public:
   //  these do the main work for the oscillators
   float getSampleFixed(float phase, float phaseDelt, float pos) const;
   float getSampleSmooth(float phase, float phaseDelt, float pos) const;
+
   // parameter getters for the oscillator code
   inline float getPos() const { return position; }
   inline float getLevel() const { return level; }
@@ -102,5 +103,6 @@ public:
   // and these help render the graphs
   std::vector<float> normVectorForWave(int wave, int numPoints = 512) const;
   String toString() const noexcept;
+  static String getDefaultWavesetString();
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Wavetable)
 };

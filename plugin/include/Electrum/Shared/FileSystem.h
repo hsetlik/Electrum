@@ -72,6 +72,7 @@ std::vector<wave_meta_t> getAvailableWaves();
 class ElectrumUserLib {
 private:
   std::vector<patch_meta_t> patches;
+  std::vector<wave_meta_t> waves;
   bool isPatchNameLegal(const String& name) const;
 
 public:

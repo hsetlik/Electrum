@@ -1,4 +1,5 @@
 #include "Electrum/Shared/FileSystem.h"
+#include "Electrum/Audio/Wavetable.h"
 #include "Electrum/Identifiers.h"
 #include "juce_data_structures/juce_data_structures.h"
 
@@ -55,13 +56,29 @@ File getPatchesFolder() {
   return folder;
 }
 
+static void createDefaultWaveFile(const File& waveFolder) {
+  wave_meta_t meta;
+  meta.name = "Default";
+  meta.author = "Hayden";
+  meta.path = "Default";
+  meta.category = 0;
+  auto vt = wave_meta_t::toValueTree(meta);
+  auto waveStr = Wavetable::getDefaultWavesetString();
+  vt.setProperty(ID::waveStringData, waveStr, nullptr);
+  auto file = waveFolder.getNonexistentChildFile(meta.path, waveFileExt, false);
+  auto xml = vt.toXmlString();
+  file.replaceWithText(xml);
+}
+
 File getWavetablesFolder() {
   File folder =
       File::getSpecialLocation(juce::File::userApplicationDataDirectory)
           .getChildFile("ElectrumData")
           .getChildFile("Wavetables");
-  if (!folder.exists() || !folder.isDirectory())
+  if (!folder.exists() || !folder.isDirectory()) {
     folder.createDirectory();
+    createDefaultWaveFile(folder);
+  }
   return folder;
 }
 
@@ -140,7 +157,8 @@ std::vector<wave_meta_t> getAvailableWaves() {
 //===================================================
 
 ElectrumUserLib::ElectrumUserLib()
-    : patches(UserFiles::getAvailiblePatches()) {}
+    : patches(UserFiles::getAvailiblePatches()),
+      waves(UserFiles::getAvailableWaves()) {}
 
 bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
   if (name.length() < 4)

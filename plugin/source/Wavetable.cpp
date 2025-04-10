@@ -251,7 +251,7 @@ static std::array<float, TABLE_SIZE> getRampNormalized(float width) {
   }
   return arr;
 }
-static String getDefaultWavesetString() {
+String Wavetable::getDefaultWavesetString() {
   String str = "";
   constexpr size_t numWaves = 18;
 
