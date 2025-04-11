@@ -22,5 +22,6 @@ namespace FontData {
 
 juce::String getFontName(int idx);
 juce::Font getFontWithHeight(FontE id, float height);
+typeface_ptr typefaceForFont(FontE id);
 
 }  // namespace FontData

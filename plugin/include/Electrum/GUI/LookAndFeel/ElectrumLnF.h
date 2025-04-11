@@ -10,6 +10,7 @@ class ElectrumLnF : public juce::LookAndFeel_V4 {
 public:
   ElectrumLnF();
   // overrides for our various drawing methods--------------------
+  // Slider stuff-------------------------------------------------
   void drawRotarySlider(juce::Graphics& g,
                         int x,
                         int y,
@@ -20,5 +21,15 @@ public:
                         float rotaryEndAngle,
                         juce::Slider& s) override;
   juce::Slider::SliderLayout getSliderLayout(juce::Slider& slider) override;
-  //--------------------------------------------------------------
+  // ComboBox stuff------------------------------------------
+  void drawComboBox(juce::Graphics& g,
+                    int width,
+                    int height,
+                    bool isButtonDown,
+                    int buttonX,
+                    int buttonY,
+                    int buttonW,
+                    int buttonH,
+                    juce::ComboBox& cb) override;
+  juce::Font getComboBoxFont(juce::ComboBox& cb) override;
 };

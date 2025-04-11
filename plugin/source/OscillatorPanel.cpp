@@ -19,6 +19,17 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPan);
   addAndMakeVisible(graph);
+  // now set up the comboBox and Listener
+  wavetableCB.addItemList(state->userLib.getAvailableWaveNames(), 1);
+  wavetableCB.setSelectedItemIndex(0);
+  addAndMakeVisible(wavetableCB);
+  wavetableCB.addListener(this);
+  // TODO: set up the button callback here
+  addAndMakeVisible(editBtn);
+}
+
+void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
+  jassert(cb == &wavetableCB);
 }
 
 void OscillatorPanel::resized() {
@@ -32,6 +43,11 @@ void OscillatorPanel::resized() {
   sPos.setBounds(grid[0][2].toNearestInt());
   frect_t remaining = {0.0f, 0.0f, grid[1][0].getRight(),
                        grid[0][1].getBottom()};
+  static const float editBarHeight = 28.0f;
+  auto editBounds = remaining.removeFromTop(editBarHeight);
+  auto editButtonBounds = editBounds.removeFromRight(editBarHeight);
+  wavetableCB.setBounds(editBounds.reduced(3.0f).toNearestInt());
+  editBtn.setBounds(editButtonBounds.toNearestInt());
   auto graphBounds = remaining.toNearestInt();
   // juce::ignoreUnused(graphBounds);
   graph.setBounds(graphBounds);

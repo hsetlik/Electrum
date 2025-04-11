@@ -233,6 +233,15 @@ bool ElectrumUserLib::attemptPatchSave(apvts* tree,
   return false;
 }
 
+juce::StringArray ElectrumUserLib::getAvailableWaveNames() const {
+  juce::StringArray names;
+  for (size_t i = 0; i < waves.size(); ++i) {
+    names.add(waves[i].name);
+  }
+  DLog::log("Found " + String(waves.size()) + " wavetable files");
+  return names;
+}
+
 bool ElectrumUserLib::attemptWaveSave(const wave_meta_t& waveData,
                                       const String& waveString) {
   if (!isWaveNameLegal(waveData.name))

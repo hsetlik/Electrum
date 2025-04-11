@@ -95,6 +95,7 @@ public:
   bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString);
   patch_meta_t* getPatchAtIndex(int index);
   patch_meta_t* getPatch(const String& name);
+  juce::StringArray getAvailableWaveNames() const;
   // wave getters
 
   // listener stuff

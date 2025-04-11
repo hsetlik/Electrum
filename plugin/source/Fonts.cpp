@@ -127,4 +127,8 @@ juce::Font getFontWithHeight(FontE id, float height) {
   jassert(false);
   return juce::Font(juce::FontOptions());
 }
+
+typeface_ptr typefaceForFont(FontE id) {
+  return _ptrForEFont(id);
+}
 }  // namespace FontData
