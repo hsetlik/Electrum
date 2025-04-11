@@ -1,6 +1,7 @@
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/Common.h"
 #include "Electrum/GUI/LayoutHelpers.h"
+#include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
@@ -24,8 +25,12 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   wavetableCB.setSelectedItemIndex(0);
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
-  // TODO: set up the button callback here
+
   addAndMakeVisible(editBtn);
+  editBtn.onClick = [this]() {
+    ModalParent::openWaveEditor(&editBtn, state, &state->audioData.wOsc[oscID],
+                                oscID);
+  };
 }
 
 void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {

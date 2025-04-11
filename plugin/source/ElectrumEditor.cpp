@@ -69,18 +69,19 @@ void ElectrumEditor::_openWaveEditor(ElectrumState* s, Wavetable* wt, int idx) {
 }
 
 void ElectrumEditor::_exitModalView() {
-  // NOTE: make sure the destructor correctly removes this from its parent
   waveView.reset(nullptr);
   waveViewOpen = false;
-  mainView.setEnabled(false);
+  mainView.setEnabled(true);
   resized();
 }
 
 void ElectrumEditor::resized() {
   auto iBounds = getLocalBounds();
   mainView.setBounds(iBounds);
+  static const int maxModalW = 850;
+  static const int maxModalH = 650;
   if (waveViewOpen) {
-    auto wBounds = iBounds.reduced(60);
+    auto wBounds = iBounds.withSizeKeepingCentre(maxModalW, maxModalH);
     waveView->setBounds(wBounds);
     waveView->toFront(true);
   }
