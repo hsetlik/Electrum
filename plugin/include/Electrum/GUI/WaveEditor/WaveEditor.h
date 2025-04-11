@@ -6,9 +6,12 @@ private:
   ElectrumState* const state;
   Wavetable* const wavetable;
   const int oscID;
+  // this ValueTree holds the state of our wavetable editing
+  ValueTree waveTree;
 
 public:
   WaveEditor(ElectrumState* s, Wavetable* wt, int idx);
+  ~WaveEditor() override;
   void resized() override;
+  void paint(juce::Graphics& g) override;
 };
-

@@ -5,8 +5,8 @@
 #include "Electrum/PluginProcessor.h"
 #include "juce_core/juce_core.h"
 
-ElectrumEditor::ElectrumEditor(ElectrumState* s,
-                               audio_plugin::ElectrumAudioProcessor* p)
+ElectrumMainView::ElectrumMainView(ElectrumState* s,
+                                   audio_plugin::ElectrumAudioProcessor* p)
     : ModContextComponent(s),
       state(s),
       processor(p),
@@ -14,8 +14,6 @@ ElectrumEditor::ElectrumEditor(ElectrumState* s,
       macroPanel(s),
       browser(s),
       envPanel(s) {
-  // set the lookandfeel before adding child components
-  setLookAndFeel(&lnf);
   addAndMakeVisible(&kbdView);
   addAndMakeVisible(&macroPanel);
   addAndMakeVisible(&envPanel);
@@ -27,11 +25,7 @@ ElectrumEditor::ElectrumEditor(ElectrumState* s,
   }
 }
 
-ElectrumEditor::~ElectrumEditor() {
-  setLookAndFeel(nullptr);
-}
-
-void ElectrumEditor::resized() {
+void ElectrumMainView::resized() {
   auto iBounds = getLocalBounds();
   auto kbdBounds = iBounds.removeFromBottom(85);
   kbdView.setBounds(kbdBounds);
@@ -54,3 +48,40 @@ void ElectrumEditor::resized() {
   envPanel.setBounds(midPanel.removeFromLeft(envWidth));
 }
 //===================================================
+
+ElectrumEditor::ElectrumEditor(ElectrumState* s,
+                               audio_plugin::ElectrumAudioProcessor* p)
+    : mainView(s, p), waveView(nullptr) {
+  setLookAndFeel(&lnf);
+  addAndMakeVisible(mainView);
+}
+
+ElectrumEditor::~ElectrumEditor() {
+  setLookAndFeel(nullptr);
+}
+
+void ElectrumEditor::_openWaveEditor(ElectrumState* s, Wavetable* wt, int idx) {
+  waveView.reset(new WaveEditor(s, wt, idx));
+  mainView.setEnabled(false);
+  addAndMakeVisible(waveView.get());
+  waveViewOpen = true;
+  resized();
+}
+
+void ElectrumEditor::_exitModalView() {
+  // NOTE: make sure the destructor correctly removes this from its parent
+  waveView.reset(nullptr);
+  waveViewOpen = false;
+  mainView.setEnabled(false);
+  resized();
+}
+
+void ElectrumEditor::resized() {
+  auto iBounds = getLocalBounds();
+  mainView.setBounds(iBounds);
+  if (waveViewOpen) {
+    auto wBounds = iBounds.reduced(60);
+    waveView->setBounds(wBounds);
+    waveView->toFront(true);
+  }
+}

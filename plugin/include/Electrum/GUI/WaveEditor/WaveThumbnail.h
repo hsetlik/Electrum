@@ -1,12 +1,8 @@
 #pragma once
-#include "EditValueTree.h"
 #include "Electrum/Identifiers.h"
 
 #define THUMBNAIL_W 100
 #define THUMBNAIL_H 75
-
-// keeps track of which Thumbnails are selected, all thumbnails should get
-// a pointer to one of these
 
 class WaveThumbnail : public Component {
 private:
