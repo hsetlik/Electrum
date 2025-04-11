@@ -14,6 +14,7 @@ private:
   bool drawSelected = false;
   String waveString;
   void updateImage();
+  bool leftWasDown = false;
 
 public:
   int frameIndex;
@@ -25,15 +26,31 @@ public:
     repaint();
   }
   bool isSelected() const { return drawSelected; }
+  // mouse callbacks for selecting/ deselecting frames
+  void mouseUp(const juce::MouseEvent& e) override;
+  void mouseDown(const juce::MouseEvent& e) override;
+  void mouseEnter(const juce::MouseEvent& e) override;
 };
 
-class WaveThumbnailGroup : public Component {
+//==========================================================
+
+class WaveThumbnailBar : public Component {
 private:
-  juce::OwnedArray<WaveThumbnail> thumbnails;
+  // this private class will be the view component in our viewport
+  class ThumbRow : public Component {
+  public:
+    juce::OwnedArray<WaveThumbnail> thumbnails;
+    ThumbRow(const String& str);
+    void resized() override;
+  };
+
+  ThumbRow row;
+  juce::Viewport vpt;
+  int numSelected = 0;
 
 public:
-  WaveThumbnailGroup(const String& fullStr);
-  int numFrames() const { return thumbnails.size(); }
+  WaveThumbnailBar(const String& fullStr);
+  int numFrames() const { return row.thumbnails.size(); }
   void resized() override;
   // the Thumbnail mouse overrides can call these on their parent
   void selectOnly(int idx);
@@ -41,4 +58,6 @@ public:
   void addToSelection(int idx);
   void removeFromSelection(int idx);
   void clearSelection();
+  // returns the indices of currently selected frames
+  std::vector<int> getSelection() const;
 };
