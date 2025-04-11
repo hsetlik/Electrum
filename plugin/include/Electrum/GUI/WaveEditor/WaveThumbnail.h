@@ -17,9 +17,11 @@ public:
   WaveThumbnail(const String& waveStr, int i);
   void paint(juce::Graphics& g) override;
   void setSelected(bool sel) {
-    drawSelected = sel;
-    updateImage();
-    repaint();
+    if (drawSelected != sel) {
+      drawSelected = sel;
+      updateImage();
+      repaint();
+    }
   }
   bool isSelected() const { return drawSelected; }
   // mouse callbacks for selecting/ deselecting frames

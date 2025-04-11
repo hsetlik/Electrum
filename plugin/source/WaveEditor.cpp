@@ -19,7 +19,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   }
   // 2. parse as a valueTree
   waveTree = WaveEdit::getWavetableTree(path);
-  jassert(waveTree.isValid());
+  jassert(waveTree.isValid() && waveTree.hasType(WaveEdit::WAVETABLE));
   // 3. add and place the buttons
   closeBtn.setButtonText("Close");
   addAndMakeVisible(&closeBtn);
@@ -29,6 +29,21 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   // 4. add the text editor
   addAndMakeVisible(&waveNameEdit);
   String name = waveTree[WaveEdit::waveName];
+
+  // and grip the existing metadata
+  auto* metadata = state->userLib.getWavetableData(name);
+  if (metadata != nullptr) {
+    waveMeta.name = metadata->name;
+    waveMeta.author = metadata->author;
+    waveMeta.category = metadata->category;
+  }
+
+  saveBtn.setEnabled(state->userLib.validateWaveData(&waveMeta));
+  saveBtn.onClick = [this]() {
+    auto fullStr = WaveEdit::getFullWavetableString(waveTree);
+    jassert(state->userLib.attemptWaveSave(waveMeta, fullStr));
+    ModalParent::exitModalView(this);
+  };
   waveNameEdit.addListener(this);
   waveNameEdit.setText(name, juce::dontSendNotification);
 }
@@ -54,7 +69,8 @@ void WaveEditor::resized() {
 }
 
 void WaveEditor::textEditorTextChanged(juce::TextEditor& te) {
-  juce::ignoreUnused(te);
+  waveMeta.name = te.getText();
+  saveBtn.setEnabled(state->userLib.validateWaveData(&waveMeta));
 }
 
 void WaveEditor::paint(juce::Graphics& g) {

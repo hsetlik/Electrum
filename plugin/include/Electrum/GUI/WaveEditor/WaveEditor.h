@@ -1,5 +1,6 @@
 #pragma once
 #include "../Util/ModalParent.h"
+#include "Electrum/Shared/FileSystem.h"
 // an editor/viewer for one of our wavetable oscillators
 class WaveEditor : public Component, public juce::TextEditor::Listener {
 private:
@@ -8,6 +9,7 @@ private:
   const int oscID;
   // this ValueTree holds the state of our wavetable editing
   ValueTree waveTree;
+  wave_meta_t waveMeta;
 
   // Close/Save/So on buttons
   juce::TextButton closeBtn;

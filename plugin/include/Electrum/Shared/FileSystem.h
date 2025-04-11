@@ -23,7 +23,6 @@ struct patch_meta_t {
 // same idea for wavetables
 struct wave_meta_t {
   String name = "untitled";
-  String path;
   String author;
   int category;
   //------------
@@ -89,12 +88,14 @@ public:
   // GUI should call this to check if
   // the user's entered metadata is legal
   bool validatePatchData(patch_meta_t* patch) const;
+  bool validateWaveData(wave_meta_t* patch) const;
   int numPatches() const { return (int)patches.size(); }
   int numWavetables() const { return (int)waves.size(); }
   bool attemptPatchSave(apvts* tree, const patch_meta_t& patchData);
   bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString);
   patch_meta_t* getPatchAtIndex(int index);
   patch_meta_t* getPatch(const String& name);
+  wave_meta_t* getWavetableData(const String& name);
   juce::StringArray getAvailableWaveNames() const;
   // wave getters
 

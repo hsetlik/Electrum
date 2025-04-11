@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_core/juce_core.h>
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/FileSystem.h"
 
 #define MAX_BIN 1024
 /* Namespace for shared Identifiers and such
@@ -26,4 +27,10 @@ DECLARE_ID(RAND_PHASES)
 #undef DECLARE_ID
 // get the raw WAVETABLE tree for the wave file with a given name
 ValueTree getWavetableTree(const String& name);
+
+// parse the top-level WAVETABLE tree into a metadata object for
+// saving and validating
+
+// just add up all the strings for the full Wavetable
+String getFullWavetableString(const ValueTree& tree);
 }  // namespace WaveEdit

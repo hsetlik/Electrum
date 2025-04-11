@@ -28,7 +28,6 @@ patch_meta_t patch_meta_t::fromValueTree(ValueTree& vt) {
 ValueTree wave_meta_t::toValueTree(const wave_meta_t& wave) {
   ValueTree vt(ID::WAVE_INFO);
   vt.setProperty(ID::waveName, wave.name, nullptr);
-  vt.setProperty(ID::wavePath, wave.path, nullptr);
   vt.setProperty(ID::waveAuthor, wave.author, nullptr);
   vt.setProperty(ID::waveCategory, wave.category, nullptr);
 
@@ -39,7 +38,6 @@ wave_meta_t wave_meta_t::fromValueTree(ValueTree& vt) {
   wave_meta_t wave;
   wave.name = vt[ID::waveName];
   wave.author = vt[ID::waveAuthor];
-  wave.path = vt[ID::wavePath];
   wave.category = vt[ID::waveCategory];
   return wave;
 }
@@ -60,12 +58,11 @@ static void createDefaultWaveFile(const File& waveFolder) {
   wave_meta_t meta;
   meta.name = "Default";
   meta.author = "Hayden";
-  meta.path = "Default";
   meta.category = 0;
   auto vt = wave_meta_t::toValueTree(meta);
   auto waveStr = Wavetable::getDefaultWavesetString();
   vt.setProperty(ID::waveStringData, waveStr, nullptr);
-  auto file = waveFolder.getNonexistentChildFile(meta.path, waveFileExt, false);
+  auto file = waveFolder.getNonexistentChildFile(meta.name, waveFileExt, false);
   auto xml = vt.toXmlString();
   file.replaceWithText(xml);
 }
@@ -116,8 +113,12 @@ bool attemptPatchSave(ValueTree& state) {
 bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString) {
   wave_meta_t wd = waveData;
   auto dir = getWavetablesFolder();
-  auto file = dir.getNonexistentChildFile(wd.name, waveFileExt, false);
-  wd.path = file.getRelativePathFrom(dir);
+  auto file = dir.getChildFile(wd.name + waveFileExt);
+  if (!file.existsAsFile()) {
+    if (!file.create().wasOk()) {
+      return false;
+    }
+  }
   auto vt = wave_meta_t::toValueTree(wd);
   vt.setProperty(ID::waveStringData, waveString, nullptr);
   auto xml = vt.toXmlString();
@@ -173,7 +174,7 @@ bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
 bool ElectrumUserLib::isWaveNameLegal(const String& name) const {
   if (name.length() < 4 || name.length() > 20)
     return false;
-  for (auto& p : patches) {
+  for (auto& p : waves) {
     if (name.compareIgnoreCase(p.name) == 0)
       return false;
   }
@@ -196,6 +197,16 @@ bool ElectrumUserLib::validatePatchData(patch_meta_t* patch) const {
   return true;
 }
 
+bool ElectrumUserLib::validateWaveData(wave_meta_t* patch) const {
+  if (!isWaveNameLegal(patch->name))
+    return false;
+  auto wFile = UserFiles::getWavetablesFolder().getChildFile(
+      patch->name + UserFiles::waveFileExt);
+  String legalPath = juce::File::createLegalPathName(wFile.getFullPathName());
+  if (legalPath != wFile.getFullPathName())
+    return false;
+  return true;
+}
 patch_meta_t* ElectrumUserLib::getPatchAtIndex(int index) {
   if (index >= numPatches())
     return nullptr;
@@ -207,6 +218,15 @@ patch_meta_t* ElectrumUserLib::getPatch(const String& name) {
     if (p.name == name)
       return &p;
   }
+  return nullptr;
+}
+
+wave_meta_t* ElectrumUserLib::getWavetableData(const String& name) {
+  for (auto& w : waves) {
+    if (w.name == name)
+      return &w;
+  }
+  jassert(false);
   return nullptr;
 }
 
@@ -246,7 +266,16 @@ bool ElectrumUserLib::attemptWaveSave(const wave_meta_t& waveData,
                                       const String& waveString) {
   if (!isWaveNameLegal(waveData.name))
     return false;
-  return UserFiles::attemptWaveSave(waveData, waveString);
+
+  bool success = UserFiles::attemptWaveSave(waveData, waveString);
+  if (success) {
+    waves.push_back(waveData);
+    auto* ptr = &waves[waves.size() - 1];
+    for (auto* l : listeners) {
+      l->waveWasSaved(ptr);
+    }
+  }
+  return success;
 }
 
 ValueTree ElectrumUserLib::getMasterTreeForPatch(patch_meta_t* patch) {

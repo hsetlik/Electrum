@@ -39,7 +39,7 @@ juce::StringArray splitWaveStrings(const String& input) {
   int tokenStartIdx = tableStr.indexOf(waveEndToken);
   while (tokenStartIdx != -1 && tableStr.length() > waveEndToken.length()) {
     String waveStr = tableStr.substring(0, tokenStartIdx);
-    arr.add(waveStr);
+    arr.add(waveStr + waveEndToken);
     tableStr = tableStr.substring(waveStr.length() + waveEndToken.length());
     tokenStartIdx = tableStr.indexOf(waveEndToken);
   }
