@@ -186,3 +186,56 @@ float ElectrumState::modulationDepth(int src, int dest) {
   jassert(mod.isValid());
   return (float)mod[ID::modDepth];
 }
+
+//============================================================
+
+void ElectrumState::updateCommonAudioData() {
+  // oscillators----------------------------------
+  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    String iStr(i);
+    // 1. figure out the IDs
+    const String posID = ID::oscillatorPos.toString() + iStr;
+    const String levelID = ID::oscillatorLevel.toString() + iStr;
+    const String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
+    const String fineID = ID::oscillatorFineTune.toString() + iStr;
+    const String panID = ID::oscillatorPan.toString() + iStr;
+    // 2. grab from the atomic values
+    const float _pos = getRawParameterValue(posID)->load();
+    const float _level = getRawParameterValue(levelID)->load();
+    const float _coarse = getRawParameterValue(coarseID)->load();
+    const float _fine = getRawParameterValue(fineID)->load();
+    const float _pan = getRawParameterValue(panID)->load();
+    // 3. assign to the DSP objects
+    audioData.wOsc[i].setPos(_pos);
+    audioData.wOsc[i].setLevel(_level);
+    audioData.wOsc[i].setCoarse(_coarse);
+    audioData.wOsc[i].setFine(_fine);
+    audioData.wOsc[i].setPan(_pan);
+  }
+  // envelopes----------------------------------
+  for (int i = 0; i < NUM_ENVELOPES; ++i) {
+    String iStr(i);
+    const String aMsID = ID::attackMs.toString() + iStr;
+    const String aCurveID = ID::attackCurve.toString() + iStr;
+    const String hID = ID::holdMs.toString() + iStr;
+    const String dMsID = ID::decayMs.toString() + iStr;
+    const String dCurveID = ID::decayCurve.toString() + iStr;
+    const String sID = ID::sustainLevel.toString() + iStr;
+    const String rMsID = ID::releaseMs.toString() + iStr;
+    const String rCurveID = ID::releaseCurve.toString() + iStr;
+    const String vID = ID::velocityTracking.toString() + iStr;
+
+    ahdsr_data_t envParams;
+    envParams.attackMs = getRawParameterValue(aMsID)->load();
+    envParams.attackCurve = getRawParameterValue(aCurveID)->load();
+    envParams.holdMs = getRawParameterValue(hID)->load();
+    envParams.decayMs = getRawParameterValue(dMsID)->load();
+    envParams.decayCurve = getRawParameterValue(dCurveID)->load();
+    envParams.sustainLevel = getRawParameterValue(sID)->load();
+    envParams.velTracking = getRawParameterValue(vID)->load();
+    envParams.releaseMs = getRawParameterValue(rMsID)->load();
+    envParams.releaseCurve = getRawParameterValue(rCurveID)->load();
+
+    audioData.env[i].updateState(envParams);
+  }
+}

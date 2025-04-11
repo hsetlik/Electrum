@@ -1,23 +1,10 @@
 #pragma once
-#include "../Wavetable.h"
 #include "Electrum/Audio/Generator/Oscillator.h"
 #include "Electrum/Audio/Modulator/AHDSR.h"
 #include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Shared/GraphingData.h"
-
-// have the engine class own one of these and each
-// voice gets a pointer to it
-class AudioSourceState {
-public:
-  Wavetable wOsc[NUM_OSCILLATORS];
-  EnvelopeLUT env[NUM_ENVELOPES];
-  float baseValueForModDest(int destID) const;
-  // this callback should run once per buffer
-  void updateForBlock(ElectrumState* tree);
-  AudioSourceState() = default;
-};
 
 //========================================================
 #define QUICK_KILL_MS 4.0f
@@ -63,7 +50,6 @@ private:
   };
   //---------------------------------------------
   ElectrumState* const state;
-  AudioSourceState* const audioState;
   bool gate = false;
   // note state stuff
   int currentNote = 69;
@@ -83,7 +69,7 @@ private:
 
 public:
   const int voiceIndex;
-  ElectrumVoice(ElectrumState* s, AudioSourceState* a, int idx);
+  ElectrumVoice(ElectrumState* s, int idx);
   // sample rate update callback
   void sampleRateSet(double sr);
   bool gateIsOn() const { return gate; }

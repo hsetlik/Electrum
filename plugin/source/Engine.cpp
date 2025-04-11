@@ -50,7 +50,8 @@ void SynthEngine::killSustainedVoices() {
 
 // GUI/DSP communication stuff---------------------
 void SynthEngine::updateParamsForBlock() {
-  audioSrc.updateForBlock(state);
+  // TODO
+  state->updateCommonAudioData();
 }
 
 // MIDI handling stuff -----------------------------
@@ -100,7 +101,7 @@ void SynthEngine::renderNextSample(float& left,
 
 SynthEngine::SynthEngine(ElectrumState* s) : state(s) {
   for (int i = 0; i < NUM_VOICES; ++i) {
-    voices.add(new ElectrumVoice(s, &audioSrc, i));
+    voices.add(new ElectrumVoice(s, i));
   }
 }
 
@@ -116,7 +117,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     // update the wavetable strings if necessary
     if (state->graph.needsWavetableData()) {
       for (int i = 0; i < NUM_OSCILLATORS; ++i) {
-        auto str = audioSrc.wOsc[i].toString();
+        auto str = state->audioData.wOsc[i].toString();
         state->graph.updateWavetableString(str, i);
       }
       DLog::log("Wavetable strings updated");

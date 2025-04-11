@@ -10,7 +10,6 @@
 class SynthEngine {
 public:
   ElectrumState* const state;
-  AudioSourceState audioSrc;
 
 private:
   std::queue<timed_midi_msg> midiQueue;

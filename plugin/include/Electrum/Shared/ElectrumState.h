@@ -1,5 +1,6 @@
 #pragma once
 #include "../Identifiers.h"
+#include "Electrum/Shared/CommonAudioData.h"
 #include "Electrum/Shared/FileSystem.h"
 #include "GraphingData.h"
 #include "juce_data_structures/juce_data_structures.h"
@@ -102,6 +103,10 @@ public:
   GraphingData graph;
   // manager for all our patch and wave files
   ElectrumUserLib userLib;
+  // the shared LUTs and such four our voices
+  CommonAudioData audioData;
+
+  void updateCommonAudioData();
 
 private:
   ValueTree findTreeForRouting(const ValueTree& modTree, int src, int dest);

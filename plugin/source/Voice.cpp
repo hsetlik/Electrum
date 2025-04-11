@@ -2,80 +2,6 @@
 #include "Electrum/Audio/Modulator/AHDSR.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
-
-float AudioSourceState::baseValueForModDest(int destID) const {
-  // check if it's an oscillator
-  if (destID <= ModDestE::osc3Pan) {
-    const int oscID = destID / 5;
-    const int pID = destID % 5;
-    switch (pID) {
-      case 0:
-        return wOsc[oscID].getCoarse();
-      case 1:
-        return wOsc[oscID].getFine();
-      case 2:
-        return wOsc[oscID].getPos();
-      case 3:
-        return wOsc[oscID].getLevel();
-      default:
-        return wOsc[oscID].getPan();
-    }
-  }
-  jassert(false);
-  return 0.0f;
-}
-
-void AudioSourceState::updateForBlock(ElectrumState* tree) {
-  // oscillators----------------------------------
-  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
-    String iStr(i);
-    // 1. figure out the IDs
-    const String posID = ID::oscillatorPos.toString() + iStr;
-    const String levelID = ID::oscillatorLevel.toString() + iStr;
-    const String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
-    const String fineID = ID::oscillatorFineTune.toString() + iStr;
-    const String panID = ID::oscillatorPan.toString() + iStr;
-    // 2. grab from the atomic values
-    const float _pos = tree->getRawParameterValue(posID)->load();
-    const float _level = tree->getRawParameterValue(levelID)->load();
-    const float _coarse = tree->getRawParameterValue(coarseID)->load();
-    const float _fine = tree->getRawParameterValue(fineID)->load();
-    const float _pan = tree->getRawParameterValue(panID)->load();
-    // 3. assign to the DSP objects
-    wOsc[i].setPos(_pos);
-    wOsc[i].setLevel(_level);
-    wOsc[i].setCoarse(_coarse);
-    wOsc[i].setFine(_fine);
-    wOsc[i].setPan(_pan);
-  }
-  // envelopes----------------------------------
-  for (int i = 0; i < NUM_ENVELOPES; ++i) {
-    String iStr(i);
-    const String aMsID = ID::attackMs.toString() + iStr;
-    const String aCurveID = ID::attackCurve.toString() + iStr;
-    const String hID = ID::holdMs.toString() + iStr;
-    const String dMsID = ID::decayMs.toString() + iStr;
-    const String dCurveID = ID::decayCurve.toString() + iStr;
-    const String sID = ID::sustainLevel.toString() + iStr;
-    const String rMsID = ID::releaseMs.toString() + iStr;
-    const String rCurveID = ID::releaseCurve.toString() + iStr;
-    const String vID = ID::velocityTracking.toString() + iStr;
-
-    ahdsr_data_t envParams;
-    envParams.attackMs = tree->getRawParameterValue(aMsID)->load();
-    envParams.attackCurve = tree->getRawParameterValue(aCurveID)->load();
-    envParams.holdMs = tree->getRawParameterValue(hID)->load();
-    envParams.decayMs = tree->getRawParameterValue(dMsID)->load();
-    envParams.decayCurve = tree->getRawParameterValue(dCurveID)->load();
-    envParams.sustainLevel = tree->getRawParameterValue(sID)->load();
-    envParams.velTracking = tree->getRawParameterValue(vID)->load();
-    envParams.releaseMs = tree->getRawParameterValue(rMsID)->load();
-    envParams.releaseCurve = tree->getRawParameterValue(rCurveID)->load();
-
-    env[i].updateState(envParams);
-  }
-}
-
 //===================================================
 
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p)
@@ -159,15 +85,15 @@ void ElectrumVoice::_updateModDests(ModMap* map) {
 }
 
 //===================================================
-ElectrumVoice::ElectrumVoice(ElectrumState* s, AudioSourceState* a, int idx)
-    : state(s), audioState(a), vge(this), voiceIndex(idx) {
+ElectrumVoice::ElectrumVoice(ElectrumState* s, int idx)
+    : state(s), vge(this), voiceIndex(idx) {
   // instantiate the oscillators
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
-    oscs.add(new WavetableOscillator(&audioState->wOsc[i], i));
+    oscs.add(new WavetableOscillator(&state->audioData.wOsc[i], i));
   }
   // instantiate the envelopes
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
-    envs.add(new AHDSREnvelope(&audioState->env[i], i));
+    envs.add(new AHDSREnvelope(&state->audioData.env[i], i));
   }
 }
 
@@ -250,7 +176,7 @@ void ElectrumVoice::updateGraphData(GraphingData* gd) {
   // oscillators
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     const float latestPos = std::clamp(
-        audioState->wOsc[i].getPos() + oscModState[i].posMod, 0.0f, 1.0f);
+        state->audioData.wOsc[i].getPos() + oscModState[i].posMod, 0.0f, 1.0f);
     gd->updateOscPos(i, latestPos);
   }
   // envelopes
