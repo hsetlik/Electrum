@@ -8,6 +8,9 @@ out/
 vs-build/
 *.DS_STORE
 
+# Big illustrator files
+Illustrator/*
+
 # Prerequisites
 *.d
 

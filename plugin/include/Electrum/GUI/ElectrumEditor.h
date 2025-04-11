@@ -50,5 +50,4 @@ public:
   ElectrumEditor(ElectrumState* s, audio_plugin::ElectrumAudioProcessor* p);
   ~ElectrumEditor() override;
   void resized() override;
-  void paint(juce::Graphics& g) override;
 };

@@ -17,6 +17,7 @@ DECLARE_ID(frameStringData)
 // each WAVE_FRAME tree can have a number of children to represent
 // various edits
 DECLARE_ID(BIN_GAIN_PT)
+//
 DECLARE_ID(binIdx)
 DECLARE_ID(binGainDb)
 
@@ -26,4 +27,3 @@ DECLARE_ID(RAND_PHASES)
 // get the raw WAVETABLE tree for the wave file with a given name
 ValueTree getWavetableTree(const String& name);
 }  // namespace WaveEdit
-

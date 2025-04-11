@@ -28,6 +28,24 @@ juce_add_binary_data(
   SOURCES
   "${FONTFILES}")
 
+# and another for our component PNGs
+set(IMGFILES
+"${CMAKE_CURRENT_LIST_DIR}/img/Expand256.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/ExpandHL256.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/Expand128.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/ExpandHL128.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/Expand64.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/ExpandHL64.png"
+)
+
+juce_add_binary_data(imgBinaries
+HEADER_NAME
+"ImgData.h"
+NAMESPACE
+"ImgData"
+SOURCES
+"${IMGFILES}"
+)
 # Adding a directory with the library/application name as a subfolder of the
 # include folder is a good practice. It helps avoid name clashes later on.
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/Electrum")
@@ -127,6 +145,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/WaveEditor/EditValueTree.h
 				source/WaveThumbnail.cpp
 				${INCLUDE_DIR}/GUI/WaveEditor/WaveThumbnail.h
+				source/BinaryGraphics.cpp
+				${INCLUDE_DIR}/GUI/LookAndFeel/BinaryGraphics.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
@@ -147,6 +167,7 @@ target_link_libraries(${PROJECT_NAME}
         juce::juce_audio_utils
     PUBLIC
     fontBinaries
+    imgBinaries
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
