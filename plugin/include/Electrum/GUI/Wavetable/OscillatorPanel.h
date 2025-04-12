@@ -2,10 +2,21 @@
 
 #include "../Modulation/DestinationSlider.h"
 #include "Electrum/GUI/LookAndFeel/BinaryGraphics.h"
+#include "Electrum/Identifiers.h"
+#include "Electrum/Shared/FileSystem.h"
 #include "juce_core/system/juce_PlatformDefs.h"
 #include "WavetableGraph.h"
 
-class OscillatorPanel : public Component, public juce::ComboBox::Listener {
+class PowerButton : public juce::Button {
+public:
+  PowerButton() : juce::Button("pwrButton") { setClickingTogglesState(true); }
+  void paintButton(juce::Graphics& g, bool, bool) override;
+};
+//=================================================
+
+class OscillatorPanel : public Component,
+                        public juce::ComboBox::Listener,
+                        public ElectrumUserLib::Listener {
 private:
   ElectrumState* const state;
 
@@ -23,12 +34,17 @@ private:
   juce::ComboBox wavetableCB;
   ImgButton editBtn;
 
+  PowerButton powerBtn;
+  button_attach_ptr powerAttach;
+
 public:
   const int oscID;
   OscillatorPanel(ElectrumState* s, int id);
+  ~OscillatorPanel() override;
   void resized() override;
   void paint(juce::Graphics& g) override;
   void comboBoxChanged(juce::ComboBox* cb) override;
+  void waveWasSaved(wave_meta_t* w) override;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscillatorPanel)
 };

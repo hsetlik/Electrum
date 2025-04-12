@@ -23,16 +23,21 @@ apvts::ParameterLayout ID::getParameterLayout() {
   // oscillator params
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     auto iStr = String(i);
+    String activeID = oscillatorActive.toString() + iStr;
     String positionId = oscillatorPos.toString() + iStr;
     String levelId = oscillatorLevel.toString() + iStr;
     String panId = oscillatorPan.toString() + iStr;
     String coarseId = oscillatorCoarseTune.toString() + iStr;
     String fineId = oscillatorFineTune.toString() + iStr;
+    String activeName = "Osc " + iStr + " active";
     String levelName = "Osc " + iStr + " level";
     String positionName = "Osc " + iStr + " pos";
     String panName = "Osc " + iStr + " pan";
     String coarseName = "Coarse tune " + iStr;
     String fineName = "Fine tune " + iStr;
+    juce::ParameterID activePID{activeID, 1};
+    layout.add(std::make_unique<juce::AudioParameterBool>(activePID, activeName,
+                                                          i < 1));
     addFloatParam(&layout, positionId, positionName, posRange, OSC_POS_DEFAULT);
     addFloatParam(&layout, levelId, levelName, levelRange, OSC_LEVEL_DEFAULT);
     addFloatParam(&layout, panId, panName, panRange, 0.5f);

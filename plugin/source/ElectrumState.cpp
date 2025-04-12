@@ -199,7 +199,9 @@ void ElectrumState::updateCommonAudioData() {
     const String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
     const String fineID = ID::oscillatorFineTune.toString() + iStr;
     const String panID = ID::oscillatorPan.toString() + iStr;
+    const String activeID = ID::oscillatorActive.toString() + iStr;
     // 2. grab from the atomic values
+    // const bool _active = getRawParameterValue(activeID)->load() > 0.5f;
     const float _pos = getRawParameterValue(posID)->load();
     const float _level = getRawParameterValue(levelID)->load();
     const float _coarse = getRawParameterValue(coarseID)->load();
@@ -207,6 +209,7 @@ void ElectrumState::updateCommonAudioData() {
     const float _pan = getRawParameterValue(panID)->load();
     // 3. assign to the DSP objects
     audioData.wOsc[i].setPos(_pos);
+    // audioData.wOsc[i].setActive(_active);
     audioData.wOsc[i].setLevel(_level);
     audioData.wOsc[i].setCoarse(_coarse);
     audioData.wOsc[i].setFine(_fine);

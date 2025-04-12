@@ -8,7 +8,7 @@
 //===================================================
 
 WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
-    : state(s), wavetable(wt), oscID(idx) {
+    : state(s), wavetable(wt), oscID(idx), thumbBar(wt->toString()) {
   // 1. figure out which file we need to load
   String pathID = ID::oscWavePath.toString() + String(oscID);
   String path = "Default";
@@ -37,7 +37,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
     waveMeta.author = metadata->author;
     waveMeta.category = metadata->category;
   }
-
+  // 5. button and listener attachments
   saveBtn.setEnabled(state->userLib.validateWaveData(&waveMeta));
   saveBtn.onClick = [this]() {
     auto fullStr = WaveEdit::getFullWavetableString(waveTree);
@@ -46,6 +46,8 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   };
   waveNameEdit.addListener(this);
   waveNameEdit.setText(name, juce::dontSendNotification);
+  // 6. add the thumb bar
+  addAndMakeVisible(thumbBar);
 }
 
 WaveEditor::~WaveEditor() {
@@ -63,9 +65,13 @@ void WaveEditor::resized() {
   auto closeBounds =
       bottomRow.removeFromLeft(bottomRow.getWidth() / 2.0f).reduced(2.5f);
   auto saveBounds = bottomRow.reduced(2.5f);
+
+  auto thumbBounds = fBounds.removeFromBottom(60.0f).reduced(3.0f);
+
   waveNameEdit.setBounds(tBounds.toNearestInt());
   saveBtn.setBounds(saveBounds.toNearestInt());
   closeBtn.setBounds(closeBounds.toNearestInt());
+  thumbBar.setBounds(thumbBounds.toNearestInt());
 }
 
 void WaveEditor::textEditorTextChanged(juce::TextEditor& te) {

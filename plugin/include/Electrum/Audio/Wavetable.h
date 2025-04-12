@@ -79,6 +79,7 @@ private:
   float pan = 0.0f;
   float coarse = 0.0f;
   float fine = 0.0f;
+  bool active = true;
 
 public:
   Wavetable();
@@ -90,6 +91,7 @@ public:
   inline void setPan(float value) { pan = value; }
   inline void setCoarse(float value) { coarse = value; }
   inline void setFine(float value) { fine = value; }
+  inline void setActive(bool shouldBeOn) { active = shouldBeOn; }
   //  these do the main work for the oscillators
   float getSampleFixed(float phase, float phaseDelt, float pos) const;
   float getSampleSmooth(float phase, float phaseDelt, float pos) const;
@@ -100,6 +102,7 @@ public:
   inline float getPan() const { return pan; }
   inline float getCoarse() const { return coarse; }
   inline float getFine() const { return fine; }
+  inline bool isActive() const { return active; }
   // and these help render the graphs
   std::vector<float> normVectorForWave(int wave, int numPoints = 512) const;
   String toString() const noexcept;

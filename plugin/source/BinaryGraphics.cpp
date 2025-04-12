@@ -2,7 +2,7 @@
 #include "ImgData.h"
 #include "juce_graphics/juce_graphics.h"
 
-#define NUM_IMG_IDS 2
+#define NUM_IMG_IDS 4
 #define NUM_IMG_WIDTHS 3
 
 namespace ImgData {
@@ -34,6 +34,27 @@ static std::array<juce::Image, NUM_IMAGES> s_loadImages() {
   auto& eh64 = arr[5];
   eh64 = juce::ImageFileFormat::loadFrom(ExpandHL64_png, ExpandHL64_pngSize);
   jassert(er64.isValid());
+
+  auto& pOn256 = arr[6];
+  pOn256 = juce::ImageFileFormat::loadFrom(PowerOn256_png, PowerOn256_pngSize);
+  jassert(pOn256.isValid());
+  auto& pOn128 = arr[7];
+  pOn128 = juce::ImageFileFormat::loadFrom(PowerOn128_png, PowerOn128_pngSize);
+  jassert(pOn128.isValid());
+  auto& pOn64 = arr[8];
+  pOn64 = juce::ImageFileFormat::loadFrom(PowerOn64_png, PowerOn64_pngSize);
+  jassert(pOn64.isValid());
+  auto& pOff256 = arr[9];
+  pOff256 =
+      juce::ImageFileFormat::loadFrom(PowerOff256_png, PowerOff256_pngSize);
+  jassert(pOff256.isValid());
+  auto& pOff128 = arr[10];
+  pOff128 =
+      juce::ImageFileFormat::loadFrom(PowerOff128_png, PowerOff128_pngSize);
+  jassert(pOff128.isValid());
+  auto& pOff64 = arr[11];
+  pOff64 = juce::ImageFileFormat::loadFrom(PowerOff64_png, PowerOff64_pngSize);
+  jassert(pOff64.isValid());
   return arr;
 }
 

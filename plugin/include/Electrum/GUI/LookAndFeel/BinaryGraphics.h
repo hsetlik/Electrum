@@ -5,7 +5,7 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 
 namespace ImgData {
-enum ImgID { Expand, ExpandHL };
+enum ImgID { Expand, ExpandHL, PowerOn, PowerOff };
 enum ImgWidth { p256, p128, p64 };
 
 juce::Image& getBinaryImage(ImgID id, ImgWidth iwdth);
@@ -13,7 +13,7 @@ ImgWidth widthForBounds(const juce::Rectangle<float>& bounds);
 
 }  // namespace ImgData
 
-enum button_image_t { ExpandBtn };
+enum button_image_t { ExpandBtn, PowerBtn };
 class ImgButton : public juce::Button {
   button_image_t imgType;
 

@@ -1,9 +1,22 @@
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/Common.h"
 #include "Electrum/GUI/LayoutHelpers.h"
+#include "Electrum/GUI/LookAndFeel/BinaryGraphics.h"
 #include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
+
+void PowerButton::paintButton(juce::Graphics& g, bool, bool) {
+  auto fBounds = getLocalBounds().toFloat();
+  ImgData::ImgID id =
+      getToggleState() ? ImgData::ImgID::PowerOn : ImgData::ImgID::PowerOff;
+  auto width = ImgData::widthForBounds(fBounds);
+  auto& img = ImgData::getBinaryImage(id, width);
+  jassert(img.isValid());
+  g.drawImage(img, fBounds);
+}
+
+//======================================================
 
 OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
     : state(s),
@@ -20,19 +33,35 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPan);
   addAndMakeVisible(graph);
+  addAndMakeVisible(powerBtn);
   // now set up the comboBox and Listener
   wavetableCB.addItemList(state->userLib.getAvailableWaveNames(), 1);
   wavetableCB.setSelectedItemIndex(0);
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
 
+  // add this as a userLib listener
+  state->userLib.addListener(this);
+
   addAndMakeVisible(editBtn);
   editBtn.onClick = [this]() {
     ModalParent::openWaveEditor(&editBtn, state, &state->audioData.wOsc[oscID],
                                 oscID);
   };
+  // set up the button attachment
+  String activeID = ID::oscillatorActive.toString() + String(oscID);
+  powerAttach.reset(new apvts::ButtonAttachment(*state, activeID, powerBtn));
 }
 
+OscillatorPanel::~OscillatorPanel() {
+  state->userLib.removeListener(this);
+}
+
+void OscillatorPanel::waveWasSaved(wave_meta_t* w) {
+  int newID = wavetableCB.getNumItems() + 1;
+  wavetableCB.addItem(w->name, newID);
+  wavetableCB.setSelectedId(newID);
+}
 void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
   jassert(cb == &wavetableCB);
 }
@@ -50,11 +79,12 @@ void OscillatorPanel::resized() {
                        grid[0][1].getBottom()};
   static const float editBarHeight = 28.0f;
   auto editBounds = remaining.removeFromTop(editBarHeight);
+  auto pwrBounds = editBounds.removeFromLeft(editBarHeight);
+  powerBtn.setBounds(pwrBounds.reduced(3.0f).toNearestInt());
   auto editButtonBounds = editBounds.removeFromRight(editBarHeight);
   wavetableCB.setBounds(editBounds.reduced(3.0f).toNearestInt());
   editBtn.setBounds(editButtonBounds.toNearestInt());
   auto graphBounds = remaining.toNearestInt();
-  // juce::ignoreUnused(graphBounds);
   graph.setBounds(graphBounds);
 }
 

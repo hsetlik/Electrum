@@ -17,6 +17,8 @@ typedef std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
     slider_attach_ptr;
 typedef std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>
     combo_attach_ptr;
+typedef std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>
+    button_attach_ptr;
 typedef juce::NormalisableRange<float> frange_t;
 
 typedef juce::Rectangle<float> frect_t;
@@ -95,6 +97,7 @@ DECLARE_ID(modDepth)
 
 // wavetable osc stuff
 DECLARE_ID(oscillatorPos)
+DECLARE_ID(oscillatorActive)
 DECLARE_ID(oscillatorLevel)
 DECLARE_ID(oscillatorPan)
 DECLARE_ID(oscillatorCoarseTune)

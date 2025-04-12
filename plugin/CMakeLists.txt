@@ -36,6 +36,13 @@ set(IMGFILES
 "${CMAKE_CURRENT_LIST_DIR}/img/ExpandHL128.png"
 "${CMAKE_CURRENT_LIST_DIR}/img/Expand64.png"
 "${CMAKE_CURRENT_LIST_DIR}/img/ExpandHL64.png"
+
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOn256.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOff256.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOn128.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOff128.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOn64.png"
+"${CMAKE_CURRENT_LIST_DIR}/img/PowerOff64.png"
 )
 
 juce_add_binary_data(imgBinaries
