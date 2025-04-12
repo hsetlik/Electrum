@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
@@ -8,6 +9,8 @@
 class WaveThumbnail : public Component {
 private:
   juce::Image img;
+
+  AttString aStr;
   bool drawSelected = false;
   String waveString;
   void updateImage();

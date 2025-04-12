@@ -26,10 +26,16 @@ enum ModDestE {
   osc3Fine,
   osc3Pos,
   osc3Level,
-  osc3Pan
+  osc3Pan,
+  filt1Cutoff,
+  filt1Res,
+  filt1Gain,
+  filt2Cutoff,
+  filt2Res,
+  filt2Gain,
 };
 
-#define MOD_DESTS 15
+#define MOD_DESTS 21
 
 String _paramIDForModDest(int destID);
 

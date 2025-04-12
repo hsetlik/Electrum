@@ -32,9 +32,9 @@ typedef std::array<banded_wave_t, WAVES_PER_TABLE> banded_wave_set;
 
 // transforms and utilities full-spectrum waves---------------------------
 namespace Wave {
-void randomizePhases(std::complex<float>* freqDomain,
-                     int numBins = TABLE_SIZE,
-                     size_t seed = 56392);
+void randomizePhasesComplex(std::complex<float>* freqDomain,
+                            int numBins = TABLE_SIZE,
+                            size_t seed = 56392);
 void forwardFFT(float* data);
 void inverseFFT(float* data);
 // Some handy frequency domain stuff

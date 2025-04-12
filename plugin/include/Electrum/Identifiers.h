@@ -42,6 +42,7 @@ typedef juce::ValueTree ValueTree;
 #define NUM_OSCILLATORS 3
 #define NUM_ENVELOPES 3
 #define NUM_LFOS 3
+#define NUM_FILTERS 2
 
 // oscillator
 #define OSC_POS_DEFAULT 0.1f
@@ -83,6 +84,14 @@ typedef juce::ValueTree ValueTree;
 
 #define ENV_MS_MAX ATTACK_MS_MAX + HOLD_MS_MAX + DECAY_MS_MAX + RELEASE_MS_MAX
 
+#define FILTER_CUTOFF_MIN 20.0f
+#define FILTER_CUTOFF_MAX 18000.0f
+#define FILTER_CUTOFF_CENTER 1600.0f
+
+#define FILTER_RES_MIN 0.0f
+#define FILTER_RES_MAX 4.5f
+#define FILTER_RES_DEFAULT 1.2f
+
 #define DECLARE_ID(name) const juce::Identifier name(#name);
 
 namespace ID {
@@ -113,6 +122,12 @@ DECLARE_ID(sustainLevel)
 DECLARE_ID(velocityTracking)
 DECLARE_ID(releaseMs)
 DECLARE_ID(releaseCurve)
+
+// filter
+DECLARE_ID(filterActive)
+DECLARE_ID(filterCutoff)
+DECLARE_ID(filterResonance)
+DECLARE_ID(filterGainDb)
 
 //--------
 // patch metadata stuff

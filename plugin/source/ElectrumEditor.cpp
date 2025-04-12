@@ -78,8 +78,8 @@ void ElectrumEditor::_exitModalView() {
 void ElectrumEditor::resized() {
   auto iBounds = getLocalBounds();
   mainView.setBounds(iBounds);
-  static const int maxModalW = 850;
-  static const int maxModalH = 650;
+  static const int maxModalW = 1000;
+  static const int maxModalH = 800;
   if (waveViewOpen) {
     auto wBounds = iBounds.withSizeKeepingCentre(maxModalW, maxModalH);
     waveView->setBounds(wBounds);

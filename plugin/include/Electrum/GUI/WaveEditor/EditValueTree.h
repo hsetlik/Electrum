@@ -33,4 +33,8 @@ ValueTree getWavetableTree(const String& name);
 
 // just add up all the strings for the full Wavetable
 String getFullWavetableString(const ValueTree& tree);
+
+// these functions do the work of applying the various fixed transforms to the
+// wave
+// void randomizeFramePhases(ValueTree& waveTree, int idx);
 }  // namespace WaveEdit

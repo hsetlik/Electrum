@@ -15,7 +15,7 @@ float WavetableOscillator::getNextSample(int midiNote,
                                          float fineMod) {
   static const float minLvl = juce::Decibels::decibelsToGain(-50.0f);
   static const float _oscMaxGain = juce::Decibels::decibelsToGain(-8.0f);
-  if (wave->getLevel() + levelMod < minLvl)
+  if (wave->getLevel() + levelMod < minLvl || !wave->isActive())
     return 0.0f;
   const float _coarse = AudioUtil::signed_flerp(
       COARSE_TUNE_MIN, COARSE_TUNE_MAX, wave->getCoarse(), coarseMod);

@@ -76,7 +76,7 @@ void WaveEditor::resized() {
       bottomRow.removeFromLeft(bottomRow.getWidth() / 2.0f).reduced(2.5f);
   auto saveBounds = bottomRow.reduced(2.5f);
 
-  auto thumbBounds = fBounds.removeFromBottom(60.0f).reduced(3.0f);
+  auto thumbBounds = fBounds.removeFromBottom(60.0f);
 
   const float viewW = fBounds.getWidth() * 0.95f;
   const float viewH = fBounds.getHeight() * 0.95f;

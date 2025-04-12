@@ -2,6 +2,7 @@
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
+#include "Electrum/GUI/LookAndFeel/Fonts.h"
 void WaveThumbnail::updateImage() {
   // 1. parse the wave into numbers
   float temp[TABLE_SIZE];
@@ -34,11 +35,20 @@ WaveThumbnail::WaveThumbnail(const String& waveStr, int i)
     : img(juce::Image::RGB, THUMBNAIL_W, THUMBNAIL_H, true),
       waveString(waveStr),
       frameIndex(i) {
+  aStr.setText(String(frameIndex + 1));
+  aStr.setFont(FontData::getFontWithHeight(FontE::RobotoMI, 12));
+  aStr.setJustification(juce::Justification::centred);
   updateImage();
 }
 
 void WaveThumbnail::paint(juce::Graphics& g) {
   auto fBounds = getLocalBounds().toFloat();
+  auto sBounds = fBounds.removeFromBottom(15.0f);
+  juce::TextLayout layout;
+  auto col = drawSelected ? Color::periwinkle : Color::literalOrangePale;
+  aStr.setColour(col);
+  layout.createLayout(aStr, sBounds.getWidth());
+  layout.draw(g, sBounds);
   g.drawImage(img, fBounds.reduced(2.5f));
 }
 
@@ -107,8 +117,8 @@ WaveThumbnailBar::ThumbRow::ThumbRow(const String& fullStr) {
 }
 
 void WaveThumbnailBar::ThumbRow::resized() {
-  static const int height = 45;
-  static const int width = 65;
+  static const int height = 50;
+  static const int width = 70;
   int x = 0;
   for (auto* t : thumbnails) {
     t->setBounds(x, 0, width, height);

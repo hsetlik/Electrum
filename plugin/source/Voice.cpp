@@ -69,7 +69,8 @@ void ElectrumVoice::_updateModDests(ModMap* map) {
   // 1. Update the  oscillators
   int oscIdx = 0;
   int destIdx = 0;
-  while (oscIdx < NUM_OSCILLATORS && destIdx < MOD_DESTS) {
+  int filterIdx = 0;
+  while (oscIdx < NUM_OSCILLATORS && destIdx < (int)ModDestE::filt1Cutoff) {
     oscModState[oscIdx].coarseMod = _normalizedModulationForDest(map, destIdx);
     ++destIdx;
     oscModState[oscIdx].fineMod = _normalizedModulationForDest(map, destIdx);
@@ -81,6 +82,8 @@ void ElectrumVoice::_updateModDests(ModMap* map) {
     oscModState[oscIdx].panMod = _normalizedModulationForDest(map, destIdx);
     ++destIdx;
     ++oscIdx;
+  }
+  while (destIdx < MOD_DESTS && filterIdx < NUM_FILTERS) {
   }
 }
 

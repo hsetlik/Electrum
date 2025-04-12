@@ -87,5 +87,30 @@ apvts::ParameterLayout ID::getParameterLayout() {
     addFloatParam(&layout, vID, vName, sustainRange, VEL_TRACKING_DEFAULT);
   }
 
+  // filter params-----------------
+  frange_t filterGainRange = rangeWithCenter(-18.0f, 6.0f, 0.0f);
+  frange_t cutoffRange = rangeWithCenter(FILTER_CUTOFF_MIN, FILTER_CUTOFF_MAX,
+                                         FILTER_CUTOFF_CENTER);
+  frange_t resonanceRange =
+      rangeWithCenter(FILTER_RES_MIN, FILTER_RES_MAX, FILTER_RES_DEFAULT);
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    String iStr(i);
+    const String cutoffID = filterCutoff.toString() + iStr;
+    const String cutoffName = "Filter " + iStr + " cutoff";
+    const String resID = filterResonance.toString() + iStr;
+    const String resName = "Filter " + iStr + " resonance";
+    const String gainID = filterGainDb.toString() + iStr;
+    const String gainName = "Filter " + iStr + " gain";
+    const String activeID = filterActive.toString() + iStr;
+    const String activeName = "Filter " + iStr + " active";
+
+    addFloatParam(&layout, cutoffID, cutoffName, cutoffRange, 1000.0f);
+    addFloatParam(&layout, resID, resName, resonanceRange, FILTER_RES_DEFAULT);
+    addFloatParam(&layout, gainID, gainName, filterGainRange, 0.0f);
+    juce::ParameterID pID{activeID, 1};
+    layout.add(
+        std::make_unique<juce::AudioParameterBool>(pID, activeName, i < 1));
+  }
+
   return layout;
 }

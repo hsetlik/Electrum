@@ -158,6 +158,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Shared/CommonAudioData.h
 				source/TimeView.cpp
 				${INCLUDE_DIR}/GUI/WaveEditor/TimeView.h
+				source/VoiceFilter.cpp
+				${INCLUDE_DIR}/Audio/Filters/VoiceFilter.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

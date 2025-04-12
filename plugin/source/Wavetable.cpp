@@ -48,16 +48,19 @@ juce::StringArray splitWaveStrings(const String& input) {
 
 //======================================================================
 namespace Wave {
-void randomizePhases(std::complex<float>* freqDomain,
-                     int numBins,
-                     size_t seed) {
+void randomizePhasesComplex(std::complex<float>* freqDomain,
+                            int numBins,
+                            size_t seed) {
   juce::Random rand((juce::int64)seed);
-  for (int i = 0; i < numBins; ++i) {
+  for (int i = 1; i < numBins / 2; ++i) {
     // magnitude of each freq bin = absolute value of s-plane
-    const float magnitude = std::abs(freqDomain[i]);
+    const float posMagnitude = std::abs(freqDomain[i]);
+    const float negMagnitude = std::abs(freqDomain[TABLE_SIZE - i]);
+    const float oldPhase = std::arg(freqDomain[i]);
+    // const float negMagnitude = std::abs(freqDomain[i]);
     const float phase = rand.nextFloat() * juce::MathConstants<float>::twoPi;
     // back to s-plane via std::polar
-    freqDomain[i] = std::polar(magnitude, phase);
+    freqDomain[i] = std::polar(posMagnitude, flerp(oldPhase, phase, 0.05f));
   }
 }
 
@@ -164,6 +167,8 @@ BandLimitedWave::BandLimitedWave(float* firstWave) {
   Wave::forwardFFT(dComplex);
   // 3. cast to std::complex and make the tables
   auto* bins = reinterpret_cast<std::complex<float>*>(dComplex);
+  // randomizt the phases I guess
+  // Wave::randomizePhasesComplex(bins);
   initBandedWaves(bins, data);
 }
 
@@ -258,6 +263,7 @@ String Wavetable::getDefaultWavesetString() {
   for (size_t t = 0; t < numWaves; ++t) {
     float width = std::max((float)t / (float)numWaves, 0.026f);
     auto arr = getRampNormalized(width);
+
     str += stringEncodeWave(arr.data());
   }
   return str;
@@ -345,6 +351,8 @@ std::vector<float> Wavetable::normVectorForWave(int wave, int numPoints) const {
 }
 
 float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
+  if (!active)
+    return 0.0f;
   int idx = AudioUtil::fastFloor32(pos * fSize);
   return pActive->getUnchecked(idx)->getSample(phase, phaseDelt);
 }
@@ -352,6 +360,8 @@ float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
 float Wavetable::getSampleSmooth(float phase,
                                  float phaseDelt,
                                  float pos) const {
+  if (!active)
+    return 0.0f;
   float temp = pos * fSize;
   const int lIdx = AudioUtil::fastFloor32(temp);
   const int hIdx = lIdx + 1;

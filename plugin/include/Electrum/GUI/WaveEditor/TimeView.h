@@ -6,7 +6,7 @@
 #define TIME_VIEW_PTS 512
 
 class TimeView : public Component, public WaveThumbnailBar::Listener {
-private:
+protected:
   ValueTree& waveTree;
   int displayedWaveIndex = -1;
   float currentWave[TABLE_SIZE];
@@ -14,7 +14,10 @@ private:
 
 public:
   TimeView(ValueTree& vt);
+  ~TimeView() override {}
   void frameWasFocused(int idx) override;
   void paint(juce::Graphics& g) override;
 };
+
+//=========================================================================
 

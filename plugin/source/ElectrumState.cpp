@@ -1,6 +1,7 @@
 
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Identifiers.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 ModMap::ModMap() {
   for (auto& dest : depthArr) {
     dest.fill(0.0f);
@@ -77,6 +78,7 @@ static std::array<String, MOD_DESTS> _getModDestParamIDs() {
   std::array<String, MOD_DESTS> arr;
   size_t modDest = 0;
   int oscIdx = 0;
+  int filterIdx = 0;
   while (modDest < MOD_DESTS) {
     if (modDest <= ModDestE::osc3Pos) {
       String iStr(oscIdx);
@@ -96,6 +98,18 @@ static std::array<String, MOD_DESTS> _getModDestParamIDs() {
       arr[modDest] = panID;
       ++modDest;
       ++oscIdx;
+    } else if (modDest <= ModDestE::filt2Gain) {
+      String iStr(filterIdx);
+      String cutoffID = ID::filterCutoff.toString() + iStr;
+      arr[modDest] = cutoffID;
+      ++modDest;
+      String resID = ID::filterResonance.toString() + iStr;
+      arr[modDest] = resID;
+      ++modDest;
+      String gainID = ID::filterGainDb.toString() + iStr;
+      arr[modDest] = gainID;
+      ++modDest;
+      ++filterIdx;
     }
   }
   return arr;
@@ -201,7 +215,7 @@ void ElectrumState::updateCommonAudioData() {
     const String panID = ID::oscillatorPan.toString() + iStr;
     const String activeID = ID::oscillatorActive.toString() + iStr;
     // 2. grab from the atomic values
-    // const bool _active = getRawParameterValue(activeID)->load() > 0.5f;
+    const bool _active = getRawParameterValue(activeID)->load() > 0.5f;
     const float _pos = getRawParameterValue(posID)->load();
     const float _level = getRawParameterValue(levelID)->load();
     const float _coarse = getRawParameterValue(coarseID)->load();
@@ -209,7 +223,7 @@ void ElectrumState::updateCommonAudioData() {
     const float _pan = getRawParameterValue(panID)->load();
     // 3. assign to the DSP objects
     audioData.wOsc[i].setPos(_pos);
-    // audioData.wOsc[i].setActive(_active);
+    audioData.wOsc[i].setActive(_active);
     audioData.wOsc[i].setLevel(_level);
     audioData.wOsc[i].setCoarse(_coarse);
     audioData.wOsc[i].setFine(_fine);
@@ -240,5 +254,22 @@ void ElectrumState::updateCommonAudioData() {
     envParams.releaseCurve = getRawParameterValue(rCurveID)->load();
 
     audioData.env[i].updateState(envParams);
+  }
+  // filters-------------------------------------------
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    String iStr(i);
+    const String activeID = ID::filterActive.toString() + iStr;
+    const String cutoffID = ID::filterCutoff.toString() + iStr;
+    const String resID = ID::filterResonance.toString() + iStr;
+    const String gainID = ID::filterGainDb.toString() + iStr;
+
+    bool _isActive = getRawParameterValue(activeID)->load() > 0.5f;
+    const float _cutoff = getRawParameterValue(cutoffID)->load();
+    const float _res = getRawParameterValue(resID)->load();
+    const float _gainDb = getRawParameterValue(gainID)->load();
+    audioData.filters[i].active = _isActive;
+    audioData.filters[i].baseCutoff = _cutoff;
+    audioData.filters[i].baseResLin = _res;
+    audioData.filters[i].baseGainLin = juce::Decibels::decibelsToGain(_gainDb);
   }
 }
