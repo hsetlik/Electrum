@@ -47,7 +47,7 @@ void WaveThumbnail::mouseDown(const juce::MouseEvent& e) {
     leftWasDown = true;
     auto* parent = findParentComponentOfClass<WaveThumbnailBar>();
     jassert(parent != nullptr);
-    if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
+    if (!e.mods.isCommandDown() && !e.mods.isShiftDown() && !drawSelected) {
       parent->clearSelection();
     }
   } else {
@@ -150,6 +150,7 @@ void WaveThumbnailBar::selectOnly(int idx) {
   for (int i = 0; i < row.thumbnails.size(); ++i) {
     row.thumbnails[i]->setSelected(i == idx);
   }
+  focusFrame(idx);
   numSelected = 1;
 }
 

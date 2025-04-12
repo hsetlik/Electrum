@@ -1,6 +1,7 @@
 #include "Electrum/GUI/WaveEditor/WaveEditor.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "Electrum/GUI/WaveEditor/TimeView.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
@@ -8,7 +9,11 @@
 //===================================================
 
 WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
-    : state(s), wavetable(wt), oscID(idx), thumbBar(wt->toString()) {
+    : state(s),
+      wavetable(wt),
+      oscID(idx),
+      thumbBar(wt->toString()),
+      timeView(nullptr) {
   // 1. figure out which file we need to load
   String pathID = ID::oscWavePath.toString() + String(oscID);
   String path = "Default";
@@ -20,6 +25,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   // 2. parse as a valueTree
   waveTree = WaveEdit::getWavetableTree(path);
   jassert(waveTree.isValid() && waveTree.hasType(WaveEdit::WAVETABLE));
+
   // 3. add and place the buttons
   closeBtn.setButtonText("Close");
   addAndMakeVisible(&closeBtn);
@@ -48,6 +54,10 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   waveNameEdit.setText(name, juce::dontSendNotification);
   // 6. add the thumb bar
   addAndMakeVisible(thumbBar);
+  // 7. add the time view
+  timeView.reset(new TimeView(waveTree));
+  addAndMakeVisible(*timeView);
+  thumbBar.addListener(timeView.get());
 }
 
 WaveEditor::~WaveEditor() {
@@ -67,6 +77,11 @@ void WaveEditor::resized() {
   auto saveBounds = bottomRow.reduced(2.5f);
 
   auto thumbBounds = fBounds.removeFromBottom(60.0f).reduced(3.0f);
+
+  const float viewW = fBounds.getWidth() * 0.95f;
+  const float viewH = fBounds.getHeight() * 0.95f;
+  auto viewBounds = fBounds.withSizeKeepingCentre(viewW, viewH);
+  timeView->setBounds(viewBounds.toNearestInt());
 
   waveNameEdit.setBounds(tBounds.toNearestInt());
   saveBtn.setBounds(saveBounds.toNearestInt());

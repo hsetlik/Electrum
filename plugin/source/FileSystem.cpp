@@ -174,10 +174,6 @@ bool ElectrumUserLib::isPatchNameLegal(const String& name) const {
 bool ElectrumUserLib::isWaveNameLegal(const String& name) const {
   if (name.length() < 4 || name.length() > 20)
     return false;
-  for (auto& p : waves) {
-    if (name.compareIgnoreCase(p.name) == 0)
-      return false;
-  }
   return true;
 }
 

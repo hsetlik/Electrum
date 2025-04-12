@@ -156,6 +156,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/LookAndFeel/BinaryGraphics.h
 				source/CommonAudioData.cpp
 				${INCLUDE_DIR}/Shared/CommonAudioData.h
+				source/TimeView.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/TimeView.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
