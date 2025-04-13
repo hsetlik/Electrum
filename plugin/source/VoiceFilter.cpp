@@ -50,20 +50,20 @@ VoiceFilter::VoiceFilter(shared_filter_params* p) : params(p) {
 void VoiceFilter::setCutoffMod(float val) {
   if (!fequal(modState.cutoffMod, val)) {
     modState.cutoffMod = val;
-    prepareCutoff();
   }
+  prepareCutoff();
 }
 void VoiceFilter::setResonanceMod(float val) {
   if (!fequal(modState.resMod, val)) {
     modState.resMod = val;
-    prepareResonance();
   }
+  prepareResonance();
 }
 void VoiceFilter::setGainMod(float val) {
   if (!fequal(modState.gainMod, val)) {
     modState.gainMod = val;
-    prepareGain();
   }
+  prepareGain();
 }
 
 void VoiceFilter::processStereo(float& left, float& right) {

@@ -1,4 +1,5 @@
 #include "Electrum/Identifiers.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
 // helper
@@ -51,7 +52,8 @@ apvts::ParameterLayout ID::getParameterLayout() {
   auto holdRange = rangeWithCenter(HOLD_MS_MIN, HOLD_MS_MAX, HOLD_MS_CENTER);
   auto decayRange =
       rangeWithCenter(DECAY_MS_MIN, DECAY_MS_MAX, DECAY_MS_CENTER);
-  frange_t sustainRange(0.0f, 1.0f);
+  const float sustainCenter = juce::Decibels::decibelsToGain(-17.0f);
+  frange_t sustainRange = rangeWithCenter(0.0f, 1.0f, sustainCenter);
   frange_t velTrackingRange(0.0f, 1.0f);
   auto releaseRange =
       rangeWithCenter(RELEASE_MS_MIN, RELEASE_MS_MAX, RELEASE_MS_CENTER);

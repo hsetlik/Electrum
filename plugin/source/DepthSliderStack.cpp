@@ -260,6 +260,7 @@ void DepthSliderStack::removeModulation(int src) {
   // 2. remove the slider & select button
   sliders.removeObject(_sliderForSrc(src));
   selectButtons.removeObject(_btnForSource(src));
+  state->removeModulation(src, destID);
   // 3. figure out if we should select a different source now
   if (!selectButtons.isEmpty()) {
     selectedSrc = selectButtons.getLast()->srcID;

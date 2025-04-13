@@ -36,6 +36,7 @@ public:
   void setCutoffMod(float val);
   void setResonanceMod(float val);
   void setGainMod(float val);
+  void updateBases();
   // the main processing callback
   void processStereo(float& left, float& right);
 };
