@@ -84,6 +84,15 @@ void ElectrumVoice::_updateModDests(ModMap* map) {
     ++oscIdx;
   }
   while (destIdx < MOD_DESTS && filterIdx < NUM_FILTERS) {
+    filters[filterIdx]->setCutoffMod(
+        _normalizedModulationForDest(map, destIdx));
+    ++destIdx;
+    filters[filterIdx]->setResonanceMod(
+        _normalizedModulationForDest(map, destIdx));
+    ++destIdx;
+    filters[filterIdx]->setGainMod(_normalizedModulationForDest(map, destIdx));
+    ++destIdx;
+    ++filterIdx;
   }
 }
 
@@ -97,6 +106,11 @@ ElectrumVoice::ElectrumVoice(ElectrumState* s, int idx)
   // instantiate the envelopes
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
     envs.add(new AHDSREnvelope(&state->audioData.env[i], i));
+  }
+  // instantiate the filters
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    auto* params = &state->audioData.filters[i];
+    filters.add(new VoiceFilter(params));
   }
 }
 
@@ -165,6 +179,9 @@ void ElectrumVoice::renderNextSample(float& left,
                                 oscModState[i].fineMod, voiceLeft, voiceRight);
   }
   // 4. this is where filters and any other per-voice waveshaping happens
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    filters[i]->processStereo(voiceLeft, voiceRight);
+  }
   // 5. add to the output
   left += voiceLeft * vge.getCurrentSample();
   right += voiceRight * vge.getCurrentSample();

@@ -92,6 +92,10 @@ typedef juce::ValueTree ValueTree;
 #define FILTER_RES_MAX 4.5f
 #define FILTER_RES_DEFAULT 1.2f
 
+#define FILTER_DB_MAX 6.0f
+#define FILTER_DB_MIN -18.0f
+#define FILTER_DB_DEFAULT 0.0f;
+
 #define DECLARE_ID(name) const juce::Identifier name(#name);
 
 namespace ID {

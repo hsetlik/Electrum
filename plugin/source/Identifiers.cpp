@@ -88,7 +88,8 @@ apvts::ParameterLayout ID::getParameterLayout() {
   }
 
   // filter params-----------------
-  frange_t filterGainRange = rangeWithCenter(-18.0f, 6.0f, 0.0f);
+  frange_t filterGainRange =
+      rangeWithCenter(FILTER_DB_MIN, FILTER_DB_MAX, 0.0f);
   frange_t cutoffRange = rangeWithCenter(FILTER_CUTOFF_MIN, FILTER_CUTOFF_MAX,
                                          FILTER_CUTOFF_CENTER);
   frange_t resonanceRange =

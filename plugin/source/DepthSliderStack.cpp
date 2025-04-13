@@ -260,7 +260,12 @@ void DepthSliderStack::removeModulation(int src) {
   // 2. remove the slider & select button
   sliders.removeObject(_sliderForSrc(src));
   selectButtons.removeObject(_btnForSource(src));
-  // 3. figure out
+  // 3. figure out if we should select a different source now
+  if (!selectButtons.isEmpty()) {
+    selectedSrc = selectButtons.getLast()->srcID;
+  }
+  _reindexButtons();
+  resized();
 }
 
 void DepthSliderStack::reinitFromState() {
@@ -340,10 +345,12 @@ void DepthSliderStack::resized() {
   // if we have no sliders, we just need to make sure the close button is hidden
   if (selectedSrc == -1) {
     closeButton.setVisible(false);
-    return;
+    // return;
+  } else {
+    closeButton.setVisible(true);
+    closeButton.setEnabled(true);
   }
-  closeButton.setVisible(true);
-  closeButton.setEnabled(true);
+
   // size all the sliders
   auto lBounds = getLocalBounds().toFloat();
   auto r2 = lBounds.getWidth() / 2.0f;

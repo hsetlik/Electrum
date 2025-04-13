@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/Audio/Filters/VoiceFilter.h"
 #include "Electrum/Audio/Generator/Oscillator.h"
 #include "Electrum/Audio/Modulator/AHDSR.h"
 #include "Electrum/Common.h"
@@ -60,12 +61,13 @@ private:
   float queuedVelocity = 0.0f;
   VoiceGateEnvelope vge;
   bool wasBusy = false;
-  // oscillator stuff
+  // oscillators
   juce::OwnedArray<WavetableOscillator> oscs;
   osc_mod_t oscModState[NUM_OSCILLATORS];
-
-  // envelope stuff
+  // envelopes
   juce::OwnedArray<AHDSREnvelope> envs;
+  // filters
+  juce::OwnedArray<VoiceFilter> filters;
 
 public:
   const int voiceIndex;
