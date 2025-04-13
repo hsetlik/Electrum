@@ -5,6 +5,7 @@
 #include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
 #include "Electrum/GUI/ModulatorPanel/MacroModSources.h"
 #include "Electrum/GUI/PatchBrowser.h"
+#include "Electrum/GUI/ProcessPanel/FilterPanel.h"
 #include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "WaveEditor/WaveEditor.h"
@@ -22,6 +23,8 @@ private:
   KeyboardView kbdView;
   // Oscillator views
   juce::OwnedArray<OscillatorPanel> oscs;
+  // Filter panels
+  juce::OwnedArray<FilterComp> filters;
   // Left panel modulators
   MacroModSources macroPanel;
   // patch browser panel

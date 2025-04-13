@@ -39,9 +39,13 @@ void DestinationLabel::labelTextChanged(juce::Label* l) {
 static String oscParamNames[5] = {"Coarse tune", "Fine Tune", "Position",
                                   "Level", "Pan"};
 
+static String filtParamNames[3] = {"Cutoff", "Resonance", "Gain"};
 static String getModDestName(int idx) {
   if (idx <= (int)ModDestE::osc3Pan) {
     return oscParamNames[idx % 5];
+  } else if (idx <= (int)ModDestE::filt2Gain) {
+    int i = idx - (int)ModDestE::osc3Pan;
+    return filtParamNames[i % 3];
   }
   return "null";
 }

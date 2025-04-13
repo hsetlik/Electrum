@@ -2,16 +2,12 @@
 
 #include "../Modulation/DestinationSlider.h"
 #include "Electrum/GUI/LookAndFeel/BinaryGraphics.h"
+#include "Electrum/GUI/Util/PowerButton.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/FileSystem.h"
 #include "juce_core/system/juce_PlatformDefs.h"
 #include "WavetableGraph.h"
 
-class PowerButton : public juce::Button {
-public:
-  PowerButton() : juce::Button("pwrButton") { setClickingTogglesState(true); }
-  void paintButton(juce::Graphics& g, bool, bool) override;
-};
 //=================================================
 
 class OscillatorPanel : public Component,

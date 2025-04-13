@@ -253,34 +253,14 @@ void DepthSliderStack::removeModulation(int src) {
               String(src));
     return;
   }
-  // 1. handle the case where we're deleting the selected
-  // source
+  // 1. if we're deleting the selected source, make it invalid now
   if (src == selectedSrc) {
-    // if we're about to delete the last source,
-    // switch the pointers to indicate that
-    if (sliders.size() < 2) {
-      selectedSrc = -1;
-      selectedSlider = nullptr;
-      // also disable the close button here
-      closeButton.setVisible(false);
-      closeButton.setEnabled(false);
-    } else {
-      selectedSrc = sliders[sliders.size() - 2]->sourceID;
-    }
+    selectedSrc = -1;
   }
-  // 2. remove the slider
+  // 2. remove the slider & select button
   sliders.removeObject(_sliderForSrc(src));
-  // 3. remove the select button (and reindex)
   selectButtons.removeObject(_btnForSource(src));
-  _reindexButtons();
-  // 4. update the state
-  state->removeModulation(src, destID);
-  // 5. update the GUI as appropriate
-  if (selectedSrc != -1) {
-    _selectSource(selectedSrc);
-  } else {
-    resized();
-  }
+  // 3. figure out
 }
 
 void DepthSliderStack::reinitFromState() {

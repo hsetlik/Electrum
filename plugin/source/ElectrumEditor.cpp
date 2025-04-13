@@ -23,6 +23,11 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
     auto* osc = oscs.add(new OscillatorPanel(state, i));
     addAndMakeVisible(osc);
   }
+  // add the filters
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    auto* filt = filters.add(new FilterComp(state, i));
+    addAndMakeVisible(filt);
+  }
 }
 
 void ElectrumMainView::resized() {
@@ -42,10 +47,12 @@ void ElectrumMainView::resized() {
     auto fBounds = fOscArea.removeFromLeft(fOscWidth);
     o->setBounds(fBounds.toNearestInt());
   }
-  static const int envHeight = std::min(iBounds.getHeight() / 3, 250);
+  static const int envHeight = 400;
   auto midPanel = iBounds.removeFromTop(envHeight);
   static const int envWidth = std::min(iBounds.getWidth() / 3, 450);
   envPanel.setBounds(midPanel.removeFromLeft(envWidth));
+  filters[0]->setBounds(midPanel.removeFromLeft(envWidth));
+  filters[1]->setBounds(midPanel.removeFromLeft(envWidth));
 }
 //===================================================
 

@@ -15,7 +15,7 @@ float WavetableOscillator::getNextSample(int midiNote,
                                          float fineMod) {
   static const float minLvl = juce::Decibels::decibelsToGain(-50.0f);
   static const float _oscMaxGain = juce::Decibels::decibelsToGain(-8.0f);
-  if (wave->getLevel() + levelMod < minLvl || !wave->isActive())
+  if (wave->getLevel() + levelMod < minLvl)
     return 0.0f;
   const float _coarse = AudioUtil::signed_flerp(
       COARSE_TUNE_MIN, COARSE_TUNE_MAX, wave->getCoarse(), coarseMod);
@@ -37,6 +37,8 @@ void WavetableOscillator::renderSampleStereo(int midiNote,
                                              float fineMod,
                                              float& left,
                                              float& right) {
+  if (!wave->isActive())
+    return;
   const float mono =
       getNextSample(midiNote, levelMod, posMod, coarseMod, fineMod);
   const float pan = AudioUtil::signed_flerp(0.0f, 1.0f, wave->getPan(), panMod);

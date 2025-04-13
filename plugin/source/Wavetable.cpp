@@ -351,8 +351,6 @@ std::vector<float> Wavetable::normVectorForWave(int wave, int numPoints) const {
 }
 
 float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
-  if (!active)
-    return 0.0f;
   int idx = AudioUtil::fastFloor32(pos * fSize);
   return pActive->getUnchecked(idx)->getSample(phase, phaseDelt);
 }
@@ -360,8 +358,6 @@ float Wavetable::getSampleFixed(float phase, float phaseDelt, float pos) const {
 float Wavetable::getSampleSmooth(float phase,
                                  float phaseDelt,
                                  float pos) const {
-  if (!active)
-    return 0.0f;
   float temp = pos * fSize;
   const int lIdx = AudioUtil::fastFloor32(temp);
   const int hIdx = lIdx + 1;

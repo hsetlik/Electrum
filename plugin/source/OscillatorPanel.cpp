@@ -6,16 +6,6 @@
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
-void PowerButton::paintButton(juce::Graphics& g, bool, bool) {
-  auto fBounds = getLocalBounds().toFloat();
-  ImgData::ImgID id =
-      getToggleState() ? ImgData::ImgID::PowerOn : ImgData::ImgID::PowerOff;
-  auto width = ImgData::widthForBounds(fBounds);
-  auto& img = ImgData::getBinaryImage(id, width);
-  jassert(img.isValid());
-  g.drawImage(img, fBounds);
-}
-
 //======================================================
 
 OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
