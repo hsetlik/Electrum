@@ -9,14 +9,28 @@ void ModDestAttachment::parentHierarchyChanged() {
   if (context != nullptr) {
     context->addDestListener(this);
     isAttached = true;
+    // also needs to check for reinit here
+    if (context->needsReinit[(size_t)destID]) {
+      reinit();
+      context->needsReinit[(size_t)destID] = false;
+    }
   }
 }
 
 //===================================================
 
 ModContextComponent::ModContextComponent(ElectrumState* mainTree)
-    : state(mainTree) {
+    : state(mainTree), needsReinit({}) {
   state->state.addListener(this);
+  // check for any modulations that were added BEFORE
+  // this component (and thus this listener) were attached
+  auto modTree = state->getModulationTree();
+  for (auto it = modTree.begin(); it != modTree.end(); ++it) {
+    auto child = *it;
+    jassert(child.hasType(ID::ELECTRUM_MODULATION));
+    int id = child[ID::modDestID];
+    needsReinit[(size_t)id] = true;
+  }
 }
 
 ModContextComponent::~ModContextComponent() {

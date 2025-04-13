@@ -15,6 +15,7 @@ class ModContextComponent : public Component, public ValueTree::Listener {
 private:
   ElectrumState* const state;
   std::vector<ModDestAttachment*> dListeners;
+  std::array<bool, MOD_DESTS> needsReinit;
 
 public:
   ModContextComponent(ElectrumState* mainTree);
@@ -29,6 +30,9 @@ public:
   void valueTreeRedirected(ValueTree& changedTree) override;
   // add dest listeners like so
   void addDestListener(ModDestAttachment* l) { dListeners.push_back(l); }
+
+private:
+  friend class ModDestAttachment;
 };
 //============================================================
 
@@ -50,5 +54,4 @@ public:
 
 protected:
   bool isAttached = false;
-  void _attemptAttach();
 };

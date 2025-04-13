@@ -10,13 +10,13 @@ private:
 
   // the cutoff variables for each stage
   float cutoffHz = 2000.0f;
+  float g4;
   float bigG;
-  float bigGFilter;
   float g3;
   float g2;
   float g;
 
-  float k;
+  float k = 3.0f;
   void updateG(double sampleRate);
 
 public:

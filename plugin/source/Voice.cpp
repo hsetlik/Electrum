@@ -149,6 +149,9 @@ void ElectrumVoice::sampleRateSet(double sr) {
   for (auto* e : envs) {
     e->sampleRateChanged(sr);
   }
+  for (auto* f : filters) {
+    f->prepare(sr);
+  }
 }
 
 void ElectrumVoice::renderNextSample(float& left,

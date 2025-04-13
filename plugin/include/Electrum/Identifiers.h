@@ -89,7 +89,7 @@ typedef juce::ValueTree ValueTree;
 #define FILTER_CUTOFF_CENTER 1600.0f
 
 #define FILTER_RES_MIN 0.0f
-#define FILTER_RES_MAX 4.5f
+#define FILTER_RES_MAX 4.0f
 #define FILTER_RES_DEFAULT 1.2f
 
 #define FILTER_DB_MAX 6.0f
