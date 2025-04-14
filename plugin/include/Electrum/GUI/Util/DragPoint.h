@@ -52,7 +52,7 @@ private:
 typedef std::function<float(fpoint_t)> PosToParamFunc;
 typedef std::function<fpoint_t(float)> ParamToPosFunc;
 
-class DragPointAttach : public ::DragPoint::Listener {
+class DragPointParamAttach : public DragPoint::Listener {
 private:
   ElectrumState* const state;
   DragPoint* const point;
@@ -63,16 +63,20 @@ private:
   std::unique_ptr<juce::ParameterAttachment> pAttach;
 
 public:
-  DragPointAttach(ElectrumState* s,
-                  const String& id,
-                  DragPoint* p,
-                  PosToParamFunc f1,
-                  ParamToPosFunc f2);
-  ~DragPointAttach() override;
+  DragPointParamAttach(ElectrumState* s,
+                       const String& id,
+                       DragPoint* p,
+                       PosToParamFunc f1,
+                       ParamToPosFunc f2);
+  ~DragPointParamAttach() override;
   // listener overrides
   void moveStarted(DragPoint* p) override;
   void moveEnded(DragPoint* p) override;
   void moved(DragPoint* p) override;
 };
 
-typedef std::unique_ptr<DragPointAttach> drag_attach_ptr;
+typedef std::unique_ptr<DragPointParamAttach> drag_attach_ptr;
+
+// similar idea to the above but for a ValueTree
+typedef std::function<void(fpoint_t, ValueTree&)> PointToValueTreeFunc;
+typedef std::function<fpoint_t(ValueTree&)> ValueTreeToPointFunc;

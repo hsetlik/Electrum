@@ -10,7 +10,6 @@ typedef juce::TabbedButtonBar::Orientation TabPositionE;
 class WaveViewerTabs : public juce::TabbedComponent {
 public:
   WaveViewerTabs(ValueTree& vt);
-  TimeView* getTimeView();
 };
 
 //==============================================================

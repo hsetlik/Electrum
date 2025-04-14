@@ -75,14 +75,27 @@ void inverseFFT(float* data) {
 
 void loadAudibleBins(const String& wave, freq_bin_t* bins) {
   float temp[TABLE_SIZE * 2] = {};
-  stringDecodeWave(wave, temp);
+  float real[TABLE_SIZE];
+  stringDecodeWave(wave, real);
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    temp[i] = real[i];
+    temp[TABLE_SIZE + i] = 0.0f;
+  }
   // 1. forward FFT
   forwardFFT(temp);
   auto* complex = reinterpret_cast<std::complex<float>*>(temp);
   // iterate over the audible half of the complex wave
+  float maxMag = 1.0f;
   for (int i = 0; i < AUDIBLE_BINS; ++i) {
-    bins[i].magnitude = std::abs(complex[i]);
+    const float mag = (float)std::abs(complex[i]);
+    bins[i].magnitude = mag;
+    if (maxMag < mag) {
+      maxMag = mag;
+    }
     bins[i].phase = std::arg(complex[i]);
+  }
+  for (int i = 0; i < AUDIBLE_BINS; ++i) {
+    bins[i].magnitude /= maxMag;
   }
 }
 

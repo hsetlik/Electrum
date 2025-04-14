@@ -209,7 +209,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
   String iStr(id);
   String atkMsID = ID::attackMs.toString() + iStr;
 
-  attackMsAttach.reset(new DragPointAttach(
+  attackMsAttach.reset(new DragPointParamAttach(
       state, atkMsID, &attackEnd,
       [this, atkMsID](fpoint_t pt) {
         return getParamFromPos(atkMsID, &attackEnd, pt);
@@ -219,7 +219,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String atkCurveID = ID::attackCurve.toString() + iStr;
-  attackCurveAttach.reset(new DragPointAttach(
+  attackCurveAttach.reset(new DragPointParamAttach(
       state, atkCurveID, &attackCurve,
       [this, atkCurveID](fpoint_t pt) {
         return getParamFromPos(atkCurveID, &attackCurve, pt);
@@ -229,7 +229,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String holdId = ID::holdMs.toString() + iStr;
-  holdMsAttach.reset(new DragPointAttach(
+  holdMsAttach.reset(new DragPointParamAttach(
       state, holdId, &holdEnd,
       [this, holdId](juce::Point<float> pt) {
         return getParamFromPos(holdId, &holdEnd, pt);
@@ -239,7 +239,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String decayMsID = ID::decayMs.toString() + iStr;
-  decayMsAttach.reset(new DragPointAttach(
+  decayMsAttach.reset(new DragPointParamAttach(
       state, decayMsID, &decayEnd,
       [this, decayMsID](juce::Point<float> pt) {
         return getParamFromPos(decayMsID, &decayEnd, pt);
@@ -249,7 +249,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String decayCurveID = ID::decayCurve.toString() + iStr;
-  decayCurveAttach.reset(new DragPointAttach(
+  decayCurveAttach.reset(new DragPointParamAttach(
       state, decayCurveID, &decayCurve,
       [this, decayCurveID](juce::Point<float> pt) {
         return getParamFromPos(decayCurveID, &decayCurve, pt);
@@ -259,7 +259,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String sustainId = ID::sustainLevel.toString() + iStr;
-  sustainAttach1.reset(new DragPointAttach(
+  sustainAttach1.reset(new DragPointParamAttach(
       state, sustainId, &decayEnd,
       [this, sustainId](juce::Point<float> pt) {
         return getParamFromPos(sustainId, &decayEnd, pt);
@@ -268,7 +268,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
         return getPosFromParam(sustainId, &decayEnd, val);
       }));
 
-  sustainAttach2.reset(new DragPointAttach(
+  sustainAttach2.reset(new DragPointParamAttach(
       state, sustainId, &sustainEnd,
       [this, sustainId](juce::Point<float> pt) {
         return getParamFromPos(sustainId, &sustainEnd, pt);
@@ -278,7 +278,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String releaseId = ID::releaseMs.toString() + iStr;
-  releaseMsAttach.reset(new DragPointAttach(
+  releaseMsAttach.reset(new DragPointParamAttach(
       state, releaseId, &sustainEnd,
       [this, releaseId](juce::Point<float> pt) {
         return getParamFromPos(releaseId, &sustainEnd, pt);
@@ -288,7 +288,7 @@ EnvelopeGraph::EnvelopeGraph(ElectrumState* s, int id)
       }));
 
   String releaseCurveID = ID::releaseCurve.toString() + iStr;
-  releaseCurveAttach.reset(new DragPointAttach(
+  releaseCurveAttach.reset(new DragPointParamAttach(
       state, releaseCurveID, &releaseCurve,
       [this, releaseCurveID](juce::Point<float> pt) {
         return getParamFromPos(releaseCurveID, &releaseCurve, pt);

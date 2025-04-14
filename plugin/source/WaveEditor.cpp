@@ -1,6 +1,7 @@
 #include "Electrum/GUI/WaveEditor/WaveEditor.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "Electrum/GUI/WaveEditor/FFTView.h"
 #include "Electrum/GUI/WaveEditor/TimeView.h"
 #include "Electrum/GUI/WaveEditor/WaveThumbnail.h"
 #include "Electrum/Identifiers.h"
@@ -12,12 +13,7 @@ WaveViewerTabs::WaveViewerTabs(ValueTree& vt)
     : juce::TabbedComponent(TabPositionE::TabsAtBottom) {
   auto col = UIColor::widgetBkgnd;
   addTab("Time", col, new TimeView(vt), true);
-}
-
-TimeView* WaveViewerTabs::getTimeView() {
-  auto* tv = dynamic_cast<TimeView*>(getTabContentComponent(0));
-  jassert(tv != nullptr);
-  return tv;
+  addTab("FFT", col, new FFTView(vt), true);
 }
 
 //===================================================

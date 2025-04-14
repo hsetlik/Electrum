@@ -165,6 +165,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/Util/PowerButton.h
 				source/WaveEdiorContext.cpp
 				${INCLUDE_DIR}/GUI/WaveEditor/WaveEdiorContext.h
+				source/FFTView.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/FFTView.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
