@@ -1,5 +1,6 @@
 
 #include "Electrum/Shared/ElectrumState.h"
+#include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Identifiers.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 ModMap::ModMap() {
@@ -115,7 +116,7 @@ static std::array<String, MOD_DESTS> _getModDestParamIDs() {
   return arr;
 }
 
-String _paramIDForModDest(int destID) {
+String paramIDForModDest(int destID) {
   static std::array<String, MOD_DESTS> destIDs = _getModDestParamIDs();
   return destIDs[(size_t)destID];
 }
@@ -129,7 +130,7 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
   // now we initialize the modDestRanges array
   // remember this is in order of the ModDestE enum
   for (int i = 0; i < MOD_DESTS; ++i) {
-    modDestRanges[i] = getParameterRange(_paramIDForModDest(i));
+    modDestRanges[i] = getParameterRange(paramIDForModDest(i));
   }
   // 2. set the wavetable paths for each of the oscs
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
@@ -256,17 +257,26 @@ void ElectrumState::updateCommonAudioData() {
     audioData.env[i].updateState(envParams);
   }
   // filters-------------------------------------------
+  // this frange helps us convert the atomically
+  // read float value into an integer type ID
+  static frange_t fTypeRange =
+      getParameterRange(ID::filterType.toString() + "0");
   for (int i = 0; i < NUM_FILTERS; ++i) {
     String iStr(i);
     const String activeID = ID::filterActive.toString() + iStr;
     const String cutoffID = ID::filterCutoff.toString() + iStr;
     const String resID = ID::filterResonance.toString() + iStr;
     const String gainID = ID::filterGainDb.toString() + iStr;
+    const String typeID = ID::filterType.toString() + iStr;
 
     bool _isActive = getRawParameterValue(activeID)->load() > 0.5f;
     const float _cutoff = getRawParameterValue(cutoffID)->load();
     const float _res = getRawParameterValue(resID)->load();
     const float _gainDb = getRawParameterValue(gainID)->load();
+    const float _fType = getRawParameterValue(typeID)->load();
+    const float normType = fTypeRange.convertTo0to1(_fType);
+    audioData.filters[i].filterType =
+        (int)AudioUtil::fastFloor32(normType * (float)NUM_FILTER_TYPES);
     audioData.filters[i].active = _isActive;
     audioData.filters[i].baseCutoff = _cutoff;
     audioData.filters[i].baseResLin = _res;

@@ -12,6 +12,9 @@ class FilterComp : public Component {
   PowerButton btn;
   button_attach_ptr bAttach;
 
+  juce::ComboBox typeBox;
+  combo_attach_ptr cAttach;
+
 public:
   FilterComp(ElectrumState* s, int idx);
   void paint(juce::Graphics& g) override;

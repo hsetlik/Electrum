@@ -50,17 +50,17 @@ void SynthEngine::killSustainedVoices() {
 
 // GUI/DSP communication stuff---------------------
 void SynthEngine::updateParamsForBlock() {
-  // TODO
   state->updateCommonAudioData();
 }
 
 // MIDI handling stuff -----------------------------
 
-void SynthEngine::loadMidiEvents(juce::MidiBuffer& midi) {
+void SynthEngine::loadMidiEvents(juce::MidiBuffer& midi, int maxSample) {
   for (auto it = midi.begin(); it != midi.end(); ++it) {
     auto metadata = *it;
     timed_midi_msg m;
     m.timestamp = metadata.samplePosition;
+    jassert(m.timestamp >= 0 && m.timestamp < maxSample);
     m.message = metadata.getMessage();
     midiQueue.push(m);
   }
@@ -129,7 +129,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   // keyboard)
   masterKeyboardState.processNextMidiBuffer(midiBuf, 0,
                                             audioBuf.getNumSamples(), true);
-  loadMidiEvents(midiBuf);
+  loadMidiEvents(midiBuf, audioBuf.getNumSamples());
   // 3. determine if we're stereo or mono
   if (audioBuf.getNumChannels() >= 2) {
     // 4. render the audio

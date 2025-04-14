@@ -181,8 +181,8 @@ void EnvelopeGraph::drawEnvelopeGraph(frect_t& bounds, juce::Graphics& g) {
   g.setColour(Color::qualifierPurple);
   juce::PathStrokeType pst(1.2f);
   g.strokePath(p, pst);
-  jassert(activeLineDrawn);
-  // draw the handles
+  // jassert(activeLineDrawn);
+  //  draw the handles
   drawHandle(g, attackEnd.getPos(), 3.0f, selectedPoint != &attackEnd);
   drawHandle(g, attackCurve.getPos(), 3.0f, selectedPoint != &attackCurve);
   drawHandle(g, holdEnd.getPos(), 3.0f, selectedPoint != &holdEnd);
@@ -452,10 +452,9 @@ float EnvelopeGraph::getParamFromPos(const String& paramID,
       output = state->getRawParameterValue(paramID)->load();
     }
     return output;
-  } else if (point == &decayEnd)  // careful: what looks like two cases is
-                                  // actually four cases because the last two
-                                  // points can control 1 of 2 parameters
-  {
+  } else if (point == &decayEnd) {  // careful: what looks like two cases is
+                                    // actually four cases because the last two
+                                    // points can control 1 of 2 parameters
     if (paramID.contains(ID::sustainLevel.toString()))  // sustain
     {
       return sustainFromY(fBounds, pos.y);

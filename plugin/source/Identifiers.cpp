@@ -2,6 +2,9 @@
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
+juce::StringArray getFilterTypeNames() {
+  return {"Ladder Low Pass 1", "Ladder Low Pass 2"};
+}
 // helper
 static void addFloatParam(apvts::ParameterLayout* layout,
                           const String& id,
@@ -106,7 +109,11 @@ apvts::ParameterLayout ID::getParameterLayout() {
     const String gainName = "Filter " + iStr + " gain";
     const String activeID = filterActive.toString() + iStr;
     const String activeName = "Filter " + iStr + " active";
-
+    const String typeID = filterType.toString() + iStr;
+    const String typeName = "Filter " + iStr + " type";
+    juce::ParameterID typePID{typeID, 1};
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        typePID, typeName, getFilterTypeNames(), 0));
     addFloatParam(&layout, cutoffID, cutoffName, cutoffRange, 1000.0f);
     addFloatParam(&layout, resID, resName, resonanceRange, FILTER_RES_DEFAULT);
     addFloatParam(&layout, gainID, gainName, filterGainRange, 0.0f);

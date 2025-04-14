@@ -29,7 +29,7 @@ private:
   int numBusyVoices();
   void updateParamsForBlock();
   // helpers for processBlock
-  void loadMidiEvents(juce::MidiBuffer& midi);
+  void loadMidiEvents(juce::MidiBuffer& midi, int audioBufLength);
   void handleMidiMessage(juce::MidiMessage& message);
 
 public:

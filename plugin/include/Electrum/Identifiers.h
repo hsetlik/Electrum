@@ -37,6 +37,11 @@ typedef juce::String String;
 typedef juce::Component Component;
 typedef juce::ValueTree ValueTree;
 
+// this enum needs to contain every filter type we have
+enum FilterTypeE { LadderLPLinear, LadderLPSaturated };
+
+juce::StringArray getFilterTypeNames();
+#define NUM_FILTER_TYPES 2
 // defines for param ranges
 // Every Identifier for every parameter should be in here
 #define NUM_OSCILLATORS 3
@@ -129,6 +134,7 @@ DECLARE_ID(releaseCurve)
 
 // filter
 DECLARE_ID(filterActive)
+DECLARE_ID(filterType)
 DECLARE_ID(filterCutoff)
 DECLARE_ID(filterResonance)
 DECLARE_ID(filterGainDb)

@@ -13,7 +13,7 @@ DestinationLabel::DestinationLabel(ElectrumState* s, int id)
   label.setEditable(true);
   label.addListener(this);
   // set up the parameter attachment
-  auto* param = state->getParameter(_paramIDForModDest(destID));
+  auto* param = state->getParameter(paramIDForModDest(destID));
   auto callback = [this](float value) { this->setLabelForValue(value); };
   pAttach.reset(
       new juce::ParameterAttachment(*param, callback, state->undoManager));
@@ -68,7 +68,7 @@ DestinationSlider::DestinationSlider(ElectrumState* s, int d)
   addAndMakeVisible(&slider);
   addAndMakeVisible(&depthSliders);
   addAndMakeVisible(&label);
-  String id = _paramIDForModDest(destID);
+  String id = paramIDForModDest(destID);
   // DLog::log("Attempting to attach to param: " + id);
   //  deal w the slider attachment
   attach.reset(new apvts::SliderAttachment(*state, id, slider));
