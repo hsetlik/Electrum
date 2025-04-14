@@ -276,7 +276,7 @@ void ElectrumState::updateCommonAudioData() {
     const float _fType = getRawParameterValue(typeID)->load();
     const float normType = fTypeRange.convertTo0to1(_fType);
     audioData.filters[i].filterType =
-        (int)AudioUtil::fastFloor32(normType * (float)NUM_FILTER_TYPES);
+        (FilterTypeE)(normType * (float)(NUM_FILTER_TYPES - 1));
     audioData.filters[i].active = _isActive;
     audioData.filters[i].baseCutoff = _cutoff;
     audioData.filters[i].baseResLin = _res;

@@ -195,6 +195,12 @@ void ElectrumVoice::renderNextSample(float& left,
   }
 }
 
+void ElectrumVoice::updateForBlock() {
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    filters[i]->updateForBlock();
+  }
+}
+
 void ElectrumVoice::updateGraphData(GraphingData* gd) {
   // oscillators
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {

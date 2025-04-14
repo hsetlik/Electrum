@@ -72,6 +72,9 @@ private:
 public:
   const int voiceIndex;
   ElectrumVoice(ElectrumState* s, int idx);
+  // call this once a block on active voices
+  // for the filters
+  void updateForBlock();
   // sample rate update callback
   void sampleRateSet(double sr);
   bool gateIsOn() const { return gate; }

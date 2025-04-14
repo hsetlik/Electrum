@@ -94,8 +94,8 @@ juce::StringArray getFilterTypeNames();
 #define FILTER_CUTOFF_CENTER 4000.0f
 
 #define FILTER_RES_MIN 0.0f
-#define FILTER_RES_MAX 4.0f
-#define FILTER_RES_DEFAULT 1.2f
+#define FILTER_RES_MAX 1.0f
+#define FILTER_RES_DEFAULT 0.3f
 
 #define FILTER_DB_MAX 6.0f
 #define FILTER_DB_MIN -18.0f

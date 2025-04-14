@@ -7,7 +7,7 @@
 // the shared parameters that each of our voice filters will reference
 struct shared_filter_params {
   bool active = true;
-  int filterType = 0;
+  FilterTypeE filterType = FilterTypeE::LadderLPLinear;
   float baseCutoff = 1000.0f;
   float baseResLin = 1.0f;
   float baseGainLin = 1.0f;

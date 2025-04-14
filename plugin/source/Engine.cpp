@@ -51,6 +51,9 @@ void SynthEngine::killSustainedVoices() {
 // GUI/DSP communication stuff---------------------
 void SynthEngine::updateParamsForBlock() {
   state->updateCommonAudioData();
+  for (auto* v : voices) {
+    v->updateForBlock();
+  }
 }
 
 // MIDI handling stuff -----------------------------
