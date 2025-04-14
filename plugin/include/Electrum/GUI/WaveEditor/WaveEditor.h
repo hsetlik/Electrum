@@ -3,6 +3,14 @@
 #include "Electrum/GUI/WaveEditor/TimeView.h"
 #include "Electrum/GUI/WaveEditor/WaveThumbnail.h"
 #include "Electrum/Shared/FileSystem.h"
+#include "juce_gui_basics/juce_gui_basics.h"
+typedef juce::TabbedButtonBar::Orientation TabPositionE;
+// tabbed middle component for our various editor views
+class WaveViewerTabs : public juce::TabbedComponent {
+public:
+  WaveViewerTabs(ValueTree& vt);
+  TimeView* getTimeView();
+};
 // an editor/viewer for one of our wavetable oscillators
 class WaveEditor : public Component, public juce::TextEditor::Listener {
 private:
@@ -19,9 +27,9 @@ private:
   juce::TextEditor waveNameEdit;
 
   // Thumbnail view of our waves
-  WaveThumbnailBar thumbBar;
+  std::unique_ptr<WaveThumbnailBar> thumbBar;
   // time view
-  std::unique_ptr<TimeView> timeView;
+  std::unique_ptr<WaveViewerTabs> tabs;
 
 public:
   WaveEditor(ElectrumState* s, Wavetable* wt, int idx);

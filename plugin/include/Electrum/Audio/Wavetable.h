@@ -13,6 +13,7 @@
 #define WAVE_FFT_ORDER 11
 #define ALWAYS_RANDOMIZE_PHASES
 //
+
 typedef juce::dsp::FFT FFTProc;
 
 // helpers for string/wave conversion
@@ -28,6 +29,12 @@ struct banded_wave_t {
   float wave[TABLE_SIZE];
 };
 
+#define AUDIBLE_BINS 1024
+struct freq_bin_t {
+  float magnitude = 0.0f;
+  float phase = 0.0f;
+};
+
 typedef std::array<banded_wave_t, WAVES_PER_TABLE> banded_wave_set;
 
 // transforms and utilities full-spectrum waves---------------------------
@@ -37,6 +44,10 @@ void randomizePhasesComplex(std::complex<float>* freqDomain,
                             size_t seed = 56392);
 void forwardFFT(float* data);
 void inverseFFT(float* data);
+// load the audible bins from the wave (in string form) into
+// the provided array of frequency bins
+void loadAudibleBins(const String& wave, freq_bin_t* bins);
+String audibleBinsToWaveString(freq_bin_t* bins);
 // Some handy frequency domain stuff
 float getBinMagnitude(float* data, int bin);
 }  // namespace Wave

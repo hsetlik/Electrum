@@ -2,18 +2,28 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
 #include "Electrum/GUI/WaveEditor/TimeView.h"
+#include "Electrum/GUI/WaveEditor/WaveThumbnail.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
+#include "juce_gui_basics/juce_gui_basics.h"
+
+WaveViewerTabs::WaveViewerTabs(ValueTree& vt)
+    : juce::TabbedComponent(TabPositionE::TabsAtBottom) {
+  auto col = UIColor::widgetBkgnd;
+  addTab("Time", col, new TimeView(vt), true);
+}
+
+TimeView* WaveViewerTabs::getTimeView() {
+  auto* tv = dynamic_cast<TimeView*>(getTabContentComponent(0));
+  jassert(tv != nullptr);
+  return tv;
+}
 
 //===================================================
 
 WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
-    : state(s),
-      wavetable(wt),
-      oscID(idx),
-      thumbBar(wt->toString()),
-      timeView(nullptr) {
+    : state(s), wavetable(wt), oscID(idx), thumbBar(nullptr), tabs(nullptr) {
   // 1. figure out which file we need to load
   String pathID = ID::oscWavePath.toString() + String(oscID);
   String path = "Default";
@@ -53,11 +63,13 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   waveNameEdit.addListener(this);
   waveNameEdit.setText(name, juce::dontSendNotification);
   // 6. add the thumb bar
-  addAndMakeVisible(thumbBar);
+  thumbBar.reset(
+      new WaveThumbnailBar(WaveEdit::getFullWavetableString(waveTree)));
+  addAndMakeVisible(thumbBar.get());
   // 7. add the time view
-  timeView.reset(new TimeView(waveTree));
-  addAndMakeVisible(*timeView);
-  thumbBar.addListener(timeView.get());
+  tabs.reset(new WaveViewerTabs(waveTree));
+  addAndMakeVisible(*tabs);
+  thumbBar->addListener(tabs->getTimeView());
 }
 
 WaveEditor::~WaveEditor() {
@@ -76,17 +88,17 @@ void WaveEditor::resized() {
       bottomRow.removeFromLeft(bottomRow.getWidth() / 2.0f).reduced(2.5f);
   auto saveBounds = bottomRow.reduced(2.5f);
 
-  auto thumbBounds = fBounds.removeFromBottom(60.0f);
+  auto thumbBounds = fBounds.removeFromBottom(65.0f);
 
   const float viewW = fBounds.getWidth() * 0.95f;
   const float viewH = fBounds.getHeight() * 0.95f;
   auto viewBounds = fBounds.withSizeKeepingCentre(viewW, viewH);
-  timeView->setBounds(viewBounds.toNearestInt());
+  tabs->setBounds(viewBounds.toNearestInt());
 
   waveNameEdit.setBounds(tBounds.toNearestInt());
   saveBtn.setBounds(saveBounds.toNearestInt());
   closeBtn.setBounds(closeBounds.toNearestInt());
-  thumbBar.setBounds(thumbBounds.toNearestInt());
+  thumbBar->setBounds(thumbBounds.toNearestInt());
 }
 
 void WaveEditor::textEditorTextChanged(juce::TextEditor& te) {
