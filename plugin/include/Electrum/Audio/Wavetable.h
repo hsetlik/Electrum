@@ -51,6 +51,7 @@ String audibleBinsToWaveString(freq_bin_t* bins);
 // Some handy frequency domain stuff
 float getBinMagnitude(float* data, int bin);
 }  // namespace Wave
+
 //------------------------------------------------------------------------
 // this guy handles the band-limiting
 // on initialization and is accessed

@@ -35,6 +35,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   // 2. parse as a valueTree
   waveTree = WaveEdit::getWavetableTree(path);
   jassert(waveTree.isValid() && waveTree.hasType(WaveEdit::WAVETABLE));
+  // waveTree.addListener(this);
 
   // 3. add and place the buttons
   closeBtn.setButtonText("Close");
@@ -66,10 +67,10 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   thumbBar.reset(
       new WaveThumbnailBar(WaveEdit::getFullWavetableString(waveTree)));
   addAndMakeVisible(thumbBar.get());
-  // 7. add the time view
+  // 7. add the tabbed view
   tabs.reset(new WaveViewerTabs(waveTree));
   addAndMakeVisible(*tabs);
-  thumbBar->addListener(tabs->getTimeView());
+  thumbBar->addListener(this);
 }
 
 WaveEditor::~WaveEditor() {
@@ -77,6 +78,10 @@ WaveEditor::~WaveEditor() {
   if (parent != nullptr) {
     parent->removeChildComponent(this);
   }
+}
+
+void WaveEditor::frameWasFocused(int frame) {
+  p_setFocusedIndex(frame);
 }
 
 void WaveEditor::resized() {

@@ -3,8 +3,9 @@
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
 
-TimeView::TimeView(ValueTree& vt) : waveTree(vt) {
+TimeView::TimeView(ValueTree& vt) : WaveEditListener(vt) {
   frameWasFocused(0);
 }
 

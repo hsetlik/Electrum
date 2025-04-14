@@ -163,6 +163,8 @@ target_sources(${PROJECT_NAME}
 				source/FilterPanel.cpp
 				${INCLUDE_DIR}/GUI/ProcessPanel/FilterPanel.h
 				${INCLUDE_DIR}/GUI/Util/PowerButton.h
+				source/WaveEdiorContext.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/WaveEdiorContext.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

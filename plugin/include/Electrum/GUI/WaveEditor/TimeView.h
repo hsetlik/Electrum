@@ -1,13 +1,12 @@
 #pragma once
 
 #include "Electrum/Audio/AudioUtil.h"
-#include "WaveThumbnail.h"
+#include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
 
 #define TIME_VIEW_PTS 512
 
-class TimeView : public Component, public WaveThumbnailBar::Listener {
+class TimeView : public WaveEditListener {
 protected:
-  ValueTree& waveTree;
   int displayedWaveIndex = -1;
   float currentWave[TABLE_SIZE];
   juce::Path p;
@@ -20,4 +19,3 @@ public:
 };
 
 //=========================================================================
-
