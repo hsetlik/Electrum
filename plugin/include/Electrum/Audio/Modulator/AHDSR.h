@@ -129,7 +129,6 @@ private:
   float killQuickDelta = 0.00001f;
   ahdsr_phase_t currentPhase = ahdsr_phase_t::Idle;
   int phaseSamples = 0;
-  float phaseMs = 0.0f;
   float msDelta = 1000.0f / 44100.0f;
   float prevAttackCurve;
   float prevDecayCurve;
@@ -149,8 +148,7 @@ public:
   void gateStart(float velocity = 1.0f) {
     currentVelocity = velocity;
     gateIsOn = true;
-    phaseMs = 0.0f;
-    phaseSamples = 0;
+    phaseSamples = lut->phaseSamplesForLevel(lastOutput);
     currentPhase = ahdsr_phase_t::Attack;
   }
   void gateEnd() {

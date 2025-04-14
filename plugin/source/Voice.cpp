@@ -2,7 +2,10 @@
 #include "Electrum/Audio/Modulator/AHDSR.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 //===================================================
+
+static const float minEnvelopeLvl = juce::Decibels::decibelsToGain(-24.0f);
 
 VoiceGateEnvelope::VoiceGateEnvelope(ElectrumVoice* p)
     : parent(p), gate(false), forceKillQuick(false), lastOutput(0.0f) {}
@@ -32,6 +35,10 @@ bool VoiceGateEnvelope::parentIsFinished() {
       return false;
   }
   return true;
+}
+
+bool VoiceGateEnvelope::isFinished() const {
+  return !gate && lastOutput <= minEnvelopeLvl;
 }
 
 //===================================================
@@ -114,7 +121,7 @@ ElectrumVoice::ElectrumVoice(ElectrumState* s, int idx)
   }
 }
 
-bool ElectrumVoice::isBusy() {
+bool ElectrumVoice::isBusy() const {
   return gate || (!vge.isFinished());
 }
 
@@ -138,8 +145,8 @@ void ElectrumVoice::stealNote(int note, float velocity) {
 }
 
 void ElectrumVoice::stopNote() {
-  vge.end();
   gate = false;
+  vge.end();
   for (auto e : envs) {
     e->gateEnd();
   }
@@ -186,10 +193,11 @@ void ElectrumVoice::renderNextSample(float& left,
     filters[i]->processStereo(voiceLeft, voiceRight);
   }
   // 5. add to the output
-  left += voiceLeft * vge.getCurrentSample();
-  right += voiceRight * vge.getCurrentSample();
+  const float gateLvl = vge.getCurrentSample();
+  left += voiceLeft * gateLvl;
+  right += voiceRight * gateLvl;
   // 6. deal with any killQuick that may be happening
-  if (inQuickKill && vge.getCurrentSample() == 0.0f) {
+  if (inQuickKill && gateLvl <= minEnvelopeLvl) {
     inQuickKill = false;
     startNote(queuedNote, queuedVelocity);
   }

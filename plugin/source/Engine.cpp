@@ -21,7 +21,8 @@ ElectrumVoice* SynthEngine::getVoicePlayingNote(int note) {
 void SynthEngine::noteOn(int note, float velocity) {
   auto existing = getVoicePlayingNote(note);
   if (existing != nullptr) {
-    existing->stealNote(note, velocity);
+    existing->stopNote();
+    existing->startNote(note, velocity);
   } else {
     auto voice = getFreeVoice();
     jassert(voice != nullptr);
@@ -34,10 +35,14 @@ void SynthEngine::noteOff(int note) {
   auto voice = getVoicePlayingNote(note);
   if (voice != nullptr && !state->getSustainPedal()) {
     voice->stopNote();
-  } else if (voice != nullptr)  // handle the sustain pedal logic here
+    return;
+  }
+  if (voice != nullptr)  // handle the sustain pedal logic here
   {
     sustainedVoices.push(voice);
+    return;
   }
+  jassert(false);
 }
 
 void SynthEngine::killSustainedVoices() {
@@ -107,7 +112,20 @@ SynthEngine::SynthEngine(ElectrumState* s) : state(s) {
     voices.add(new ElectrumVoice(s, i));
   }
 }
-
+//
+// void SynthEngine::validateKeyboardState() {
+//   // go through the voices and make sure any
+//   // active ones are matched in the masterKeyboardState
+//   for (auto* v : voices) {
+//     if (v->gateIsOn()) {
+//       const int note = v->getCurrentNote();
+//       if (!masterKeyboardState.isNoteOnForChannels(0x0000FFFF, note)) {
+//         DLog::log("Stuck note at: " + String(note));
+//       }
+//     }
+//   }
+// }
+//
 void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
                                juce::MidiBuffer& midiBuf) {
   // 1. grab any needed updates from the GUI
@@ -152,7 +170,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
     float dummy;
     for (int i = 0; i < audioBuf.getNumSamples(); ++i) {
       // process any midi events for this sample
-      while (!midiQueue.empty() && midiQueue.front().timestamp == i) {
+      while (!midiQueue.empty() && midiQueue.front().timestamp <= i) {
         handleMidiMessage(midiQueue.front().message);
         midiQueue.pop();
       }
@@ -160,6 +178,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
       destUpdateIdx = (destUpdateIdx + 1) % DEST_UPDATE_INTERVAL;
     }
   }
+  // validateKeyboardState();
 }
 
 void SynthEngine::prepareToPlay(double sampleRate, int blockSize) {

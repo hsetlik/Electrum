@@ -29,7 +29,7 @@ public:
   float getCurrentSample() const { return lastOutput; }
   void start();
   void end() { gate = false; }
-  bool isFinished() const { return !gate && lastOutput == 0.0f; }
+  bool isFinished() const;
   void killQuick() {
     forceKillQuick = true;
     gate = false;
@@ -78,9 +78,10 @@ public:
   // sample rate update callback
   void sampleRateSet(double sr);
   bool gateIsOn() const { return gate; }
-  bool isBusy();
+  bool isBusy() const;
   void startNote(int note, float velocity);
   void stealNote(int note, float velocity);
+
   void stopNote();
   int getCurrentNote() const { return currentNote; }
   void renderNextSample(float& left, float& right, bool updateDests);

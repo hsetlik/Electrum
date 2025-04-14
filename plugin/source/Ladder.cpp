@@ -70,19 +70,19 @@ float TPTLadderNonLinear::processMono(float input, int channel) {
   auto S = (g3 * zState[channel][0]) + (g2 * zState[channel][1]) +
            (g * zState[channel][2]) + zState[channel][3];
   // 2. now we can find U (input of the low pass series)
-  float x = (input - k * S) / (1.0f + k * g4);
-  // 2.5 put x (u in the Zavalishin book) through a tanh function as a
-  // "cheap" means of applying saturation (p. 73)
-  x = std::tanhf(x);
+  float u = (input - k * S) / (1.0f + k * g4);
+  // 2.5 put u through a tanh function as a
+  // "cheap" means of applying saturation (p. 73 in the Zavalishin book)
+  u = std::tanhf(u);
   // 3. now we process each filter
-  float v;
+  float v, s;
   for (int i = 0; i < 4; ++i) {
-    auto& s = zState[channel][i];
-    v = (x - s) * bigG;
-    x = v + s;
-    zState[channel][i] = x + v;
+    s = zState[channel][i];
+    v = (u - s) * bigG;
+    u = v + s;
+    zState[channel][i] = u + v;
   }
-  return x;
+  return u;
 }
 
 void TPTLadderNonLinear::processStereo(float& left, float& right) {
