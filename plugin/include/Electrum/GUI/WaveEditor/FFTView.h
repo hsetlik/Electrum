@@ -7,7 +7,7 @@
 #define MAX_WARP_PTS 200
 #define DEFAULT_WARP_POINTS 30
 
-#define MIN_FFT_ZOOM 1.0f
+#define MIN_FFT_ZOOM 0.3f
 #define MAX_FFT_ZOOM 7.0f
 
 #define FFT_GRAPH_RES AUDIBLE_BINS

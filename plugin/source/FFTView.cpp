@@ -74,12 +74,16 @@ void FrameSpectrum::setZoomNorm(float v) {
 
 void FrameSpectrum::resized() {
   int height = std::max(getLocalBounds().getHeight(), 250);
-  const int width = (int)(currentZoom * (float)FFT_GRAPH_RES);
-  auto* parent = findParentComponentOfClass<FrameSpectrumViewer>();
+  int width = (int)(currentZoom * (float)FFT_GRAPH_RES);
+  auto* parent = findParentComponentOfClass<juce::Viewport>();
   if (parent != nullptr) {
-    auto _height = parent->getLocalBounds().getHeight();
-    if (_height >= height) {
-      height = _height;
+    height = parent->getMaximumVisibleHeight();
+    const int visWidth = parent->getMaximumVisibleWidth();
+    // ensure we can't zoom in so far that
+    // part of the viewport is empty
+    if (width < visWidth) {
+      width = visWidth;
+      currentZoom = (float)width / (float)FFT_GRAPH_RES;
     }
   }
   setSize(width, height);
