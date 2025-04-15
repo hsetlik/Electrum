@@ -1,60 +1,63 @@
 #include "Electrum/GUI/WaveEditor/FFTView.h"
+#include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
-static const float maxMag = juce::Decibels::decibelsToGain(1.0f);
-static const float midMag = juce::Decibels::decibelsToGain(-18.0f);
-static frange_t magRange = rangeWithCenter(0.0f, maxMag, midMag);
-
-static float yPosForBinMagnitude(const frect_t& rect, float mag) {
-  jassert(mag <= maxMag);
-  auto norm = magRange.convertTo0to1(mag);
-  return rect.getBottom() - (rect.getHeight() * norm);
-}
-
-static const float midBinIdx =
-    (float)AUDIBLE_BINS / juce::MathConstants<float>::pi;
-static frange_t binSkewRange =
-    rangeWithCenter(0.0f, (float)AUDIBLE_BINS, midBinIdx);
-
-static int binIdxForXPos(const frect_t& bounds, float xPos) {
-  auto norm = (xPos - bounds.getX()) / bounds.getWidth();
-  jassert(norm >= 0.0f && norm < 1.0f);
-  return (int)binSkewRange.convertFrom0to1(norm);
+static float getMagnitudeAtNormFreq(const bin_array_t& bins, float x) {
+  const float fBin = x * (float)(AUDIBLE_BINS - 1);
+  size_t bLow = AudioUtil::fastFloor64(fBin);
+  size_t bHigh = bLow + 1;
+  const float t = fBin - (float)bLow;
+  return flerp(bins[bLow].magnitude, bins[bHigh].magnitude, t);
 }
 
 //===================================================
-FFTView::FFTView(ValueTree& vt) : WaveEditListener(vt) {
-  auto child = waveTree.getChild(0);
-  jassert(child.isValid() && child.hasType(WaveEdit::WAVE_FRAME));
-  String waveStr = child[WaveEdit::frameStringData];
-  Wave::loadAudibleBins(waveStr, waveBins);
+FrameSpectrum::FrameSpectrum(ValueTree& vt) : WaveEditListener(vt) {
+  frameWasFocused(0);
 }
 
-void FFTView::frameWasFocused(int frame) {
-  if (isVisible()) {
+void FrameSpectrum::frameWasFocused(int frame) {
+  if (frame != currentFrame) {
+    binsReady = false;
+    currentFrame = frame;
     auto child = waveTree.getChild(frame);
     jassert(child.isValid() && child.hasType(WaveEdit::WAVE_FRAME));
     String waveStr = child[WaveEdit::frameStringData];
-    Wave::loadAudibleBins(waveStr, waveBins);
+    currentMaxMagnitude = Wave::loadAudibleBins(waveStr, loadedWaveBins, false);
+    // now find the median
+    float median = Wave::getMedianBinMagnitude(loadedWaveBins);
+    // and set up the y range
+    currentMagRange = rangeWithCenter(0.0f, currentMaxMagnitude, median);
+    binsReady = true;
     repaint();
   }
 }
 
-void FFTView::paint(juce::Graphics& g) {
+float FrameSpectrum::yPosForFreq(const frect_t& bounds, float fNorm) const {
+  if (!binsReady)
+    return bounds.getBottom();
+  float magnitude = getMagnitudeAtNormFreq(loadedWaveBins, fNorm);
+  if (!currentMagRange.getRange().contains(magnitude)) {
+    magnitude = currentMagRange.snapToLegalValue(magnitude);
+  }
+  const float yNorm = currentMagRange.convertTo0to1(magnitude);
+  return bounds.getBottom() - (yNorm * bounds.getHeight());
+}
+
+void FrameSpectrum::paint(juce::Graphics& g) {
   auto fBounds = getLocalBounds().toFloat();
   g.setColour(UIColor::windowBkgnd);
   g.fillRect(fBounds);
   juce::Path path;
-  path.startNewSubPath(0.0f, fBounds.getHeight());
-  const float dX = fBounds.getWidth() / (float)numMagPoints;
-  float x = 0.0f;
+  path.startNewSubPath(fBounds.getX(), fBounds.getBottom());
+  const float dX = fBounds.getWidth() / (float)FFT_GRAPH_RES;
+  float x = fBounds.getX();
   float y;
-  for (int i = 0; i < numMagPoints; ++i) {
-    auto b = binIdxForXPos(fBounds, x);
-    y = yPosForBinMagnitude(fBounds, waveBins[b].magnitude);
+  for (size_t i = 1; i < FFT_GRAPH_RES; ++i) {
+    const float xNorm = (float)i / (float)FFT_GRAPH_RES;
+    y = yPosForFreq(fBounds, xNorm);
     path.lineTo(x, y);
     x += dX;
   }
@@ -62,4 +65,54 @@ void FFTView::paint(juce::Graphics& g) {
   path.closeSubPath();
   g.setColour(Color::literalOrangeBright);
   g.fillPath(path);
+}
+
+void FrameSpectrum::setZoomNorm(float v) {
+  currentZoom = flerp(MIN_FFT_ZOOM, MAX_FFT_ZOOM, v);
+  resized();
+}
+
+void FrameSpectrum::resized() {
+  int height = std::max(getLocalBounds().getHeight(), 250);
+  const int width = (int)(currentZoom * (float)FFT_GRAPH_RES);
+  auto* parent = findParentComponentOfClass<FrameSpectrumViewer>();
+  if (parent != nullptr) {
+    auto _height = parent->getLocalBounds().getHeight();
+    if (_height >= height) {
+      height = _height;
+    }
+  }
+  setSize(width, height);
+}
+
+//===================================================
+
+FrameSpectrumViewer::FrameSpectrumViewer(ValueTree& vt) : spec(vt) {
+  // 1. set up the view port
+  vpt.setViewedComponent(&spec, false);
+  vpt.setViewPosition(0, 0);
+  vpt.setInterceptsMouseClicks(true, true);
+  addAndMakeVisible(vpt);
+  spec.resized();
+  // 2. set up the zoom slider
+  slider.setSliderStyle(juce::Slider::LinearVertical);
+  slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
+  slider.setRange(0.0, 1.0);
+  addAndMakeVisible(slider);
+  slider.onValueChange = [this]() {
+    const float zNorm = (float)slider.getValue();
+    spec.setZoomNorm(zNorm);
+  };
+}
+
+void FrameSpectrumViewer::resized() {
+  auto iBounds = getLocalBounds();
+  auto sBounds = iBounds.removeFromLeft(30);
+  slider.setBounds(sBounds);
+  vpt.setBounds(iBounds);
+}
+void FrameSpectrumViewer::paint(juce::Graphics& g) {
+  auto fBounds = getLocalBounds().toFloat();
+  g.setColour(UIColor::menuBkgnd);
+  g.fillRect(fBounds);
 }

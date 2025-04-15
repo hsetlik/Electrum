@@ -1,4 +1,5 @@
 #include "Electrum/Audio/Wavetable.h"
+#include <algorithm>
 #include <limits>
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Common.h"
@@ -72,8 +73,42 @@ void inverseFFT(float* data) {
   static FFTProc fft(WAVE_FFT_ORDER);
   fft.performRealOnlyInverseTransform(data);
 }
+//
+// static void s_analyzeGainDistribution(bin_array_t& data, float maxMagnitude)
+// {
+//   std::array<float, AUDIBLE_BINS> binGains = {};
+//   for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+//     binGains[i] = data[i].magnitude / maxMagnitude;
+//   }
+//   std::sort(binGains.begin(), binGains.end());
+//   float medianGain = binGains[AUDIBLE_BINS / 2];
+//   float medianDb = juce::Decibels::gainToDecibels(medianGain);
+//   DLog::log("Medain gain is " + juce::Decibels::toString(medianDb));
+// }
+//
+float getMedianBinMagnitude(const bin_array_t& bins) {
+  std::array<float, AUDIBLE_BINS> binMags = {};
+  for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+    binMags[i] = bins[i].magnitude;
+  }
+  std::sort(binMags.begin(), binMags.end());
+  return binMags[AUDIBLE_BINS / 2];
+}
 
-void loadAudibleBins(const String& wave, freq_bin_t* bins) {
+std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window) {
+  std::vector<float> vec = {};
+  float currentSum = 0.0f;
+  for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+    currentSum += bins[i].magnitude;
+    if (i % (size_t)window == 0) {
+      vec.push_back(currentSum / (float)window);
+      currentSum = 0.0f;
+    }
+  }
+  return vec;
+}
+
+float loadAudibleBins(const String& wave, bin_array_t& bins, bool normalize) {
   float temp[TABLE_SIZE * 2] = {};
   float real[TABLE_SIZE];
   stringDecodeWave(wave, real);
@@ -84,9 +119,13 @@ void loadAudibleBins(const String& wave, freq_bin_t* bins) {
   // 1. forward FFT
   forwardFFT(temp);
   auto* complex = reinterpret_cast<std::complex<float>*>(temp);
+  // 2. zero out DC and Nyquist
+  // complex[0] = std::complex(0.0f, 0.0f);
+  complex[TABLE_SIZE >> 1] = std::complex(0.0f, 0.0f);
+
   // iterate over the audible half of the complex wave
   float maxMag = 1.0f;
-  for (int i = 0; i < AUDIBLE_BINS; ++i) {
+  for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
     const float mag = (float)std::abs(complex[i]);
     bins[i].magnitude = mag;
     if (maxMag < mag) {
@@ -94,9 +133,20 @@ void loadAudibleBins(const String& wave, freq_bin_t* bins) {
     }
     bins[i].phase = std::arg(complex[i]);
   }
-  for (int i = 0; i < AUDIBLE_BINS; ++i) {
-    bins[i].magnitude /= maxMag;
+  // s_analyzeGainDistribution(bins, maxMag);
+  if (normalize) {
+    //    float gainSum = 0.0f;
+    float lGain;
+    for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+      lGain = bins[i].magnitude / maxMag;
+      // gainSum += lGain;
+      bins[i].magnitude = lGain;
+    }
+    // const float meanGain = gainSum / (float)AUDIBLE_BINS;
+    // const float meanDb = juce::Decibels::gainToDecibels(meanGain);
+    // DLog::log("Mean bin gain is " + juce::Decibels::toString(meanDb));
   }
+  return maxMag;
 }
 
 String audibleBinsToWaveString(freq_bin_t* bins) {

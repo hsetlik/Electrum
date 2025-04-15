@@ -13,7 +13,7 @@ WaveViewerTabs::WaveViewerTabs(ValueTree& vt)
     : juce::TabbedComponent(TabPositionE::TabsAtBottom) {
   auto col = UIColor::widgetBkgnd;
   addTab("Time", col, new TimeView(vt), true);
-  addTab("FFT", col, new FFTView(vt), true);
+  addTab("FFT", col, new FrameSpectrumViewer(vt), true);
 }
 
 //===================================================

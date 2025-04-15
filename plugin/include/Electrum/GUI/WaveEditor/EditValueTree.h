@@ -17,19 +17,22 @@ DECLARE_ID(frameStringData)
 
 // each WAVE_FRAME tree can have a number of children to represent
 // various edits
-DECLARE_ID(BIN_GAIN_PT)
-//
-DECLARE_ID(binIdx)
-DECLARE_ID(binGainDb)
+// the parent tree for a set of FFT edits
+DECLARE_ID(FFT_WARP)
+// the number of points for warping
+DECLARE_ID(fftWarpPoints)
+// the child tree for each gain point
+DECLARE_ID(FFT_GAIN_POINT)
+// the position of the point(normalized relative to the # of audible bins)
+DECLARE_ID(gainPointFrequency)
+// this point's magnitude
+DECLARE_ID(gainPointMagnitude)
 
 DECLARE_ID(RAND_PHASES)
 
 #undef DECLARE_ID
 // get the raw WAVETABLE tree for the wave file with a given name
 ValueTree getWavetableTree(const String& name);
-
-// parse the top-level WAVETABLE tree into a metadata object for
-// saving and validating
 
 // just add up all the strings for the full Wavetable
 String getFullWavetableString(const ValueTree& tree);

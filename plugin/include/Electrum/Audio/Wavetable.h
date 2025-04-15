@@ -35,6 +35,8 @@ struct freq_bin_t {
   float phase = 0.0f;
 };
 
+typedef std::array<freq_bin_t, AUDIBLE_BINS> bin_array_t;
+
 typedef std::array<banded_wave_t, WAVES_PER_TABLE> banded_wave_set;
 
 // transforms and utilities full-spectrum waves---------------------------
@@ -45,8 +47,13 @@ void randomizePhasesComplex(std::complex<float>* freqDomain,
 void forwardFFT(float* data);
 void inverseFFT(float* data);
 // load the audible bins from the wave (in string form) into
-// the provided array of frequency bins
-void loadAudibleBins(const String& wave, freq_bin_t* bins);
+// the provided array of frequency bins. returns the magnitude of the loudest
+// bin
+float loadAudibleBins(const String& wave,
+                      bin_array_t& bins,
+                      bool normalize = true);
+float getMedianBinMagnitude(const bin_array_t& bins);
+std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window);
 String audibleBinsToWaveString(freq_bin_t* bins);
 // Some handy frequency domain stuff
 float getBinMagnitude(float* data, int bin);
