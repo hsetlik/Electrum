@@ -9,7 +9,7 @@
 
 class WarpPoint {
 public:
-  const float normFreq;
+  float normFreq;
   const float originalMag;
   float warpedMag;
   WarpPoint(float nf, float mag) : normFreq(nf), originalMag(mag) {
@@ -19,22 +19,21 @@ public:
 
 #define MIN_FFT_ZOOM 0.3f
 #define MAX_FFT_ZOOM 7.0f
+#define MAX_CLICK_DISTANCE 6.0f
 class FrameWarp;
-#define FFT_GRAPH_RES AUDIBLE_BINS
-class FrameSpectrum : public WaveEditListener {
+#define FFT_GRAPH_RES 512
+#define WAVE_UPDATE_HZ 2
+class FrameSpectrum : public WaveEditListener, public juce::Timer {
   static constexpr int minWidth = FFT_GRAPH_RES;
   bin_array_t loadedWaveBins;
   bin_array_t warpWaveBins;
   bool binsReady = false;
+  bool warpUpdateNeeded = false;
   frange_t currentMagRange;
   int warpPoints = -1;
   int currentFrame = -1;
   float currentMaxMagnitude = 0.0f;
-  float currentMedianMag = 0.04f;
   float currentZoom = 1.0f;
-  bool currentHasWarp = false;
-  float yPosAtFreq(const frect_t& bounds, float fNorm) const;
-  fpoint_t warpPointToCanvas(const frect_t& bounds, WarpPoint* p);
 
 public:
   FrameSpectrum(ValueTree& vt);
@@ -43,12 +42,28 @@ public:
   void setNumWarpPoints(int points);
   void frameWasFocused(int idx) override;
   void paint(juce::Graphics& g) override;
+  void timerCallback() override;
   void resized() override;
+  // mouse callbacks
+  void mouseDown(const juce::MouseEvent& m) override;
+  void mouseUp(const juce::MouseEvent& m) override;
+  void mouseDoubleClick(const juce::MouseEvent& m) override;
+  void mouseDrag(const juce::MouseEvent& m) override;
+
   friend class FrameWarp;
 
 private:
   std::unique_ptr<FrameWarp> warp;
-  // helpers for initializing/changing the warp points
+  WarpPoint* selectedPoint = nullptr;
+  // internal warp point logic
+  float yPosLoaded(const frect_t& bounds, float fNorm) const;
+  float yPosWarped(const frect_t& bounds, float fNorm) const;
+  // the main point/parameter mapping functions
+  float yPosForMag(const frect_t& bounds, float magnitude) const;
+  float magForYPos(const frect_t& bounds, float yPos) const;
+  fpoint_t warpPointToCanvas(const frect_t& bounds, WarpPoint* p);
+  // checks if the point is on the edge of the graph
+  bool isNearEditLine(const frect_t& bounds, fpoint_t point);
 };
 //===============================================
 // this guy keeps track of all our edits to the the spectrum,
@@ -61,7 +76,20 @@ private:
   void sortEditPoints();
 
 public:
+  int numEditPoints() const { return (int)editPoints.size(); }
+  WarpPoint* getEditPoint(int idx) { return editPoints[(size_t)idx]; }
   FrameWarp(FrameSpectrum* p);
+  // the parent should call this to update its 'warpWaveBins'.
+  // this is where the main spectral warping happens
+  void updateWarpBins(const bin_array_t& loaded, bin_array_t& warped);
+  // returns the legal WarpPoint at the given point or nullptr if there is none
+  WarpPoint* getPointNear(const frect_t& bounds, const fpoint_t& point);
+  // lets the parent know whether a WarpPoint can legally be moved to this
+  // frequency
+  bool canMoveTo(WarpPoint* pt, float freq);
+  // create a new warp point at the given frequency/magnitude
+  void createWarpPoint(float nFreq, float mag);
+  void removeWarpPoint(WarpPoint* pt);
 };
 
 //=============================================
