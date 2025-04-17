@@ -95,6 +95,15 @@ float getMedianBinMagnitude(const bin_array_t& bins) {
   return binMags[AUDIBLE_BINS / 2];
 }
 
+float getMagnitudeAtNormFrequency(const bin_array_t& bins, float freq) {
+  const float fBin = freq * (float)AUDIBLE_BINS;
+  const size_t bLow = AudioUtil::fastFloor64(fBin);
+  const size_t bHigh = bLow + 1;
+  jassert(bLow >= 0 && bHigh < AUDIBLE_BINS);
+  const float t = fBin - (float)bLow;
+  return flerp(bins[bLow].magnitude, bins[bHigh].magnitude, t);
+}
+
 std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window) {
   std::vector<float> vec = {};
   float currentSum = 0.0f;

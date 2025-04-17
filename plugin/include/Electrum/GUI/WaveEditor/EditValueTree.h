@@ -19,8 +19,6 @@ DECLARE_ID(frameStringData)
 // various edits
 // the parent tree for a set of FFT edits
 DECLARE_ID(FFT_WARP)
-// the number of points for warping
-DECLARE_ID(fftWarpPoints)
 // the child tree for each gain point
 DECLARE_ID(FFT_GAIN_POINT)
 // the position of the point(normalized relative to the # of audible bins)

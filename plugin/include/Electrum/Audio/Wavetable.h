@@ -51,8 +51,9 @@ void inverseFFT(float* data);
 // bin
 float loadAudibleBins(const String& wave,
                       bin_array_t& bins,
-                      bool normalize = true);
+                      bool normalize = false);
 float getMedianBinMagnitude(const bin_array_t& bins);
+float getMagnitudeAtNormFrequency(const bin_array_t& bins, float freq);
 std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window);
 String audibleBinsToWaveString(freq_bin_t* bins);
 // Some handy frequency domain stuff
