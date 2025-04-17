@@ -29,12 +29,12 @@ static float s_warpPointDistance(const warp_point_t& a, const warp_point_t& b) {
 
 //================================================
 
-FrameWarp::FrameWarp(ValueTree& vt) : pWaveTree(&vt) {
-  jassert(pWaveTree->hasType(WaveEdit::WAVE_FRAME));
+FrameWarp::FrameWarp(ValueTree& vt) : loadedWaveTree(vt.createCopy()) {
   // load the FFT data into our array
   String waveStr = vt[WaveEdit::frameStringData];
   const float magnitudeMax = Wave::loadAudibleBins(waveStr, savedBins);
   const float magnitudeMid = Wave::getMedianBinMagnitude(savedBins);
+  maxMagnitude = magnitudeMax;
   magnitudeRange = rangeWithCenter(0.0f, magnitudeMax, magnitudeMid);
 
   // copy these into the warped array to start
@@ -42,16 +42,17 @@ FrameWarp::FrameWarp(ValueTree& vt) : pWaveTree(&vt) {
     workingBins[i] = savedBins[i];
   }
   // add non-accessible start and end points
-  float startMag = Wave::getMagnitudeAtNormFrequency(savedBins, 0.0f);
-  float endMag = Wave::getMagnitudeAtNormFrequency(savedBins, 0.99999999f);
+  float startMag = Wave::getMagnitudeAtNormFrequency(savedBins, 0.000001f);
+  float endMag = Wave::getMagnitudeAtNormFrequency(savedBins, 0.9999f);
 
   points.push_back({0.0f, startMag});
-  points.push_back({0.99999999f, endMag});
+  points.push_back({0.9999f, endMag});
   // find and/or create the Warp child
-  auto child = pWaveTree->getChildWithName(WaveEdit::FFT_WARP);
+  auto child = loadedWaveTree.getChildWithName(WaveEdit::FFT_WARP);
   if (!child.isValid()) {
     ValueTree tWarp(WaveEdit::FFT_WARP);
-    pWaveTree->appendChild(tWarp, nullptr);
+    loadedWaveTree.appendChild(tWarp, nullptr);
+
   } else {
     for (auto it = child.begin(); it != child.end(); ++it) {
       auto pointTree = *it;
@@ -60,7 +61,7 @@ FrameWarp::FrameWarp(ValueTree& vt) : pWaveTree(&vt) {
   }
   // and as always make sure points are sorted by frequency
   sortPoints();
-  //
+  binsReady = true;
 }
 
 void FrameWarp::sortPoints() {
@@ -82,18 +83,24 @@ FrameWarp::neighbor_pair_t FrameWarp::getNeighborsForFreq(float freq) {
       return {&points[mid], &points[mid + 1]};
     }
     if (points[mid].frequency < freq) {
-      l = mid + 1;
-    } else if (points[mid].frequency > freq) {
-      r = mid - 1;
+      l = mid;
+    } else if (points[mid].frequency >= freq) {
+      r = mid;
     }
   }
   jassert(false);
   return {&points[0], &points[1]};
 }
 
+// TODO: we probably need to pass a magnitude value here,
+//  we definitely need to make sure the proposed warp point
+//  isn't super close to an existing one
 void FrameWarp::createWarpPoint(float normFreq) {
+  if (!binsReady)
+    return;
   float mag;
   if (points.size() < 3) {
+    jassert(points.size() > 0);
     mag = Wave::getMagnitudeAtNormFrequency(savedBins, normFreq);
   } else {
     mag = Wave::getMagnitudeAtNormFrequency(workingBins, normFreq);
@@ -103,7 +110,6 @@ void FrameWarp::createWarpPoint(float normFreq) {
   points.push_back(pt);
   auto vt = warp_point_t::toValueTree(pt);
   getWarpTree().appendChild(vt, nullptr);
-  points.push_back(pt);
   sortPoints();
   triggerAsyncUpdate();
 }
@@ -115,7 +121,7 @@ bool FrameWarp::isNearEditLine(float normMagnitude, float freq) const {
   } else {
     editMag = Wave::getMagnitudeAtNormFrequency(workingBins, freq);
   }
-  float editMagNorm = magnitudeRange.convertTo0to1(editMag);
+  float editMagNorm = inMagRange(editMag);
   static const float maxDistance = 1.0f / 15.0f;
   return std::fabs(normMagnitude - editMagNorm) <= maxDistance;
 }
@@ -158,16 +164,16 @@ void FrameWarp::placePoint(warp_point_t* point,
                            float normMagnitude,
                            float freq) {
   point->frequency = freq;
-  point->magnitude = magnitudeRange.convertFrom0to1(normMagnitude);
+  point->magnitude = inMagRange(normMagnitude);
   triggerAsyncUpdate();
 }
 
 warp_point_t* FrameWarp::editablePointNear(float normMagnitude, float freq) {
   auto n = getNeighborsForFreq(freq);
-  const float mag = magnitudeRange.convertFrom0to1(normMagnitude);
+  const float mag = inMagRange(normMagnitude);
   const float rDist = s_warpPointDistance(*n.right, {freq, mag});
   const float lDist = s_warpPointDistance(*n.left, {freq, mag});
-  static const float clickDist = 1.0f / 15.0f;
+  static const float clickDist = 1.0f / 10.0f;
   warp_point_t* closer = (rDist < lDist) ? n.right : n.left;
   if (closer == &points[0] || closer == &points.back()) {
     return nullptr;
@@ -210,12 +216,12 @@ juce::Path FrameWarp::makeWindowedPath(const bin_array_t& bins,
   const size_t leftBin = AudioUtil::fastFloor64(fStartBin);
   float y0Norm;
   if (fequal(fStartBin, (float)leftBin)) {
-    y0Norm = magnitudeRange.convertTo0to1(bins[leftBin].magnitude);
+    y0Norm = inMagRange(bins[leftBin].magnitude);
   } else {
     size_t bin = leftBin + 1;
     jassert(bin < AUDIBLE_BINS);
-    auto leftNorm = magnitudeRange.convertTo0to1(bins[leftBin].magnitude);
-    auto binNorm = magnitudeRange.convertTo0to1(bins[bin].magnitude);
+    auto leftNorm = inMagRange(bins[leftBin].magnitude);
+    auto binNorm = inMagRange(bins[bin].magnitude);
     y0Norm = flerp(leftNorm, binNorm, fStartBin - (float)leftBin);
   }
   p.lineTo(imgBounds.getX(),
@@ -227,7 +233,7 @@ juce::Path FrameWarp::makeWindowedPath(const bin_array_t& bins,
   // 3. main loop to plot each of the visible bin points
   for (size_t b = leftBin + 1; b < rightBin; ++b) {
     float freq = (float)b / (float)AUDIBLE_BINS;
-    float yNorm = magnitudeRange.convertTo0to1(bins[b].magnitude);
+    float yNorm = inMagRange(bins[b].magnitude);
     float x = (freq - freqStart) * freqToXScale;
     p.lineTo(imgBounds.getX() + x,
              imgBounds.getBottom() - (imgBounds.getHeight() * yNorm));
@@ -239,11 +245,11 @@ juce::Path FrameWarp::makeWindowedPath(const bin_array_t& bins,
   if (fEndBin <= (float)rightBin) {
     // if the right bin is in frame, we can just draw it
     // normally
-    yNormEnd = magnitudeRange.convertTo0to1(bins[rightBin].magnitude);
+    yNormEnd = inMagRange(bins[rightBin].magnitude);
   } else {
     const size_t innerBin = rightBin - 1;
-    auto innerNorm = magnitudeRange.convertTo0to1(bins[innerBin].magnitude);
-    auto rightNorm = magnitudeRange.convertTo0to1(bins[rightBin].magnitude);
+    auto innerNorm = inMagRange(bins[innerBin].magnitude);
+    auto rightNorm = inMagRange(bins[rightBin].magnitude);
     yNormEnd = flerp(innerNorm, rightNorm, fEndBin - (float)innerBin);
   }
   p.lineTo(imgBounds.getRight(),
@@ -276,9 +282,9 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
                                float freqEnd,
                                warp_point_t* selectedPt) {
   // 1. find the first point above the start frequency;
-  const float freqToXScale = (freqEnd - freqStart);
+  const float freqToXScale = bounds.getWidth() / (freqEnd - freqStart);
   size_t rightIdx = 0;
-  while (points[rightIdx].frequency < freqStart) {
+  while (points[rightIdx].frequency <= freqStart) {
     ++rightIdx;
   }
   // 2. figure out if the first point is on screen or not
@@ -290,14 +296,13 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
   std::vector<warp_handle_t> handlePoints = {};
   if (points[leftIdx].frequency <= freqStart) {
     // we can draw the first point as normal
-    yNorm = magnitudeRange.convertTo0to1(points[leftIdx].magnitude);
+    yNorm = inMagRange(points[leftIdx].magnitude);
     fpoint_t pt = {x * freqToXScale,
                    bounds.getBottom() - (bounds.getHeight() * yNorm)};
     handlePoints.push_back({pt, &points[leftIdx] == selectedPt});
   } else {
-    const float nLeft = magnitudeRange.convertTo0to1(points[leftIdx].magnitude);
-    const float nRight =
-        magnitudeRange.convertTo0to1(points[rightIdx].magnitude);
+    const float nLeft = inMagRange(points[leftIdx].magnitude);
+    const float nRight = inMagRange(points[rightIdx].magnitude);
     const float t = (freqStart - points[leftIdx].frequency) /
                     (points[rightIdx].frequency - points[leftIdx].frequency);
     yNorm = flerp(nLeft, nRight, t);
@@ -307,7 +312,7 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
   // 3. add points in the visible range to this path and the handle array
   while (points[rightIdx].frequency <= freqEnd && rightIdx < points.size()) {
     x = (points[rightIdx].frequency - freqStart) * freqToXScale;
-    yNorm = magnitudeRange.convertTo0to1(points[rightIdx].magnitude);
+    yNorm = inMagRange(points[rightIdx].magnitude);
     fpoint_t pt = {x, bounds.getBottom() - (bounds.getHeight() * yNorm)};
     handlePoints.push_back({pt, &points[rightIdx] == selectedPt});
     p.lineTo(pt);
@@ -316,10 +321,8 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
   // 4. if we haven't already drawn the last point, do the y-intercept thing
   // again
   if (rightIdx < points.size()) {
-    const float nLeft =
-        magnitudeRange.convertTo0to1(points[rightIdx - 1].magnitude);
-    const float nRight =
-        magnitudeRange.convertTo0to1(points[rightIdx].magnitude);
+    const float nLeft = inMagRange(points[rightIdx - 1].magnitude);
+    const float nRight = inMagRange(points[rightIdx].magnitude);
     const float t =
         (freqEnd - points[rightIdx - 1].frequency) /
         (points[rightIdx].frequency - points[rightIdx - 1].frequency);
@@ -337,6 +340,10 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
   }
 }
 
+float FrameWarp::inMagRange(float mag) const {
+  mag = std::min(maxMagnitude, mag);
+  return magnitudeRange.convertTo0to1(mag);
+}
 void FrameWarp::drawSpectrumRange(juce::Graphics& g,
                                   const frect_t& fBounds,
                                   float freqStart,
@@ -347,7 +354,7 @@ void FrameWarp::drawSpectrumRange(juce::Graphics& g,
   g.fillRect(fBounds);
   //  2. draw the saved wave's spectrum
   auto savedPath = makeWindowedPath(savedBins, freqStart, freqEnd, fBounds);
-  auto savedColor = Color::literalOrangePale.withAlpha(0.65f);
+  auto savedColor = Color::literalOrangeBright.withAlpha(0.85f);
   g.setColour(savedColor);
   g.fillPath(savedPath);
   // 3. if we have an active warp, draw the warped spectrum and the
@@ -355,7 +362,7 @@ void FrameWarp::drawSpectrumRange(juce::Graphics& g,
   if (points.size() > 2) {
     auto workingPath =
         makeWindowedPath(workingBins, freqStart, freqEnd, fBounds);
-    auto workingColor = Color::periwinkle.withAlpha(0.65f);
+    auto workingColor = Color::periwinkle.withAlpha(0.85f);
     g.setColour(workingColor);
     g.fillPath(workingPath);
     drawEditPoints(g, fBounds, freqStart, freqEnd, selectedPt);

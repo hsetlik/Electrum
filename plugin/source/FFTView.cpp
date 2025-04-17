@@ -8,30 +8,81 @@
 #include "juce_core/juce_core.h"
 
 // Mouse handling=============================================
-void FrameSpectrum::mouseDown(const juce::MouseEvent& m) {}
-
-void FrameSpectrum::mouseUp(const juce::MouseEvent&) {}
-
-void FrameSpectrum::mouseDrag(const juce::MouseEvent& m) {}
-
-void FrameSpectrum::mouseDoubleClick(const juce::MouseEvent& m) {}
-
-//===================================================
-static void s_drawEditHandle(juce::Graphics& g, fpoint_t center) {
-  frect_t rect;
-  rect.setCentre(center);
-  rect = rect.withSizeKeepingCentre(12.0f, 12.0f);
-  g.fillEllipse(rect);
+static float s_yToNormMag(const frect_t& bounds, float yPos) {
+  return (bounds.getBottom() - yPos) / bounds.getHeight();
+}
+void FrameSpectrum::mouseDown(const juce::MouseEvent& m) {
+  auto fBounds = getLocalBounds().toFloat();
+  const float nFreq = m.position.x / fBounds.getWidth();
+  const float nMag = s_yToNormMag(fBounds, m.position.y);
+  selectedPt = warp->editablePointNear(nMag, nFreq);
 }
 
-FrameSpectrum::FrameSpectrum(ValueTree& vt) : WaveEditListener(vt) {}
+void FrameSpectrum::mouseUp(const juce::MouseEvent& m) {
+  if (selectedPt != nullptr) {
+    auto fBounds = getLocalBounds().toFloat();
+    const float nFreq = m.position.x / fBounds.getWidth();
+    const float nMag = s_yToNormMag(fBounds, m.position.y);
+    if (warp->canPointHaveFrequency(selectedPt, nFreq)) {
+      warp->placePoint(selectedPt, nMag, nFreq);
+      refreshNeeded = true;
+    }
+    selectedPt = nullptr;
+  }
+}
+
+void FrameSpectrum::mouseDrag(const juce::MouseEvent& m) {
+  if (selectedPt != nullptr) {
+    auto fBounds = getLocalBounds().toFloat();
+    const float nFreq = m.position.x / fBounds.getWidth();
+    const float nMag = s_yToNormMag(fBounds, m.position.y);
+    if (warp->canPointHaveFrequency(selectedPt, nFreq)) {
+      warp->placePoint(selectedPt, nMag, nFreq);
+      refreshNeeded = true;
+    }
+  }
+}
+
+void FrameSpectrum::mouseDoubleClick(const juce::MouseEvent& m) {
+  auto fBounds = getLocalBounds().toFloat();
+  const float nFreq = m.position.x / fBounds.getWidth();
+  const float nMag = s_yToNormMag(fBounds, m.position.y);
+  auto* existing = warp->editablePointNear(nMag, nFreq);
+  if (existing != nullptr) {
+    warp->deletePoint(existing);
+    refreshNeeded = true;
+  } else if (warp->isNearEditLine(nMag, nFreq)) {
+    warp->createWarpPoint(nFreq);
+    refreshNeeded = true;
+  }
+}
+
+//===================================================
+
+FrameSpectrum::FrameSpectrum(ValueTree& vt)
+    : WaveEditListener(vt), warp(nullptr) {
+  setRepaintsOnMouseActivity(false);
+  frameWasFocused(0);
+  startTimerHz(SPECTRUM_REFRESH_HZ);
+}
 
 void FrameSpectrum::paint(juce::Graphics& g) {
-  // 1. fill the background
   auto fBounds = getLocalBounds().toFloat();
-  g.setColour(UIColor::windowBkgnd);
-  g.fillRect(fBounds);
   auto* vpt = findParentComponentOfClass<juce::Viewport>();
+  jassert(vpt != nullptr);
+  if (currentFrame > -1) {
+    auto viewBounds = vpt->getViewArea().toFloat();
+    const float startNorm = viewBounds.getX() / fBounds.getWidth();
+    const float endNorm = viewBounds.getRight() / fBounds.getWidth();
+    warp->drawSpectrumRange(g, viewBounds, startNorm, endNorm, selectedPt);
+  }
+  refreshNeeded = false;
+}
+
+void FrameSpectrum::timerCallback() {
+  if (refreshNeeded) {
+    repaint();
+  }
 }
 
 void FrameSpectrum::setZoomNorm(float v) {
@@ -57,8 +108,12 @@ void FrameSpectrum::resized() {
 }
 
 void FrameSpectrum::frameWasFocused(int frame) {
-  if (currentFrame != frame) {
+  if (currentFrame != frame && frame != -1) {
     currentFrame = frame;
+    auto frameTree = waveTree.getChild(currentFrame);
+    warp.reset(new FrameWarp(frameTree));
+    resized();
+    refreshNeeded = true;
   }
 }
 
@@ -69,6 +124,7 @@ FrameSpectrumViewer::FrameSpectrumViewer(ValueTree& vt) : spec(vt) {
   vpt.setViewedComponent(&spec, false);
   vpt.setViewPosition(0, 0);
   vpt.setInterceptsMouseClicks(true, true);
+  vpt.setRepaintsOnMouseActivity(true);
   addAndMakeVisible(vpt);
   spec.resized();
   // 2. set up the zoom slider

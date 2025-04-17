@@ -96,12 +96,18 @@ float getMedianBinMagnitude(const bin_array_t& bins) {
 }
 
 float getMagnitudeAtNormFrequency(const bin_array_t& bins, float freq) {
-  const float fBin = freq * (float)AUDIBLE_BINS;
+#ifndef NO_FREQUENCY_LERP
+  freq *= 0.999f;
+  const float fBin = freq * (float)(AUDIBLE_BINS - 1);
   const size_t bLow = AudioUtil::fastFloor64(fBin);
   const size_t bHigh = bLow + 1;
   jassert(bLow >= 0 && bHigh < AUDIBLE_BINS);
   const float t = fBin - (float)bLow;
   return flerp(bins[bLow].magnitude, bins[bHigh].magnitude, t);
+#else
+  size_t i = (size_t)(freq * (float)(AUDIBLE_BINS - 1));
+  return bins[i].magnitude;
+#endif
 }
 
 std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window) {
@@ -137,7 +143,7 @@ float loadAudibleBins(const String& wave, bin_array_t& bins, bool normalize) {
   for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
     const float mag = (float)std::abs(complex[i]);
     bins[i].magnitude = mag;
-    if (maxMag < mag) {
+    if (mag > maxMag) {
       maxMag = mag;
     }
     bins[i].phase = std::arg(complex[i]);

@@ -35,6 +35,8 @@ struct freq_bin_t {
   float phase = 0.0f;
 };
 
+// #define NO_FREQUENCY_LERP
+
 typedef std::array<freq_bin_t, AUDIBLE_BINS> bin_array_t;
 
 typedef std::array<banded_wave_t, WAVES_PER_TABLE> banded_wave_set;

@@ -25,19 +25,22 @@ private:
     warp_point_t* left;
     warp_point_t* right;
   };
+  bool binsReady = false;
   neighbor_pair_t getNeighborsForFreq(float freq);
-  ValueTree* const pWaveTree;
+  ValueTree loadedWaveTree;
   bin_array_t savedBins;
   bin_array_t workingBins;
   std::vector<warp_point_t> points;
+  float maxMagnitude = 1000.0f;
   frange_t magnitudeRange;
+  float inMagRange(float mag) const;
 
   void sortPoints();
 
 public:
   FrameWarp(ValueTree& vt);
   ValueTree getWarpTree() {
-    return pWaveTree->getChildWithName(WaveEdit::FFT_WARP);
+    return loadedWaveTree.getChildWithName(WaveEdit::FFT_WARP);
   }
   void handleAsyncUpdate() override;
   // the main functions for adding, editing, and removing warp points
