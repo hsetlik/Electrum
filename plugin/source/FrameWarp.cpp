@@ -31,6 +31,20 @@ static float s_warpPointDistance(const warp_point_t& a, const warp_point_t& b) {
   return std::sqrtf((dFreq * dFreq) + (dMag * dMag));
 }
 
+static std::array<float, AUDIBLE_BINS> s_genBinCenterFreqs() {
+  std::array<float, AUDIBLE_BINS> centers = {};
+  for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+    centers[i] = (float)i / (float)AUDIBLE_BINS;
+  }
+  return centers;
+}
+
+static std::array<float, AUDIBLE_BINS> binCenters = s_genBinCenterFreqs();
+static float snapToBinCenter(float nFreq) {
+  float fIdx = nFreq * (float)(AUDIBLE_BINS - 1);
+  return binCenters[(size_t)fIdx];
+}
+
 //================================================
 
 FrameWarp::FrameWarp(ValueTree& vt) : loadedWaveTree(vt.createCopy()) {
@@ -107,14 +121,17 @@ FrameWarp::neighbor_pair_t FrameWarp::getNeighborsForFreq(float freq) {
   return {&points[0], &points[1]};
 }
 
-// TODO: we probably need to pass a magnitude value here,
-//  we definitely need to make sure the proposed warp point
-//  isn't super close to an existing one
 void FrameWarp::createWarpPoint(float normMag, float normFreq) {
   if (!binsReady)
     return;
   const float mag = magnitudeRange.convertFrom0to1(normMag);
+  normFreq = snapToBinCenter(normFreq);
   warp_point_t pt{normFreq, mag};
+  const float minDistance = 1.0f / 25.0f;
+  for (auto& point : points) {
+    if (s_warpPointDistance(pt, point) < minDistance)
+      return;
+  }
   points.push_back(pt);
   auto vt = warp_point_t::toValueTree(pt);
   getWarpTree().appendChild(vt, nullptr);
@@ -184,7 +201,7 @@ void FrameWarp::placePoint(warp_point_t* point,
                            float normMagnitude,
                            float freq) {
   if (isMovementLegal(point, normMagnitude, freq)) {
-    point->frequency = freq;
+    point->frequency = snapToBinCenter(freq);
     point->magnitude = magnitudeRange.convertFrom0to1(normMagnitude);
     triggerAsyncUpdate();
   }
@@ -353,12 +370,51 @@ juce::Path FrameWarp::makeWindowedPath(const bin_array_t& bins,
   return p;
 }
 
+std::vector<bin_area_t> FrameWarp::getVisibleBinAreas(const bin_array_t& bins,
+                                                      float fStart,
+                                                      float fEnd,
+                                                      const frect_t& bounds) {
+  std::vector<bin_area_t> vec;
+  const float fStartBin = fStart * (float)(AUDIBLE_BINS - 1);
+  const float fEndBin = fEnd * (float)(AUDIBLE_BINS - 1);
+  const float binWidth = bounds.getWidth() / (fEndBin - fStartBin);
+  const size_t firstBin = AudioUtil::fastFloor64(fStartBin);
+  auto bin = firstBin;
+  while (binCenters[bin] < fEnd) {
+    float x = bounds.getX() + (((float)bin - fStartBin) * binWidth) -
+              (binWidth / 2.0f);
+    float magNorm = magnitudeToNorm(bins[bin].magnitude);
+    float height = bounds.getHeight() * magNorm;
+    frect_t binArea = {x, bounds.getBottom() - height, binWidth, height};
+    vec.push_back({binArea, bin});
+    ++bin;
+  }
+  return vec;
+}
+
 static void s_drawWarpHandle(juce::Graphics& g,
                              const fpoint_t& center,
                              bool isSelected) {
   frect_t bounds;
   bounds.setCentre(center);
   static const float handleWidth = 13.0f;
+  bounds = bounds.withSizeKeepingCentre(handleWidth, handleWidth);
+  static color_t outline = Color::mintGreenPale.darker(0.5f);
+  static color_t fill = Color::mintGreenPale;
+  g.setColour(fill);
+  g.fillEllipse(bounds);
+  if (isSelected) {
+    g.setColour(outline);
+    g.drawEllipse(bounds, 2.5f);
+  }
+}
+
+static void s_drawWarpHandleScaled(juce::Graphics& g,
+                                   const fpoint_t& center,
+                                   bool isSelected,
+                                   float handleWidth) {
+  frect_t bounds;
+  bounds.setCentre(center);
   bounds = bounds.withSizeKeepingCentre(handleWidth, handleWidth);
   static color_t outline = Color::mintGreenPale.darker(0.5f);
   static color_t fill = Color::mintGreenPale;
@@ -432,10 +488,42 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
   // 5. stroke the line
   g.setColour(Color::mintGreenPale);
   juce::PathStrokeType pst(2.0f);
-  g.strokePath(p, pst);
-  // 6. draw the handles
+  // g.strokePath(p, pst);
+  //  6. draw the handles
+  const float fStartBin = freqStart * (float)(AUDIBLE_BINS - 1);
+  const float fEndBin = freqEnd * (float)(AUDIBLE_BINS - 1);
+  const float binWidth = bounds.getWidth() / (fEndBin - fStartBin);
   for (auto& h : handlePoints) {
-    s_drawWarpHandle(g, h.point, h.selected);
+    s_drawWarpHandleScaled(g, h.point, h.selected, binWidth);
+  }
+}
+
+void FrameWarp::drawBinsFixedColor(juce::Graphics& g,
+                                   const bin_array_t& bins,
+                                   const frect_t& bounds,
+                                   float fStart,
+                                   float fEnd,
+                                   const color_t& color) {
+  auto areas = getVisibleBinAreas(bins, fStart, fEnd, bounds);
+  g.setColour(color);
+  for (auto& a : areas) {
+    g.fillRect(a.bounds);
+  }
+}
+
+void FrameWarp::drawBinsPhaseColors(juce::Graphics& g,
+                                    const bin_array_t& bins,
+                                    const frect_t& bounds,
+                                    float fStart,
+                                    float fEnd) {
+  auto areas = getVisibleBinAreas(bins, fStart, fEnd, bounds);
+  auto colorA = Color::darkSeaGreen;
+  auto colorB = Color::literalOrangePale;
+  for (auto& a : areas) {
+    auto normPhase = bins[a.idx].phase / juce::MathConstants<float>::twoPi;
+    auto color = colorA.interpolatedWith(colorB, normPhase);
+    g.setColour(color);
+    g.fillRect(a.bounds);
   }
 }
 
@@ -451,19 +539,12 @@ void FrameWarp::drawSpectrumRange(juce::Graphics& g,
   // 1. fill the background
   g.setColour(UIColor::windowBkgnd);
   g.fillRect(fBounds);
-  //  2. draw the saved wave's spectrum
-  auto savedPath = makeWindowedPath(savedBins, freqStart, freqEnd, fBounds);
-  auto savedColor = Color::literalOrangeBright.withAlpha(0.85f);
-  g.setColour(savedColor);
-  g.fillPath(savedPath);
-  // 3. if we have an active warp, draw the warped spectrum and the
-  //  edit points
+  static color_t savedColor = Color::literalOrangePale.withAlpha(0.85f);
   if (points.size() > 2) {
-    auto workingPath =
-        makeWindowedPath(workingBins, freqStart, freqEnd, fBounds);
-    auto workingColor = Color::periwinkle.withAlpha(0.85f);
-    g.setColour(workingColor);
-    g.fillPath(workingPath);
+    drawBinsFixedColor(g, savedBins, fBounds, freqStart, freqEnd, savedColor);
+    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
     drawEditPoints(g, fBounds, freqStart, freqEnd, selectedPt);
+  } else {
+    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
   }
 }

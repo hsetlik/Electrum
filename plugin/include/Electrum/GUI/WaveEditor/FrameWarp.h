@@ -1,6 +1,7 @@
 #pragma once
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/GUITypedefs.h"
+#include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
 #include "Electrum/Identifiers.h"
 
@@ -13,6 +14,11 @@ struct warp_point_t {
   }
   static warp_point_t fromValueTree(const ValueTree& vt);
   static ValueTree toValueTree(const warp_point_t& point);
+};
+
+struct bin_area_t {
+  frect_t bounds;
+  size_t idx;
 };
 
 // this class holds all the state we need for
@@ -79,6 +85,32 @@ private:
                               float freqStart,
                               float freqEnd,
                               const frect_t& imgBounds);
+
+  std::vector<bin_area_t> getVisibleBinAreas(const bin_array_t& bins,
+                                             float fStart,
+                                             float fEnd,
+                                             const frect_t& bounds);
+  void drawBinsFixedColor(juce::Graphics& g,
+                          const bin_array_t& bins,
+                          const frect_t& bounds,
+                          float fStart,
+                          float fEnd,
+                          const color_t& color);
+  void drawBinsPhaseColors(juce::Graphics& g,
+                           const bin_array_t& bins,
+                           const frect_t& bounds,
+                           float fStart,
+                           float fEnd);
+  /*
+  if (points.size() > 2) {
+    drawBinsFixedColor(g, savedBins, fBounds, freqStart, freqEnd,
+                       Color::darkBlue);
+    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
+    drawEditPoints(g, fBounds, freqStart, freqEnd, selectedPt);
+  } else {
+    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
+  }
+   */
   struct warp_handle_t {
     fpoint_t point;
     bool selected;

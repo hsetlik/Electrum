@@ -41,7 +41,7 @@ void FrameSpectrum::mouseDoubleClick(const juce::MouseEvent& m) {
   auto fBounds = getLocalBounds().toFloat();
   const float nFreq = m.position.x / fBounds.getWidth();
   const float nMag = s_yToNormMag(fBounds, m.position.y);
-  auto* existing = warp->editablePointNear(nMag, nFreq);
+  auto* existing = warp->editablePointNear(fBounds, m.position);
   if (existing != nullptr) {
     warp->deletePoint(existing);
     refreshNeeded = true;
