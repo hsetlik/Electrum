@@ -13,9 +13,7 @@ static float s_yToNormMag(const frect_t& bounds, float yPos) {
 }
 void FrameSpectrum::mouseDown(const juce::MouseEvent& m) {
   auto fBounds = getLocalBounds().toFloat();
-  const float nFreq = m.position.x / fBounds.getWidth();
-  const float nMag = s_yToNormMag(fBounds, m.position.y);
-  selectedPt = warp->editablePointNear(nMag, nFreq);
+  selectedPt = warp->editablePointNear(fBounds, m.position);
 }
 
 void FrameSpectrum::mouseUp(const juce::MouseEvent& m) {
@@ -23,10 +21,8 @@ void FrameSpectrum::mouseUp(const juce::MouseEvent& m) {
     auto fBounds = getLocalBounds().toFloat();
     const float nFreq = m.position.x / fBounds.getWidth();
     const float nMag = s_yToNormMag(fBounds, m.position.y);
-    if (warp->canPointHaveFrequency(selectedPt, nFreq)) {
-      warp->placePoint(selectedPt, nMag, nFreq);
-      refreshNeeded = true;
-    }
+    warp->placePoint(selectedPt, nMag, nFreq);
+    refreshNeeded = true;
     selectedPt = nullptr;
   }
 }
@@ -36,10 +32,8 @@ void FrameSpectrum::mouseDrag(const juce::MouseEvent& m) {
     auto fBounds = getLocalBounds().toFloat();
     const float nFreq = m.position.x / fBounds.getWidth();
     const float nMag = s_yToNormMag(fBounds, m.position.y);
-    if (warp->canPointHaveFrequency(selectedPt, nFreq)) {
-      warp->placePoint(selectedPt, nMag, nFreq);
-      refreshNeeded = true;
-    }
+    warp->placePoint(selectedPt, nMag, nFreq);
+    refreshNeeded = true;
   }
 }
 
@@ -52,7 +46,7 @@ void FrameSpectrum::mouseDoubleClick(const juce::MouseEvent& m) {
     warp->deletePoint(existing);
     refreshNeeded = true;
   } else if (warp->isNearEditLine(nMag, nFreq)) {
-    warp->createWarpPoint(nFreq);
+    warp->createWarpPoint(nMag, nFreq);
     refreshNeeded = true;
   }
 }
@@ -76,12 +70,12 @@ void FrameSpectrum::paint(juce::Graphics& g) {
     const float endNorm = viewBounds.getRight() / fBounds.getWidth();
     warp->drawSpectrumRange(g, viewBounds, startNorm, endNorm, selectedPt);
   }
-  refreshNeeded = false;
 }
 
 void FrameSpectrum::timerCallback() {
   if (refreshNeeded) {
     repaint();
+    refreshNeeded = false;
   }
 }
 

@@ -21,6 +21,7 @@ struct warp_point_t {
 // selected
 class FrameWarp : juce::AsyncUpdater {
 private:
+  juce::CriticalSection criticalSection;
   struct neighbor_pair_t {
     warp_point_t* left;
     warp_point_t* right;
@@ -33,9 +34,18 @@ private:
   std::vector<warp_point_t> points;
   float maxMagnitude = 1000.0f;
   frange_t magnitudeRange;
-  float inMagRange(float mag) const;
+  float magnitudeToNorm(float mag) const;
 
   void sortPoints();
+
+  fpoint_t warpPointToBounds(const frect_t& bounds,
+                             const warp_point_t& wp) const;
+  size_t indexOf(warp_point_t* pt) const;
+
+  // this can replace the ugly external call to 'canPointHaveFrequency'
+  bool isMovementLegal(warp_point_t* pt, float normMagnitude, float freq) const;
+  // helper for actual warping
+  float getWarpedBinMagnitude(size_t leftPointIdx, size_t binIdx);
 
 public:
   FrameWarp(ValueTree& vt);
@@ -44,14 +54,16 @@ public:
   }
   void handleAsyncUpdate() override;
   // the main functions for adding, editing, and removing warp points
-  void createWarpPoint(float normFreq);
+  void createWarpPoint(float normMagnitude, float freq);
   // check if a point can be moved thusly
-  bool canPointHaveFrequency(warp_point_t* freq, float normFreq);
   void placePoint(warp_point_t* point, float normMagnitude, float freq);
   void deletePoint(warp_point_t* point);
   // returns either the editable point within some distance of this point, or
   // nullptr is there is none
   warp_point_t* editablePointNear(float normMagnitude, float freq);
+  warp_point_t* editablePointNear(const frect_t& bounds,
+                                  const fpoint_t& point,
+                                  float thresh = 5.0f);
   // mouse callbacks should use this when checking to create a
   // point
   bool isNearEditLine(float normMagnitude, float freq) const;
