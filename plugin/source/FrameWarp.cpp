@@ -45,6 +45,11 @@ static float snapToBinCenter(float nFreq) {
   return binCenters[(size_t)fIdx];
 }
 
+static size_t freqToBinIdx(float freq) {
+  float fIdx = freq * (float)(AUDIBLE_BINS - 1);
+  return (size_t)fIdx;
+}
+
 //================================================
 
 FrameWarp::FrameWarp(ValueTree& vt) : loadedWaveTree(vt.createCopy()) {
@@ -60,12 +65,7 @@ FrameWarp::FrameWarp(ValueTree& vt) : loadedWaveTree(vt.createCopy()) {
   for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
     workingBins[i] = savedBins[i];
   }
-  // add non-accessible start and end points
-  float startMag = Wave::getMagnitudeAtNormFrequency(savedBins, 0.0f);
-  float endMag = Wave::getMagnitudeAtNormFrequency(savedBins, 1.0f);
 
-  points.push_back({0.0f, startMag});
-  points.push_back({1.0f, endMag});
   // find and/or create the Warp child
   auto child = loadedWaveTree.getChildWithName(WaveEdit::FFT_WARP);
   if (!child.isValid()) {
@@ -88,39 +88,6 @@ void FrameWarp::sortPoints() {
             [](warp_point_t a, warp_point_t b) { return a < b; });
 }
 
-FrameWarp::neighbor_pair_t FrameWarp::getNeighborsForFreq(float freq) {
-  // if we haven't added any warping, this will always just be the first
-  // and last point
-  if (points.size() < 3)
-    return {&points[0], &points[1]};
-#ifndef NAIVE_NEIGHBORS
-  // otherwise we binary search
-  size_t l = 0;
-  size_t r = points.size() - 1;
-  while (l < r) {
-    size_t mid = l + ((r - l) / 2);
-    if (points[mid].frequency <= freq && points[mid + 1].frequency > freq) {
-      return {&points[mid], &points[mid + 1]};
-    }
-    if (points[mid].frequency < freq) {
-      l = mid;
-    } else if (points[mid].frequency >= freq) {
-      r = mid;
-    }
-  }
-#else
-  for (size_t i = 1; i < points.size(); ++i) {
-    auto* l = &points[i - 1];
-    auto* r = &points[i];
-    if (l->frequency < freq && r->frequency >= freq) {
-      return {l, r};
-    }
-  }
-#endif
-  jassert(false);
-  return {&points[0], &points[1]};
-}
-
 void FrameWarp::createWarpPoint(float normMag, float normFreq) {
   if (!binsReady)
     return;
@@ -141,7 +108,7 @@ void FrameWarp::createWarpPoint(float normMag, float normFreq) {
 
 bool FrameWarp::isNearEditLine(float normMagnitude, float freq) const {
   float editMag;
-  if (points.size() < 3) {
+  if (points.empty()) {
     editMag = Wave::getMagnitudeAtNormFrequency(savedBins, freq);
     jassert(magnitudeRange.getRange().contains(editMag));
   } else {
@@ -156,45 +123,15 @@ bool FrameWarp::isNearEditLine(float normMagnitude, float freq) const {
 void FrameWarp::handleAsyncUpdate() {
   juce::ScopedLock sl(criticalSection);
   // this is where the 'workingBins' values get updated
-  size_t leftIdx = 0;
-  if (points.size() > 2) {
-    size_t rightBin =
-        (size_t)(points[leftIdx + 1].frequency * (float)(AUDIBLE_BINS - 1));
+  if (!points.empty()) {
     for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
-      if (i > rightBin) {
-        ++leftIdx;
-        jassert((leftIdx + 1) < points.size());
-        rightBin =
-            (size_t)(points[leftIdx + 1].frequency * (float)(AUDIBLE_BINS - 1));
-      }
-      workingBins[i].magnitude = getWarpedBinMagnitude(leftIdx, i);
+      workingBins[i].magnitude = warpBinMagnitude(i);
     }
   } else {
     for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
       workingBins[i] = savedBins[i];
     }
   }
-}
-
-float FrameWarp::getWarpedBinMagnitude(size_t leftPointIdx, size_t binIdx) {
-  // 1. find the original magnitude of the point
-  const float savedMag = savedBins[binIdx].magnitude;
-  const float binFreq = (float)binIdx / (float)AUDIBLE_BINS;
-  // 2. find the bin indices for the two warp points
-  const size_t leftBin =
-      (size_t)(points[leftPointIdx].frequency * (float)(AUDIBLE_BINS - 1));
-  const size_t rightBin =
-      (size_t)(points[leftPointIdx + 1].frequency * (float)(AUDIBLE_BINS - 1));
-  const float t =
-      (binFreq - points[leftPointIdx].frequency) /
-      (points[leftPointIdx + 1].frequency - points[leftPointIdx].frequency);
-  // 2. find the gain at each point
-  const float lGain =
-      points[leftPointIdx].magnitude / savedBins[leftBin].magnitude;
-  const float rGain =
-      points[leftPointIdx + 1].magnitude / savedBins[rightBin].magnitude;
-  const float mag = savedMag * flerp(lGain, rGain, t);
-  return magnitudeRange.snapToLegalValue(mag);
 }
 
 void FrameWarp::placePoint(warp_point_t* point,
@@ -205,22 +142,6 @@ void FrameWarp::placePoint(warp_point_t* point,
     point->magnitude = magnitudeRange.convertFrom0to1(normMagnitude);
     triggerAsyncUpdate();
   }
-}
-
-warp_point_t* FrameWarp::editablePointNear(float normMagnitude, float freq) {
-  auto n = getNeighborsForFreq(freq);
-  const float mag = magnitudeToNorm(normMagnitude);
-  const float rDist = s_warpPointDistance(*n.right, {freq, mag});
-  const float lDist = s_warpPointDistance(*n.left, {freq, mag});
-  static const float clickDist = 1.0f / 10.0f;
-  warp_point_t* closer = (rDist < lDist) ? n.right : n.left;
-  if (closer == &points[0] || closer == &points.back()) {
-    return nullptr;
-  }
-  if (std::min(rDist, lDist) < clickDist) {
-    return closer;
-  }
-  return nullptr;
 }
 
 size_t FrameWarp::indexOf(warp_point_t* pt) const {
@@ -236,13 +157,7 @@ bool FrameWarp::isMovementLegal(warp_point_t* pt,
                                 float normMagnitude,
                                 float freq) const {
   auto idx = indexOf(pt);
-  if (idx == 0 || idx == (points.size() - 1))
-    return false;
-  auto& left = points[idx - 1];
-  auto& right = points[idx + 1];
-  if (freq < left.frequency || freq > right.frequency) {
-    return false;
-  }
+
   if (normMagnitude < 0.0f || normMagnitude > 1.0f)
     return false;
   return true;
@@ -256,25 +171,93 @@ fpoint_t FrameWarp::warpPointToBounds(const frect_t& bounds,
   return {xPos, yPos};
 }
 
+warp_point_t* FrameWarp::closestEditPoint(size_t bin) {
+  if (points.empty()) {
+    return nullptr;
+  }
+  const float binFreq = binCenters[bin];
+  // TODO: maybe binary search here
+  // but I'll brute force for now to see if it
+  //  works
+  warp_point_t* closest = &points[0];
+  float minDifference = 5000.0f;
+  for (auto& point : points) {
+    float diff = std::fabs(point.frequency - binFreq);
+    if (diff < minDifference) {
+      minDifference = diff;
+      closest = &point;
+    }
+  }
+  return closest;
+}
+
+size_t FrameWarp::minDistanceToNeutral(size_t ptIndex) {
+  // 1. find the neutral point below
+  size_t lNeutralBin;
+  if (ptIndex < 1) {
+    lNeutralBin = 0;
+  } else {
+    const float nFreq =
+        flerp(points[ptIndex - 1].frequency, points[ptIndex].frequency, 0.5f);
+    lNeutralBin = freqToBinIdx(nFreq);
+  }
+  // 2. find the neutral point above
+  size_t rNeutralBin;
+  if (ptIndex == points.size() - 1) {
+    rNeutralBin = AUDIBLE_BINS - 1;
+  } else {
+    const float nFreq =
+        flerp(points[ptIndex].frequency, points[ptIndex + 1].frequency, 0.5f);
+    rNeutralBin = freqToBinIdx(nFreq);
+  }
+  const size_t ptBin = freqToBinIdx(points[ptIndex].frequency);
+  const size_t lDist = ptBin - lNeutralBin;
+  const size_t rDist = rNeutralBin - ptBin;
+  return std::min<size_t>(lDist, rDist);
+}
+
+float FrameWarp::getInfluenceAmt(warp_point_t* point, size_t binIdx) {
+  jassert(point != nullptr);
+  const float binFreq = binCenters[binIdx];
+  // 1. If we's at the same bin as the edit point,
+  // the 'influence' is 100%
+  if (fequal(binFreq, point->frequency)) {
+    return 1.0f;
+  }
+
+  const size_t ptIndex = indexOf(point);
+  const float fPointBin = (float)freqToBinIdx(point->frequency);
+  const float fNeutralDist = (float)minDistanceToNeutral(ptIndex);
+  const float fBinDist = std::fabs((float)binIdx - fPointBin);
+  if (fBinDist >= fNeutralDist) {
+    return 0.0f;
+  }
+  return 1.0f - (fBinDist / fNeutralDist);
+}
+
+float FrameWarp::warpBinMagnitude(size_t binIdx) {
+  auto* editPoint = closestEditPoint(binIdx);
+  if (editPoint == nullptr) {
+    return savedBins[binIdx].magnitude;
+  } else {
+    const float warpAmt = getInfluenceAmt(editPoint, binIdx);
+    return flerp(savedBins[binIdx].magnitude, editPoint->magnitude, warpAmt);
+  }
+}
+
+//=====================================================================
+
 warp_point_t* FrameWarp::editablePointNear(const frect_t& bounds,
                                            const fpoint_t& point,
                                            float thresh) {
-  // 1. convert the point into frequency
-  const float clickFreq = (point.x - bounds.getX()) / bounds.getWidth();
-  // 2. find the neighbors
-  auto neighbors = getNeighborsForFreq(clickFreq);
-  // 3. check if each is legal, then translate back to bounds space and
-  // check the distance
-  if (neighbors.left != &points[0]) {
-    auto lPoint = warpPointToBounds(bounds, *neighbors.left);
-    if (point.getDistanceFrom(lPoint) < thresh) {
-      return neighbors.left;
-    }
-  }
-  if (neighbors.right != &points.back()) {
-    auto rPoint = warpPointToBounds(bounds, *neighbors.right);
-    if (point.getDistanceFrom(rPoint) < thresh) {
-      return neighbors.right;
+  // 1. we just just skip if we don't have any edit points
+  if (points.empty())
+    return nullptr;
+  // check the points to see what's closest
+  for (auto& p : points) {
+    auto uiPoint = warpPointToBounds(bounds, p);
+    if (uiPoint.getDistanceFrom(point) < thresh) {
+      return &p;
     }
   }
   return nullptr;
@@ -392,23 +375,6 @@ std::vector<bin_area_t> FrameWarp::getVisibleBinAreas(const bin_array_t& bins,
   return vec;
 }
 
-static void s_drawWarpHandle(juce::Graphics& g,
-                             const fpoint_t& center,
-                             bool isSelected) {
-  frect_t bounds;
-  bounds.setCentre(center);
-  static const float handleWidth = 13.0f;
-  bounds = bounds.withSizeKeepingCentre(handleWidth, handleWidth);
-  static color_t outline = Color::mintGreenPale.darker(0.5f);
-  static color_t fill = Color::mintGreenPale;
-  g.setColour(fill);
-  g.fillEllipse(bounds);
-  if (isSelected) {
-    g.setColour(outline);
-    g.drawEllipse(bounds, 2.5f);
-  }
-}
-
 static void s_drawWarpHandleScaled(juce::Graphics& g,
                                    const fpoint_t& center,
                                    bool isSelected,
@@ -433,61 +399,24 @@ void FrameWarp::drawEditPoints(juce::Graphics& g,
                                warp_point_t* selectedPt) {
   // 1. find the first point above the start frequency;
   const float freqToXScale = bounds.getWidth() / (freqEnd - freqStart);
-  size_t rightIdx = 0;
-  while (points[rightIdx].frequency <= freqStart) {
-    ++rightIdx;
-  }
+
   // 2. figure out if the first point is on screen or not
   juce::Path p;
-  jassert(rightIdx > 0);
-  size_t leftIdx = rightIdx - 1;
   float x = bounds.getX();
   float yNorm;
   std::vector<warp_handle_t> handlePoints = {};
-  if (points[leftIdx].frequency <= freqStart) {
-    // we can draw the first point as normal
-    yNorm = magnitudeToNorm(points[leftIdx].magnitude);
-    fpoint_t pt = {x * freqToXScale,
-                   bounds.getBottom() - (bounds.getHeight() * yNorm)};
-    handlePoints.push_back({pt, &points[leftIdx] == selectedPt});
-  } else {
-    jassert(magnitudeRange.getRange().contains(points[leftIdx].magnitude));
-    const float nLeft = magnitudeToNorm(points[leftIdx].magnitude);
-    jassert(magnitudeRange.getRange().contains(points[rightIdx].magnitude));
-    const float nRight = magnitudeToNorm(points[rightIdx].magnitude);
-    const float t = (freqStart - points[leftIdx].frequency) /
-                    (points[rightIdx].frequency - points[leftIdx].frequency);
-    yNorm = flerp(nLeft, nRight, t);
-  }
-  p.startNewSubPath(x * freqToXScale,
-                    bounds.getBottom() - (bounds.getHeight() * yNorm));
-  // 3. add points in the visible range to this path and the handle array
-  while (points[rightIdx].frequency <= freqEnd && rightIdx < points.size()) {
-    x = (points[rightIdx].frequency - freqStart) * freqToXScale;
-    jassert(magnitudeRange.getRange().contains(points[rightIdx].magnitude));
-    yNorm = magnitudeToNorm(points[rightIdx].magnitude);
-    fpoint_t pt = {x, bounds.getBottom() - (bounds.getHeight() * yNorm)};
-    handlePoints.push_back({pt, &points[rightIdx] == selectedPt});
-    p.lineTo(pt);
-    ++rightIdx;
-  }
-  // 4. if we haven't already drawn the last point, do the y-intercept thing
-  // again
-  if (rightIdx < points.size()) {
-    jassert(magnitudeRange.getRange().contains(points[rightIdx - 1].magnitude));
-    const float nLeft = magnitudeToNorm(points[rightIdx - 1].magnitude);
-    jassert(magnitudeRange.getRange().contains(points[rightIdx].magnitude));
-    const float nRight = magnitudeToNorm(points[rightIdx].magnitude);
-    const float t =
-        (freqEnd - points[rightIdx - 1].frequency) /
-        (points[rightIdx].frequency - points[rightIdx - 1].frequency);
-    yNorm = flerp(nLeft, nRight, t);
-    p.lineTo(bounds.getRight(),
-             bounds.getBottom() - (bounds.getHeight() * yNorm));
+
+  for (auto& point : points) {
+    if (point.frequency >= freqStart && point.frequency < freqEnd) {
+      x = (point.frequency - freqStart) * freqToXScale;
+      jassert(magnitudeRange.getRange().contains(point.magnitude));
+      yNorm = magnitudeToNorm(point.magnitude);
+      float y = bounds.getBottom() - (bounds.getHeight() * yNorm);
+      fpoint_t pCenter = {x, y};
+      handlePoints.push_back({pCenter, &point == selectedPt});
+    }
   }
   // 5. stroke the line
-  g.setColour(Color::mintGreenPale);
-  juce::PathStrokeType pst(2.0f);
   // g.strokePath(p, pst);
   //  6. draw the handles
   const float fStartBin = freqStart * (float)(AUDIBLE_BINS - 1);
@@ -540,7 +469,7 @@ void FrameWarp::drawSpectrumRange(juce::Graphics& g,
   g.setColour(UIColor::windowBkgnd);
   g.fillRect(fBounds);
   static color_t savedColor = Color::literalOrangePale.withAlpha(0.85f);
-  if (points.size() > 2) {
+  if (!points.empty()) {
     drawBinsFixedColor(g, savedBins, fBounds, freqStart, freqEnd, savedColor);
     drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
     drawEditPoints(g, fBounds, freqStart, freqEnd, selectedPt);

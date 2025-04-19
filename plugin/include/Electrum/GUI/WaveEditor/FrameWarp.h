@@ -28,12 +28,11 @@ struct bin_area_t {
 class FrameWarp : juce::AsyncUpdater {
 private:
   juce::CriticalSection criticalSection;
-  struct neighbor_pair_t {
-    warp_point_t* left;
-    warp_point_t* right;
+  struct bin_pair_t {
+    size_t low;
+    size_t high;
   };
   bool binsReady = false;
-  neighbor_pair_t getNeighborsForFreq(float freq);
   ValueTree loadedWaveTree;
   bin_array_t savedBins;
   bin_array_t workingBins;
@@ -50,8 +49,11 @@ private:
 
   // this can replace the ugly external call to 'canPointHaveFrequency'
   bool isMovementLegal(warp_point_t* pt, float normMagnitude, float freq) const;
+  warp_point_t* closestEditPoint(size_t bin);
+  float getInfluenceAmt(warp_point_t* point, size_t binIdx);
+  size_t minDistanceToNeutral(size_t pointIdx);
   // helper for actual warping
-  float getWarpedBinMagnitude(size_t leftPointIdx, size_t binIdx);
+  float warpBinMagnitude(size_t binIdx);
 
 public:
   FrameWarp(ValueTree& vt);
@@ -66,7 +68,6 @@ public:
   void deletePoint(warp_point_t* point);
   // returns either the editable point within some distance of this point, or
   // nullptr is there is none
-  warp_point_t* editablePointNear(float normMagnitude, float freq);
   warp_point_t* editablePointNear(const frect_t& bounds,
                                   const fpoint_t& point,
                                   float thresh = 5.0f);
@@ -101,16 +102,7 @@ private:
                            const frect_t& bounds,
                            float fStart,
                            float fEnd);
-  /*
-  if (points.size() > 2) {
-    drawBinsFixedColor(g, savedBins, fBounds, freqStart, freqEnd,
-                       Color::darkBlue);
-    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
-    drawEditPoints(g, fBounds, freqStart, freqEnd, selectedPt);
-  } else {
-    drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
-  }
-   */
+
   struct warp_handle_t {
     fpoint_t point;
     bool selected;
