@@ -16,6 +16,10 @@ public:
   ~WaveEditorContext() override { waveTree.removeListener(this); }
   void addListener(WaveEditListener* w);
   void removeListener(WaveEditListener* w);
+  // children can call this to find out which oscillator is selected
+  virtual int getSelectedOscID() = 0;
+  // the warp editor should call this on the parent to reload the selected osc
+  virtual void previewEditsOnOscillator() = 0;
 };
 
 //==================================================================
@@ -32,4 +36,5 @@ public:
   ~WaveEditListener() override;
   void parentHierarchyChanged() override;
   virtual void frameWasFocused(int) {}
+  virtual void waveTreeUpdateRequested() {}
 };

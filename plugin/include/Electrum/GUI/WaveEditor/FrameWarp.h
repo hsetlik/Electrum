@@ -57,9 +57,10 @@ private:
 
 public:
   FrameWarp(ValueTree& vt);
-  ValueTree getWarpTree() {
-    return loadedWaveTree.getChildWithName(WaveEdit::FFT_WARP);
-  }
+  // return the child tree of type FFT_WARP to be appended/repaced on
+  // a WAVE_FRAME parent
+  ValueTree getWarpTree(bool includeWaveString) const;
+
   void handleAsyncUpdate() override;
   // the main functions for adding, editing, and removing warp points
   void createWarpPoint(float normMagnitude, float freq);

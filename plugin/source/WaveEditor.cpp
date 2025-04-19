@@ -80,6 +80,30 @@ void WaveEditor::frameWasFocused(int frame) {
   p_setFocusedIndex(frame);
 }
 
+void WaveEditor::previewEditsOnOscillator() {
+  // 1. ask for listeners to update WaveTree
+  for (auto* w : watchers) {
+    w->waveTreeUpdateRequested();
+  }
+  //  2. add up the wave string for all the frames
+  String str = "";
+  for (auto it = waveTree.begin(); it != waveTree.end(); ++it) {
+    auto frame = *it;
+    jassert(frame.hasType(WaveEdit::WAVE_FRAME));
+    auto warp = frame.getChildWithName(WaveEdit::FFT_WARP);
+    String frameStr;
+    if (warp.isValid()) {
+      frameStr = warp[WaveEdit::warpedWaveStringData];
+      jassert(frameStr != "null");
+    } else {
+      frameStr = frame[WaveEdit::frameStringData];
+    }
+    str += frameStr;
+  }
+  // 3. re-load the oscillator with the new string
+  state->audioData.wOsc[oscID].loadWaveData(str);
+}
+
 void WaveEditor::resized() {
   auto fBounds = getLocalBounds().toFloat();
   auto bottomRow = fBounds.removeFromBottom(30.0f);

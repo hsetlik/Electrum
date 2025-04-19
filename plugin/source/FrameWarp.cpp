@@ -100,8 +100,6 @@ void FrameWarp::createWarpPoint(float normMag, float normFreq) {
       return;
   }
   points.push_back(pt);
-  auto vt = warp_point_t::toValueTree(pt);
-  getWarpTree().appendChild(vt, nullptr);
   sortPoints();
   triggerAsyncUpdate();
 }
@@ -476,4 +474,22 @@ void FrameWarp::drawSpectrumRange(juce::Graphics& g,
   } else {
     drawBinsPhaseColors(g, workingBins, fBounds, freqStart, freqEnd);
   }
+}
+
+//========================================================
+
+ValueTree FrameWarp::getWarpTree(bool includeWaveString) const {
+  ValueTree vt(WaveEdit::FFT_WARP);
+  // 1. inverse-fft to convert the 'workingBins' data back into a wave
+  String waveStr = "null";
+  if (includeWaveString) {
+    waveStr = Wave::binsToWaveString(workingBins);
+  }
+  vt.setProperty(WaveEdit::warpedWaveStringData, waveStr, nullptr);
+  // 2. append the children for each edit point
+  for (auto& p : points) {
+    auto child = warp_point_t::toValueTree(p);
+    vt.appendChild(child, nullptr);
+  }
+  return vt;
 }

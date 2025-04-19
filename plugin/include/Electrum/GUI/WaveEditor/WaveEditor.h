@@ -37,8 +37,10 @@ private:
 public:
   WaveEditor(ElectrumState* s, Wavetable* wt, int idx);
   ~WaveEditor() override;
+  int getSelectedOscID() override { return oscID; }
   void frameWasFocused(int frame) override;
   void resized() override;
   void textEditorTextChanged(juce::TextEditor& te) override;
   void paint(juce::Graphics& g) override;
+  void previewEditsOnOscillator() override;
 };

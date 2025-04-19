@@ -95,6 +95,16 @@ float getMedianBinMagnitude(const bin_array_t& bins) {
   return binMags[AUDIBLE_BINS / 2];
 }
 
+String binsToWaveString(const bin_array_t& bins) {
+  std::complex<float> temp[TABLE_SIZE] = {};
+  for (size_t i = 0; i < AUDIBLE_BINS; ++i) {
+    temp[i] = std::polar(bins[i].magnitude, bins[i].phase);
+  }
+  auto* real = reinterpret_cast<float*>(temp);
+  inverseFFT(real);
+  return stringEncodeWave(real);
+}
+
 float getMagnitudeAtNormFrequency(const bin_array_t& bins, float freq) {
 #ifndef NO_FREQUENCY_LERP
   freq *= 0.999f;

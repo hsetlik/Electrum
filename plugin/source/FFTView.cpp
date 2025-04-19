@@ -4,6 +4,7 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
@@ -23,6 +24,7 @@ void FrameSpectrum::mouseUp(const juce::MouseEvent& m) {
     const float nMag = s_yToNormMag(fBounds, m.position.y);
     warp->placePoint(selectedPt, nMag, nFreq);
     refreshNeeded = true;
+    waveTreeNeedsUpdate = true;
     selectedPt = nullptr;
   }
 }
@@ -34,6 +36,7 @@ void FrameSpectrum::mouseDrag(const juce::MouseEvent& m) {
     const float nMag = s_yToNormMag(fBounds, m.position.y);
     warp->placePoint(selectedPt, nMag, nFreq);
     refreshNeeded = true;
+    waveTreeNeedsUpdate = true;
   }
 }
 
@@ -45,9 +48,11 @@ void FrameSpectrum::mouseDoubleClick(const juce::MouseEvent& m) {
   if (existing != nullptr) {
     warp->deletePoint(existing);
     refreshNeeded = true;
+    waveTreeNeedsUpdate = true;
   } else if (warp->isNearEditLine(nMag, nFreq)) {
     warp->createWarpPoint(nMag, nFreq);
     refreshNeeded = true;
+    waveTreeNeedsUpdate = true;
   }
 }
 
@@ -76,6 +81,13 @@ void FrameSpectrum::timerCallback() {
   if (refreshNeeded) {
     repaint();
     refreshNeeded = false;
+  }
+  auto currentMs = juce::Time::getApproximateMillisecondCounter();
+  if ((currentMs - lastOscUpdateMs) > oscUpdateInterval && isVisible()) {
+    auto* context = findParentComponentOfClass<WaveEditorContext>();
+    if (context != nullptr) {
+      context->previewEditsOnOscillator();
+    }
   }
 }
 
@@ -108,6 +120,19 @@ void FrameSpectrum::frameWasFocused(int frame) {
     warp.reset(new FrameWarp(frameTree));
     resized();
     refreshNeeded = true;
+  }
+}
+
+void FrameSpectrum::waveTreeUpdateRequested() {
+  if (waveTreeNeedsUpdate) {
+    auto frame = waveTree.getChild(currentFrame);
+    auto oldWarpTree = waveTree.getChildWithName(WaveEdit::FFT_WARP);
+    if (oldWarpTree.isValid()) {
+      frame.removeChild(oldWarpTree, nullptr);
+    }
+    auto newChild = warp->getWarpTree(true);
+    frame.appendChild(newChild, nullptr);
+    waveTreeNeedsUpdate = false;
   }
 }
 

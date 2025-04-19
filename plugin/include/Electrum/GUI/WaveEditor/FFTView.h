@@ -32,11 +32,15 @@ private:
   warp_point_t* selectedPt = nullptr;
   bool refreshNeeded = true;
   std::unique_ptr<FrameWarp> warp;
+  bool waveTreeNeedsUpdate = true;
+  const uint32_t oscUpdateInterval = 1800;
+  uint32_t lastOscUpdateMs = 0;
 
 public:
   FrameSpectrum(ValueTree& vt);
   void setZoomNorm(float v);
   void frameWasFocused(int idx) override;
+  void waveTreeUpdateRequested() override;
   void paint(juce::Graphics& g) override;
   void resized() override;
   void timerCallback() override;
