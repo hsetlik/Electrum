@@ -15,6 +15,7 @@ class OscillatorPanel : public Component,
                         public ElectrumUserLib::Listener {
 private:
   ElectrumState* const state;
+  String selectedWaveName;
 
   // sliders
   DestinationSlider sCoarse;
@@ -24,7 +25,8 @@ private:
   DestinationSlider sPan;
 
   // graph
-  WavetableGraph graph;
+  // WavetableGraph graph;
+  std::unique_ptr<WavetableGraph> graph;
 
   // edit/display stuff
   juce::ComboBox wavetableCB;

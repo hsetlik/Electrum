@@ -91,6 +91,7 @@ public:
   // wave string stuff
   bool needsWavetableData() const { return needsWaveStrings; }
   bool wavetablesChanged() const { return waveStringsHaveChanged; }
+  void requestWavetableString(int) { needsWaveStrings = true; }
   void updateWavetableString(const String& wave, int oscID);
   String getWavetableString(int oscID) const noexcept {
     return waveStrings[(size_t)oscID];

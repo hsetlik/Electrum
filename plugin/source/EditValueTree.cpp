@@ -37,5 +37,20 @@ String getFullWavetableString(const ValueTree& tree) {
   return fullStr;
 }
 
+void saveEditsInWaveTree(ValueTree& wt) {
+  jassert(wt.hasType(WAVETABLE));
+  for (auto it = wt.begin(); it != wt.end(); ++it) {
+    auto frame = *it;
+    // check if the frame has a warp
+    auto warp = frame.getChildWithName(FFT_WARP);
+    if (warp.isValid()) {
+      String waveStr = warp[warpedWaveStringData];
+      jassert(waveStr != "null");
+      frame.setProperty(frameStringData, waveStr, nullptr);
+      frame.removeChild(warp, nullptr);
+    }
+  }
+}
+
 }  // namespace WaveEdit
 //===================================================

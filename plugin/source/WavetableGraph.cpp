@@ -172,6 +172,7 @@ void WavetableGraph::timerCallback() {
     auto str = state->graph.getWavetableString(oscID);
     updateVertices(str);
     updateVirtualVertices();
+    redrawBitmap();
     wavesReady = true;
   }
   repaint();

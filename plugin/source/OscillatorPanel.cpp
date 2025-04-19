@@ -15,18 +15,21 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
       sPos(s, (id * 5) + 2),
       sLevel(s, (id * 5) + 3),
       sPan(s, (id * 5) + 4),
-      graph(s, id),
+      graph(nullptr),
       oscID(id) {
+  graph.reset(new WavetableGraph(s, id));
   addAndMakeVisible(sCoarse);
   addAndMakeVisible(sFine);
   addAndMakeVisible(sPos);
   addAndMakeVisible(sLevel);
   addAndMakeVisible(sPan);
-  addAndMakeVisible(graph);
+  addAndMakeVisible(graph.get());
   addAndMakeVisible(powerBtn);
   // now set up the comboBox and Listener
-  wavetableCB.addItemList(state->userLib.getAvailableWaveNames(), 1);
+  auto waveNames = state->userLib.getAvailableWaveNames();
+  wavetableCB.addItemList(waveNames, 1);
   wavetableCB.setSelectedItemIndex(0);
+  selectedWaveName = waveNames[0];
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
 
@@ -50,10 +53,17 @@ OscillatorPanel::~OscillatorPanel() {
 void OscillatorPanel::waveWasSaved(wave_meta_t* w) {
   int newID = wavetableCB.getNumItems() + 1;
   wavetableCB.addItem(w->name, newID);
-  wavetableCB.setSelectedId(newID);
+  resized();
 }
+
 void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
-  jassert(cb == &wavetableCB);
+  String newWaveName = cb->getText();
+  if (newWaveName != selectedWaveName) {
+    state->state.setProperty(ID::oscWavePath, newWaveName, nullptr);
+    selectedWaveName = newWaveName;
+    state->graph.requestWavetableString(oscID);
+    resized();
+  }
 }
 
 void OscillatorPanel::resized() {
@@ -75,7 +85,7 @@ void OscillatorPanel::resized() {
   wavetableCB.setBounds(editBounds.reduced(3.0f).toNearestInt());
   editBtn.setBounds(editButtonBounds.toNearestInt());
   auto graphBounds = remaining.toNearestInt();
-  graph.setBounds(graphBounds);
+  graph->setBounds(graphBounds);
 }
 
 void OscillatorPanel::paint(juce::Graphics& g) {

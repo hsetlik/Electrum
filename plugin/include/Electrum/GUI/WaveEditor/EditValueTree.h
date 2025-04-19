@@ -32,6 +32,8 @@ DECLARE_ID(RAND_PHASES)
 #undef DECLARE_ID
 // get the raw WAVETABLE tree for the wave file with a given name
 ValueTree getWavetableTree(const String& name);
+// re-compute the main wave strings and remove all the editing-related children
+void saveEditsInWaveTree(ValueTree& wt);
 
 // just add up all the strings for the full Wavetable
 String getFullWavetableString(const ValueTree& tree);

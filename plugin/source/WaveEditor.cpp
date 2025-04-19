@@ -53,6 +53,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   // 5. button and listener attachments
   saveBtn.setEnabled(state->userLib.validateWaveData(&waveMeta));
   saveBtn.onClick = [this]() {
+    WaveEdit::saveEditsInWaveTree(waveTree);
     auto fullStr = WaveEdit::getFullWavetableString(waveTree);
     jassert(state->userLib.attemptWaveSave(waveMeta, fullStr));
     ModalParent::exitModalView(this);
