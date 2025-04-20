@@ -2,6 +2,7 @@
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/FileSystem.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 ModMap::ModMap() {
   for (auto& dest : depthArr) {
@@ -132,6 +133,10 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
   for (int i = 0; i < MOD_DESTS; ++i) {
     modDestRanges[i] = getParameterRange(paramIDForModDest(i));
   }
+  // 2. make sure our waveIndex array doesn't have garbage
+  for (size_t i = 0; i < NUM_OSCILLATORS; ++i) {
+    lastWaveIndices[i] = 0;
+  }
 }
 
 float ElectrumState::getModulatedDestValue(int destID,
@@ -205,6 +210,7 @@ void ElectrumState::updateCommonAudioData() {
     String iStr(i);
     // 1. figure out the IDs
     const String posID = ID::oscillatorPos.toString() + iStr;
+    const String waveID = ID::oscillatorWaveIndex.toString() + iStr;
     const String levelID = ID::oscillatorLevel.toString() + iStr;
     const String coarseID = ID::oscillatorCoarseTune.toString() + iStr;
     const String fineID = ID::oscillatorFineTune.toString() + iStr;
@@ -217,6 +223,15 @@ void ElectrumState::updateCommonAudioData() {
     const float _coarse = getRawParameterValue(coarseID)->load();
     const float _fine = getRawParameterValue(fineID)->load();
     const float _pan = getRawParameterValue(panID)->load();
+    const int _waveIdx = (int)getRawParameterValue(waveID)->load();
+    // 3. replace the wavetable data if needed
+    if (_waveIdx != lastWaveIndices[(size_t)i]) {
+      lastWaveIndices[(size_t)i] = _waveIdx;
+      auto* data = userLib.getWavetableData((int)_waveIdx);
+      jassert(data != nullptr);
+      auto waveStr = UserFiles::loadTableStringForWave(data->name);
+      audioData.wOsc[i].loadWaveData(waveStr);
+    }
     // 3. assign to the DSP objects
     audioData.wOsc[i].setPos(_pos);
     audioData.wOsc[i].setActive(_active);

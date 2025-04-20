@@ -61,6 +61,8 @@ std::vector<float> getMeanMagnitudes(const bin_array_t& bins, int window);
 String audibleBinsToWaveString(freq_bin_t* bins);
 // Some handy frequency domain stuff
 float getBinMagnitude(float* data, int bin);
+// this guy helps us initialize the factory wave files
+String getDefaultTableString(int idx);
 }  // namespace Wave
 
 //------------------------------------------------------------------------

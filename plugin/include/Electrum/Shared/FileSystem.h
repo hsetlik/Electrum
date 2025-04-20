@@ -55,6 +55,7 @@ bool isValidWave(const File& file);
 // save a patch. returns success or failure
 bool attemptPatchSave(ValueTree& state);
 bool attemptWaveSave(const wave_meta_t& wave, const String& waveString);
+String loadTableStringForWave(const String& name);
 
 // this should run on startup to
 // save the list of patches on the system
@@ -96,6 +97,7 @@ public:
   patch_meta_t* getPatchAtIndex(int index);
   patch_meta_t* getPatch(const String& name);
   wave_meta_t* getWavetableData(const String& name);
+  wave_meta_t* getWavetableData(int index);
   juce::StringArray getAvailableWaveNames() const;
   // wave getters
 

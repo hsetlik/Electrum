@@ -6,6 +6,76 @@
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_core/juce_core.h"
 
+//===================================================
+
+// some basic wave shape generation for the default
+// waves
+static std::array<float, TABLE_SIZE> genTriangleWave() {
+  std::array<float, TABLE_SIZE> arr;
+  const float dY = 2.0f / ((float)TABLE_SIZE / 2.0f);
+  float val = -1.0f;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    if (i < (TABLE_SIZE / 2)) {
+      val += dY;
+    } else {
+      val -= dY;
+    }
+    arr[i] = val;
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> genSineWave() {
+  std::array<float, TABLE_SIZE> arr;
+  constexpr float dPhase =
+      juce::MathConstants<float>::twoPi / (float)TABLE_SIZE;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    arr[i] = std::sinf(dPhase * (float)i);
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> getSawWave() {
+  std::array<float, TABLE_SIZE> arr;
+  const float dY = 2.0f / (float)TABLE_SIZE;
+
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    arr[i] = -1.0f + (dY * (float)i);
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> getPWMWave(float pulseWidth) {
+  const size_t downStart =
+      (size_t)((1.0f - pulseWidth) * (float)(TABLE_SIZE - 1));
+  const float vChange = 2.0f / 10.0f;
+  float value = -1.0f;
+  std::array<float, TABLE_SIZE> arr;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    if (i > downStart) {
+      value = std::min(value + vChange, 1.0f);
+    }
+    arr[i] = value;
+  }
+  return arr;
+}
+
+static std::array<float, TABLE_SIZE> getRampNormalized(float width) {
+  std::array<float, TABLE_SIZE> arr;
+  const size_t rampLengthSamples = (size_t)(width * (float)TABLE_SIZE);
+  const float dY = 2.0f / (float)rampLengthSamples;
+  const size_t rampStart = (TABLE_SIZE >> 1) - (rampLengthSamples >> 1);
+  const size_t rampEnd = rampStart + rampLengthSamples;
+  float value = -1.0f;
+  for (size_t i = 0; i < TABLE_SIZE; ++i) {
+    if (i >= rampStart && i < rampEnd) {
+      value += dY;
+    }
+    arr[i] = value;
+  }
+  return arr;
+}
+
 // stuff for encoding/decoding wavetables as strings
 
 constexpr size_t tableBytes = TABLE_SIZE * sizeof(float);
@@ -103,6 +173,36 @@ String binsToWaveString(const bin_array_t& bins) {
   auto* real = reinterpret_cast<float*>(temp);
   inverseFFT(real);
   return stringEncodeWave(real);
+}
+
+static String s_getPWMTableString(int numTables) {
+  static const float minPW = 0.08f;
+  static const float maxPW = 0.92f;
+  const float dX = (maxPW - minPW) / (float)numTables;
+  String tableStr = "";
+  for (int i = 0; i < numTables; ++i) {
+    float pw = minPW + (dX * (float)i);
+    tableStr += stringEncodeWave(getPWMWave(pw).data());
+  }
+  return tableStr;
+}
+
+static std::array<String, 3> s_genDefaultStrings() {
+  std::array<String, 3> out;
+  out[0] = Wavetable::getDefaultWavesetString();
+  String simpleShapesStr = stringEncodeWave(getSawWave().data()) +
+                           stringEncodeWave(genTriangleWave().data()) +
+                           stringEncodeWave(getPWMWave(0.5f).data()) +
+                           stringEncodeWave(genSineWave().data());
+  out[1] = simpleShapesStr;
+  out[2] = s_getPWMTableString(10);
+  return out;
+}
+
+static std::array<String, 3> defaultTableStrings = s_genDefaultStrings();
+String getDefaultTableString(int idx) {
+  auto i = (size_t)(idx % 3);
+  return defaultTableStrings[i];
 }
 
 float getMagnitudeAtNormFrequency(const bin_array_t& bins, float freq) {
@@ -295,78 +395,8 @@ float BandLimitedWave::getSample(float phase, float phaseDelt) const {
 String BandLimitedWave::toString() {
   return stringEncodeWave(data[0].wave);
 }
-//===================================================
+// generate the default waves for each of the three oscillators
 
-// some basic wave shape generation for the default
-// waves
-static std::array<float, TABLE_SIZE> genTriangleWave() {
-  std::array<float, TABLE_SIZE> arr;
-  const float dY = 2.0f / ((float)TABLE_SIZE / 2.0f);
-  float val = -1.0f;
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    if (i < (TABLE_SIZE / 2)) {
-      val += dY;
-    } else {
-      val -= dY;
-    }
-    arr[i] = val;
-  }
-  return arr;
-}
-
-static std::array<float, TABLE_SIZE> genSineWave() {
-  std::array<float, TABLE_SIZE> arr;
-  constexpr float dPhase =
-      juce::MathConstants<float>::twoPi / (float)TABLE_SIZE;
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    arr[i] = std::sinf(dPhase * (float)i);
-  }
-  return arr;
-}
-
-static std::array<float, TABLE_SIZE> getSawWave() {
-  std::array<float, TABLE_SIZE> arr;
-  const float dY = 2.0f / (float)TABLE_SIZE;
-
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    arr[i] = -1.0f + (dY * (float)i);
-  }
-  return arr;
-}
-
-static std::array<float, TABLE_SIZE> getNarrowRamp(size_t rampWidth) {
-  std::array<float, TABLE_SIZE> arr;
-
-  const float dY = 2.0f / (float)rampWidth;
-  const size_t rampStart = (TABLE_SIZE / 2) - (rampWidth / 2);
-  const size_t rampEnd = rampStart + rampWidth;
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    if (i < rampStart) {
-      arr[i] = -1.0f;
-    } else if (i < rampEnd) {
-      arr[i] = -1.0f + (dY * (float)(i - rampStart));
-    } else {
-      arr[i] = 1.0f;
-    }
-  }
-  return arr;
-}
-
-static std::array<float, TABLE_SIZE> getRampNormalized(float width) {
-  std::array<float, TABLE_SIZE> arr;
-  const size_t rampLengthSamples = (size_t)(width * (float)TABLE_SIZE);
-  const float dY = 2.0f / (float)rampLengthSamples;
-  const size_t rampStart = (TABLE_SIZE >> 1) - (rampLengthSamples >> 1);
-  const size_t rampEnd = rampStart + rampLengthSamples;
-  float value = -1.0f;
-  for (size_t i = 0; i < TABLE_SIZE; ++i) {
-    if (i >= rampStart && i < rampEnd) {
-      value += dY;
-    }
-    arr[i] = value;
-  }
-  return arr;
-}
 String Wavetable::getDefaultWavesetString() {
   String str = "";
   constexpr size_t numWaves = 18;

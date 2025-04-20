@@ -55,16 +55,39 @@ File getPatchesFolder() {
 }
 
 static void createDefaultWaveFile(const File& waveFolder) {
-  wave_meta_t meta;
-  meta.name = "Default";
-  meta.author = "Hayden";
-  meta.category = 0;
-  auto vt = wave_meta_t::toValueTree(meta);
-  auto waveStr = Wavetable::getDefaultWavesetString();
+  wave_meta_t meta1;
+  meta1.name = "Default";
+  meta1.author = "Hayden";
+  meta1.category = 0;
+  auto vt = wave_meta_t::toValueTree(meta1);
+  auto waveStr = Wave::getDefaultTableString(0);
   vt.setProperty(ID::waveStringData, waveStr, nullptr);
-  auto file = waveFolder.getNonexistentChildFile(meta.name, waveFileExt, false);
-  auto xml = vt.toXmlString();
-  file.replaceWithText(xml);
+  auto file1 =
+      waveFolder.getNonexistentChildFile(meta1.name, waveFileExt, false);
+  auto xml1 = vt.toXmlString();
+  file1.replaceWithText(xml1);
+  wave_meta_t meta2;
+  meta2.name = "Simple";
+  meta2.author = "Hayden";
+  meta2.category = 0;
+  auto vt2 = wave_meta_t::toValueTree(meta2);
+  auto waveStr2 = Wave::getDefaultTableString(1);
+  vt2.setProperty(ID::waveStringData, waveStr2, nullptr);
+  auto file2 =
+      waveFolder.getNonexistentChildFile(meta2.name, waveFileExt, false);
+  auto xml2 = vt2.toXmlString();
+  file2.replaceWithText(xml2);
+  wave_meta_t meta3;
+  meta3.name = "PWM";
+  meta3.author = "Hayden";
+  meta3.category = 0;
+  auto vt3 = wave_meta_t::toValueTree(meta3);
+  auto waveStr3 = Wave::getDefaultTableString(2);
+  vt3.setProperty(ID::waveStringData, waveStr3, nullptr);
+  auto file3 =
+      waveFolder.getNonexistentChildFile(meta3.name, waveFileExt, false);
+  auto xml3 = vt3.toXmlString();
+  file3.replaceWithText(xml3);
 }
 
 File getWavetablesFolder() {
@@ -93,7 +116,7 @@ bool isValidWave(const File& file) {
   ValueTree parent = ValueTree::fromXml(str);
   if (!parent.isValid())
     return false;
-  return parent.hasType(ID::PATCH_INFO);
+  return parent.hasType(ID::WAVE_INFO);
 }
 
 bool attemptPatchSave(ValueTree& state) {
@@ -123,6 +146,19 @@ bool attemptWaveSave(const wave_meta_t& waveData, const String& waveString) {
   vt.setProperty(ID::waveStringData, waveString, nullptr);
   auto xml = vt.toXmlString();
   return file.replaceWithText(xml);
+}
+
+String loadTableStringForWave(const String& name) {
+  auto file = getWavetablesFolder().getChildFile(name + waveFileExt);
+  if (!file.existsAsFile()) {
+    DBG("File Invalid!");
+    jassert(false);
+  }
+  auto fileStr = file.loadFileAsString();
+  auto topTree = ValueTree::fromXml(fileStr);
+  jassert(topTree.isValid());
+  String waveData = topTree[ID::waveStringData];
+  return waveData;
 }
 
 std::vector<patch_meta_t> getAvailiblePatches() {
@@ -224,6 +260,10 @@ wave_meta_t* ElectrumUserLib::getWavetableData(const String& name) {
   }
   jassert(false);
   return nullptr;
+}
+
+wave_meta_t* ElectrumUserLib::getWavetableData(int index) {
+  return &waves[(size_t)index];
 }
 
 bool ElectrumUserLib::attemptPatchSave(apvts* tree,

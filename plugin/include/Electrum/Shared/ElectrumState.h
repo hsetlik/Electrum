@@ -82,6 +82,7 @@ private:
   // controller state stuff
   bool sustainPedal = false;
   float modWheelValue = 0.0f;
+  std::array<int, NUM_OSCILLATORS> lastWaveIndices;
 
 public:
   ElectrumState(juce::AudioProcessor& proc, juce::UndoManager* undo);

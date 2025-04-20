@@ -168,14 +168,15 @@ void WavetableGraph::timerCallback() {
       updateVirtualVertices();
     }
     redrawBitmap();
+    repaint();
   } else if (!state->graph.needsWavetableData()) {
     auto str = state->graph.getWavetableString(oscID);
     updateVertices(str);
     updateVirtualVertices();
     redrawBitmap();
     wavesReady = true;
+    repaint();
   }
-  repaint();
 }
 
 void WavetableGraph::paint(juce::Graphics& g) {
