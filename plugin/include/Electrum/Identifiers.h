@@ -101,6 +101,8 @@ juce::StringArray getFilterTypeNames();
 #define FILTER_DB_MIN -18.0f
 #define FILTER_DB_DEFAULT 0.0f;
 
+#define MAX_NUM_WAVETABLES 512
+
 #define DECLARE_ID(name) const juce::Identifier name(#name);
 
 namespace ID {
@@ -115,6 +117,7 @@ DECLARE_ID(modDepth)
 
 // wavetable osc stuff
 DECLARE_ID(oscillatorPos)
+DECLARE_ID(oscillatorWaveIndex)
 DECLARE_ID(oscillatorActive)
 DECLARE_ID(oscillatorLevel)
 DECLARE_ID(oscillatorPan)

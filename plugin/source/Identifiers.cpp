@@ -28,12 +28,14 @@ apvts::ParameterLayout ID::getParameterLayout() {
   for (int i = 0; i < NUM_OSCILLATORS; i++) {
     auto iStr = String(i);
     String activeID = oscillatorActive.toString() + iStr;
+    String waveIdxID = oscillatorWaveIndex.toString() + iStr;
     String positionId = oscillatorPos.toString() + iStr;
     String levelId = oscillatorLevel.toString() + iStr;
     String panId = oscillatorPan.toString() + iStr;
     String coarseId = oscillatorCoarseTune.toString() + iStr;
     String fineId = oscillatorFineTune.toString() + iStr;
     String activeName = "Osc " + iStr + " active";
+    String waveIdxName = "Osc " + iStr + " wavetable ID";
     String levelName = "Osc " + iStr + " level";
     String positionName = "Osc " + iStr + " pos";
     String panName = "Osc " + iStr + " pan";
@@ -42,6 +44,10 @@ apvts::ParameterLayout ID::getParameterLayout() {
     juce::ParameterID activePID{activeID, 1};
     layout.add(std::make_unique<juce::AudioParameterBool>(activePID, activeName,
                                                           i < 1));
+    juce::ParameterID wavePID{waveIdxID, 1};
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        wavePID, waveIdxName, 0, MAX_NUM_WAVETABLES, 0));
+
     addFloatParam(&layout, positionId, positionName, posRange, OSC_POS_DEFAULT);
     addFloatParam(&layout, levelId, levelName, levelRange, OSC_LEVEL_DEFAULT);
     addFloatParam(&layout, panId, panName, panRange, 0.5f);

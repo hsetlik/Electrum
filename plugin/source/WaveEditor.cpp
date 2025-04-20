@@ -21,15 +21,13 @@ WaveViewerTabs::WaveViewerTabs(ValueTree& vt)
 WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
     : state(s), wavetable(wt), oscID(idx), thumbBar(nullptr), tabs(nullptr) {
   // 1. figure out which file we need to load
-  String pathID = ID::oscWavePath.toString() + String(oscID);
-  String path = "Default";
-  if (state->state.hasProperty(pathID)) {
-    path = state->state.getProperty(pathID);
-  } else {
-    state->state.setProperty(pathID, path, state->undoManager);
-  }
+  String indexID = ID::oscillatorWaveIndex.toString() + String(oscID);
+  const int waveIdx = (int)state->getRawParameterValue(indexID)->load();
+  auto waveNames = state->userLib.getAvailableWaveNames();
+  String name = waveNames[waveIdx];
+
   // 2. parse as a valueTree
-  waveTree = WaveEdit::getWavetableTree(path);
+  waveTree = WaveEdit::getWavetableTree(name);
   jassert(waveTree.isValid() && waveTree.hasType(WaveEdit::WAVETABLE));
   // waveTree.addListener(this);
 
@@ -41,7 +39,6 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   closeBtn.onClick = [this]() { ModalParent::exitModalView(this); };
   // 4. add the text editor
   addAndMakeVisible(&waveNameEdit);
-  String name = waveTree[WaveEdit::waveName];
 
   // and grip the existing metadata
   auto* metadata = state->userLib.getWavetableData(name);

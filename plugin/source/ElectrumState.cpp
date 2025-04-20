@@ -132,11 +132,6 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
   for (int i = 0; i < MOD_DESTS; ++i) {
     modDestRanges[i] = getParameterRange(paramIDForModDest(i));
   }
-  // 2. set the wavetable paths for each of the oscs
-  for (int i = 0; i < NUM_OSCILLATORS; ++i) {
-    juce::Identifier id = ID::oscWavePath.toString() + String(i);
-    state.setProperty(id, "Default", undo);
-  }
 }
 
 float ElectrumState::getModulatedDestValue(int destID,
