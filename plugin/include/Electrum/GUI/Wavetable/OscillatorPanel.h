@@ -30,6 +30,8 @@ private:
 
   // edit/display stuff
   juce::ComboBox wavetableCB;
+  std::unique_ptr<juce::ParameterAttachment> waveAttach;
+  void waveAttachCallback(float fWave);
   ImgButton editBtn;
 
   PowerButton powerBtn;

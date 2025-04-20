@@ -5,6 +5,13 @@
 #include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
+#include "juce_events/juce_events.h"
+
+void OscillatorPanel::waveAttachCallback(float fWave) {
+  const int waveIdx = (int)fWave;
+  jassert(waveIdx < state->userLib.numWavetables());
+  wavetableCB.setSelectedItemIndex(waveIdx, juce::dontSendNotification);
+}
 
 //======================================================
 
@@ -32,6 +39,12 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   selectedWaveName = waveNames[0];
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
+  auto waveLambda = [this](float fVal) { waveAttachCallback(fVal); };
+  auto* waveParam =
+      state->getParameter(ID::oscillatorWaveIndex.toString() + String(oscID));
+  waveAttach.reset(new juce::ParameterAttachment(*waveParam, waveLambda,
+                                                 state->undoManager));
+  waveAttach->sendInitialUpdate();
 
   // add this as a userLib listener
   state->userLib.addListener(this);
@@ -59,7 +72,8 @@ void OscillatorPanel::waveWasSaved(wave_meta_t* w) {
 void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
   String newWaveName = cb->getText();
   if (newWaveName != selectedWaveName) {
-    state->state.setProperty(ID::oscWavePath, newWaveName, nullptr);
+    int waveIdx = cb->getSelectedItemIndex();
+    waveAttach->setValueAsCompleteGesture((float)waveIdx);
     selectedWaveName = newWaveName;
     state->graph.requestWavetableString(oscID);
     resized();
