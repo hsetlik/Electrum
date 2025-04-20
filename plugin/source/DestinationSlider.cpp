@@ -114,6 +114,9 @@ void DestinationSlider::paint(juce::Graphics& g) {
   auto lBounds = fBounds.removeFromTop(nameHeight);
   auto aStr = getDestAttString(destID);
   auto color = getLookAndFeel().findColour(juce::Label::textColourId);
+  if (!isEnabled()) {
+    color = color.darker();
+  }
   aStr.setColour(color);
   aStr.draw(g, lBounds);
 }

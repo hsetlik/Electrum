@@ -232,7 +232,7 @@ void ElectrumState::updateCommonAudioData() {
       auto waveStr = UserFiles::loadTableStringForWave(data->name);
       audioData.wOsc[i].loadWaveData(waveStr);
     }
-    // 3. assign to the DSP objects
+    // 4. assign to the DSP objects
     audioData.wOsc[i].setPos(_pos);
     audioData.wOsc[i].setActive(_active);
     audioData.wOsc[i].setLevel(_level);

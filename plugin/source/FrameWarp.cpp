@@ -56,8 +56,9 @@ FrameWarp::FrameWarp(ValueTree& vt) : loadedWaveTree(vt.createCopy()) {
   // load the FFT data into our array
   String waveStr = vt[WaveEdit::frameStringData];
   const float magnitudeMax = Wave::loadAudibleBins(waveStr, savedBins);
-  const float magnitudeMid = Wave::getMedianBinMagnitude(savedBins);
-  static const float magHeadroom = juce::Decibels::decibelsToGain(4.0f);
+  const float magnitudeMid =
+      magnitudeMax * juce::Decibels::decibelsToGain(-18.0f);
+  static const float magHeadroom = juce::Decibels::decibelsToGain(3.0f);
   maxMagnitude = magnitudeMax * magHeadroom;
   magnitudeRange = rangeWithCenter(0.0f, maxMagnitude, magnitudeMid);
 
@@ -155,10 +156,18 @@ bool FrameWarp::isMovementLegal(warp_point_t* pt,
                                 float normMagnitude,
                                 float freq) const {
   auto idx = indexOf(pt);
-
-  if (normMagnitude < 0.0f || normMagnitude > 1.0f)
+  if (idx > 0) {
+    if (points[idx - 1].frequency >= freq) {
+      return false;
+    }
+  }
+  if (idx < (points.size() - 1)) {
+    if (points[idx + 1].frequency <= freq)
+      return false;
+  }
+  if (freq < 0.0f || freq > 1.0f)
     return false;
-  return true;
+  return normMagnitude <= 1.0f;
 }
 
 fpoint_t FrameWarp::warpPointToBounds(const frect_t& bounds,
@@ -239,7 +248,10 @@ float FrameWarp::warpBinMagnitude(size_t binIdx) {
     return savedBins[binIdx].magnitude;
   } else {
     const float warpAmt = getInfluenceAmt(editPoint, binIdx);
-    return flerp(savedBins[binIdx].magnitude, editPoint->magnitude, warpAmt);
+    const float savedNMag = magnitudeToNorm(savedBins[binIdx].magnitude);
+    const float ptNMag = magnitudeToNorm(editPoint->magnitude);
+    const float newNMag = flerp(savedNMag, ptNMag, warpAmt);
+    return magnitudeRange.convertFrom0to1(newNMag);
   }
 }
 
