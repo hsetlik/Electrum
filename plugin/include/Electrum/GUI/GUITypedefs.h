@@ -16,3 +16,15 @@ struct BoundedAttString {
   BoundedAttString() = default;
   void draw(juce::Graphics& g) { aString.draw(g, bounds); }
 };
+
+namespace B64 {
+inline float toFloat(const String& str) {
+  float value = 0.0f;
+  juce::MemoryOutputStream oStream(&value, sizeof(float));
+  jassert(juce::Base64::convertFromBase64(oStream, str));
+  return value;
+}
+inline String toString(float value) {
+  return juce::Base64::toBase64(&value, sizeof(float));
+}
+}  // namespace B64

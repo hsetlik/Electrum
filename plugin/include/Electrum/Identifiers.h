@@ -79,6 +79,10 @@ juce::StringArray getFilterTypeNames();
 #define DECAY_MS_MAX 4000.0f
 #define DECAY_MS_CENTER 250.0f
 
+#define LFO_HZ_MIN 0.00001f
+#define LFO_HZ_MAX 12.0f
+#define LFO_HZ_CENTER 2.5f
+
 #define SUSTAIN_LEVEL_DEFAULT 0.65f
 #define VEL_TRACKING_DEFAULT 0.85f
 
@@ -142,7 +146,13 @@ DECLARE_ID(filterCutoff)
 DECLARE_ID(filterResonance)
 DECLARE_ID(filterGainDb)
 
-//--------
+// LFO
+DECLARE_ID(lfoActive)
+DECLARE_ID(lfoFrequency)
+DECLARE_ID(lfoSyncMode)
+DECLARE_ID(lfoShapeHash)
+
+//--------------------------------------------------
 // patch metadata stuff
 DECLARE_ID(PATCH_INFO)
 DECLARE_ID(patchName)
@@ -158,9 +168,6 @@ DECLARE_ID(wavePath)
 DECLARE_ID(waveAuthor)
 DECLARE_ID(waveCategory)
 DECLARE_ID(waveStringData)
-
-// Oscillator wave names
-DECLARE_ID(oscWavePath)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID
