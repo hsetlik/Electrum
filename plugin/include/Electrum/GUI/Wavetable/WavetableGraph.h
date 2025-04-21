@@ -34,6 +34,7 @@ private:
 
   Mat3x3 rotationMatrix;
   bool wavesReady = false;
+  bool singleWaveMode = false;
 
 public:
   const int oscID;
@@ -41,6 +42,7 @@ public:
   ~WavetableGraph() override;
   void timerCallback() override;
   void paint(juce::Graphics& g) override;
+  void mouseUp(const juce::MouseEvent& me) override;
   void graphingDataUpdated(GraphingData* gd) override {
     if (gd->wavetablesChanged()) {
       wavesReady = false;
@@ -51,6 +53,8 @@ private:
   void updateVertices(const String& wavetableStr);
   void updateVirtualVertices();
   void redrawBitmap();
+  void redrawBitmapMulti();
+  void redrawBitmapSingle();
   size_t waveIndexBelow(float wavePos) const;
   static vec3D_f vertexLerp(const vec3D_f& a, const vec3D_f& b, float t);
 };

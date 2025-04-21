@@ -10,7 +10,7 @@
 void OscillatorPanel::waveAttachCallback(float fWave) {
   const int waveIdx = (int)fWave;
   jassert(waveIdx < state->userLib.numWavetables());
-  wavetableCB.setSelectedItemIndex(waveIdx, juce::dontSendNotification);
+  wavetableCB.setSelectedItemIndex(waveIdx);
 }
 
 //======================================================
@@ -35,7 +35,6 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   // now set up the comboBox and Listener
   auto waveNames = state->userLib.getAvailableWaveNames();
   wavetableCB.addItemList(waveNames, 1);
-  wavetableCB.setSelectedItemIndex(0);
   selectedWaveName = waveNames[0];
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
@@ -71,10 +70,12 @@ void OscillatorPanel::waveWasSaved(wave_meta_t* w) {
 
 void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
   String newWaveName = cb->getText();
-  if (newWaveName != selectedWaveName) {
-    int waveIdx = cb->getSelectedItemIndex();
-    waveAttach->setValueAsCompleteGesture((float)waveIdx);
+  int waveIdx = state->userLib.indexOfWaveName(newWaveName);
+  if (selectedWaveName != newWaveName ||
+      cb->getSelectedItemIndex() != waveIdx) {
+    selectedWaveIdx = waveIdx;
     selectedWaveName = newWaveName;
+    waveAttach->setValueAsCompleteGesture((float)waveIdx);
     state->graph.requestWavetableString(oscID);
     resized();
   }

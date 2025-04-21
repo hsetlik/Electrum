@@ -98,6 +98,7 @@ public:
   patch_meta_t* getPatch(const String& name);
   wave_meta_t* getWavetableData(const String& name);
   wave_meta_t* getWavetableData(int index);
+  int indexOfWaveName(const String& name) const;
   juce::StringArray getAvailableWaveNames() const;
   // wave getters
 

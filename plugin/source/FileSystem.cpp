@@ -187,6 +187,10 @@ std::vector<wave_meta_t> getAvailableWaves() {
       vec.push_back(wave_meta_t::fromValueTree(parent));
     }
   }
+  // alphabetize the list of names
+  std::sort(vec.begin(), vec.end(), [](wave_meta_t a, wave_meta_t b) {
+    return b.name.compare(a.name) > 0;
+  });
   return vec;
 }
 
@@ -296,6 +300,16 @@ juce::StringArray ElectrumUserLib::getAvailableWaveNames() const {
   }
   DLog::log("Found " + String(waves.size()) + " wavetable files");
   return names;
+}
+
+int ElectrumUserLib::indexOfWaveName(const String& name) const {
+  for (size_t i = 0; i < waves.size(); ++i) {
+    if (waves[i].name == name) {
+      return (int)i;
+    }
+  }
+  jassert(false);
+  return 0;
 }
 
 bool ElectrumUserLib::attemptWaveSave(const wave_meta_t& waveData,

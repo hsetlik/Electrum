@@ -39,7 +39,6 @@ vec3D_f WavetableGraph::vertexLerp(const vec3D_f& a,
   const float x = flerp(a.x, b.x, t);
   const float y = flerp(a.y, b.y, t);
   const float z = flerp(a.z, b.z, t);
-  jassert(y >= 0.0f);
   return {x, y, z};
 }
 
@@ -63,7 +62,7 @@ void WavetableGraph::updateVertices(const String& waveStr) {
       minVertexY = lowestY;
     }
   }
-  DBG("Minimun y value: " + String(minVertexY));
+  // DBG("Minimun y value: " + String(minVertexY));
   jassert(waveVertArrays.size() > 1);
 }
 
@@ -98,9 +97,7 @@ void WavetableGraph::updateVirtualVertices() {
   for (size_t i = 0; i < WAVE_GRAPH_POINTS; ++i) {
     auto& vLow = waveVertArrays[lowIdx][i];
     auto& vHigh = waveVertArrays[highIdx][i];
-    const vec3D_f vert = vertexLerp(vLow, vHigh, t);
-    jassert(vert.y >= 0.0f);
-    virtualVerts[i + 1] = vert;
+    virtualVerts[i + 1] = vertexLerp(vLow, vHigh, t);
   }
   virtualVerts[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
 }
@@ -153,8 +150,17 @@ static void drawWave(juce::Graphics& g,
   g.strokePath(path, pst);
 }
 
+// Bitmap redrawing code===========================
 void WavetableGraph::redrawBitmap() {
-  img.clear(img.getBounds());
+  if (singleWaveMode) {
+    redrawBitmapSingle();
+  } else {
+    redrawBitmapMulti();
+  }
+}
+
+void WavetableGraph::redrawBitmapMulti() {
+  img.clear(img.getBounds(), Color::nearBlack);
   juce::Graphics g(img);
   wave_points_t pathPoints;
   wave_points_t virtualPoints;
@@ -180,6 +186,25 @@ void WavetableGraph::redrawBitmap() {
     }
   }
 }
+
+void WavetableGraph::redrawBitmapSingle() {
+  img.clear(img.getBounds(), Color::nearBlack);
+  juce::Graphics g(img);
+  auto fBounds = img.getBounds().toFloat().reduced(8.0f);
+  const float x0 = fBounds.getX();
+  juce::Path path;
+  path.startNewSubPath(x0, fBounds.getBottom());
+  float x, y;
+  for (size_t i = 1; i < WAVE_PATH_POINTS; ++i) {
+    x = x0 + (virtualVerts[i].x * fBounds.getWidth());
+    y = fBounds.getBottom() - (virtualVerts[i].y * fBounds.getHeight());
+    path.lineTo(x, y);
+  }
+  path.closeSubPath();
+  g.setColour(Color::qualifierPurple);
+  juce::PathStrokeType pst(2.5f);
+  g.strokePath(path, pst);
+}
 //===================================================
 
 WavetableGraph::WavetableGraph(ElectrumState* s, int osc)
@@ -204,6 +229,12 @@ WavetableGraph::WavetableGraph(ElectrumState* s, int osc)
 
 WavetableGraph::~WavetableGraph() {
   state->graph.removeListener(this);
+}
+
+void WavetableGraph::mouseUp(const juce::MouseEvent& me) {
+  if (me.mouseWasClicked()) {
+    singleWaveMode = !singleWaveMode;
+  }
 }
 
 void WavetableGraph::timerCallback() {

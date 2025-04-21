@@ -16,6 +16,7 @@ class OscillatorPanel : public Component,
 private:
   ElectrumState* const state;
   String selectedWaveName;
+  int selectedWaveIdx = -1;
 
   // sliders
   DestinationSlider sCoarse;
