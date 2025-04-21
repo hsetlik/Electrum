@@ -149,7 +149,7 @@ DECLARE_ID(filterGainDb)
 // LFO
 DECLARE_ID(lfoActive)
 DECLARE_ID(lfoFrequency)
-DECLARE_ID(lfoSyncMode)
+DECLARE_ID(lfoTriggerMode)
 DECLARE_ID(lfoShapeHash)
 
 //--------------------------------------------------
@@ -168,6 +168,9 @@ DECLARE_ID(wavePath)
 DECLARE_ID(waveAuthor)
 DECLARE_ID(waveCategory)
 DECLARE_ID(waveStringData)
+
+DECLARE_ID(LFO_INFO)
+DECLARE_ID(lfoShapeString)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID

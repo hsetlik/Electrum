@@ -15,6 +15,12 @@ struct lfo_handle_t {
   float level;
 };
 
+struct lfo_bin_state {
+  lfo_handle_t* leftHandle;
+  lfo_handle_t* rightHandle;
+  float t;
+};
+
 namespace LFO {
 // converts the `lfo_handle_t` vector into a string to be saved/loaded
 String stringEncode(std::vector<lfo_handle_t>& handles);
@@ -25,3 +31,36 @@ void parseHandlesToTable(const std::vector<lfo_handle_t>& handles,
                          lfo_table_t& dest);
 }  // namespace LFO
 
+// the shared data for our LFOs, analogous to EnvelopeLUT
+#define LFO_UPDATE_HZ 10
+class LowFrequencyLUT : public juce::Timer, public juce::AsyncUpdater {
+private:
+  // have two of these such that we can always have one that's realtime ready
+  lfo_table_t table1;
+  lfo_table_t table2;
+  lfo_table_t* tActive = &table1;
+  lfo_table_t* tIdle = &table2;
+  size_t currentLfoHash = 0;
+  String currentLfoString = "";
+  std::vector<lfo_handle_t> handles;
+
+  bool needsData = true;
+
+  float lfoHz = 0.05f;
+  float phaseDelt = 0.00001f;
+
+public:
+  LowFrequencyLUT();
+  bool wantsUpdate() const { return needsData; }
+  void handleAsyncUpdate() override;
+  void timerCallback() override;
+  float getSample(float normPhase) const;
+  // call this in per-block update
+  void updateData(apvts& tree, int lfoIDX);
+  void setHz(float freq) {
+    lfoHz = freq;
+    phaseDelt = (float)((double)lfoHz / SampleRate::get());
+  }
+  float getHz() const { return lfoHz; }
+  float getPhaseDelt() const { return phaseDelt; }
+};

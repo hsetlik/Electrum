@@ -1,9 +1,11 @@
 
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Audio/AudioUtil.h"
+#include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/FileSystem.h"
 #include "juce_audio_basics/juce_audio_basics.h"
+#include "juce_core/juce_core.h"
 ModMap::ModMap() {
   for (auto& dest : depthArr) {
     dest.fill(0.0f);
@@ -122,6 +124,33 @@ String paramIDForModDest(int destID) {
   return destIDs[(size_t)destID];
 }
 
+static String s_defaultSineLFOString() {
+  std::vector<lfo_handle_t> handles = {};
+  const size_t numHandles = 55;
+  for (size_t i = 0; i < numHandles; ++i) {
+    float normPhase = (float)i / (float)numHandles;
+    size_t bin = (size_t)(normPhase * (float)(LFO_SIZE - 1));
+    float lvl = (float)std::sin(normPhase * juce::MathConstants<float>::twoPi);
+    lvl = (lvl + 1.0f) * 0.5f;
+    handles.push_back({bin, lvl});
+  }
+  // float lastNormPhase = (float)(LFO_SIZE - 1) / (float)(LFO_SIZE);
+  // float lvl = (float)std::sin(
+  //     (float(std::sin(lastNormPhase * juce::MathConstants<float>::twoPi))));
+  // handles.push_back({LFO_SIZE - 1, lvl});
+  return LFO::stringEncode(handles);
+}
+
+static ValueTree s_makeLfoInfoTree() {
+  ValueTree vt(ID::LFO_INFO);
+  const String defaultLfo = s_defaultSineLFOString();
+  for (int i = 0; i < NUM_LFOS; ++i) {
+    String propName = ID::lfoShapeString.toString() + String(i);
+    vt.setProperty(propName, defaultLfo, nullptr);
+  }
+  return vt;
+}
+
 ElectrumState::ElectrumState(juce::AudioProcessor& proc,
                              juce::UndoManager* undo)
     : apvts(proc, undo, ID::ELECTRUM_STATE, ID::getParameterLayout()) {
@@ -137,6 +166,19 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
   for (size_t i = 0; i < NUM_OSCILLATORS; ++i) {
     lastWaveIndices[i] = 0;
   }
+  // 3. add our LFO info child tree
+  auto lfoTree = s_makeLfoInfoTree();
+  state.appendChild(lfoTree, undo);
+  // TODO: set the LFO string hash parameters eventually
+}
+
+void ElectrumState::ensureLFOTree() {
+  auto existing = state.getChildWithName(ID::LFO_INFO);
+  if (existing.isValid()) {
+    state.removeChild(existing, undoManager);
+  }
+  auto lfoTree = s_makeLfoInfoTree();
+  state.appendChild(lfoTree, undoManager);
 }
 
 float ElectrumState::getModulatedDestValue(int destID,
@@ -291,5 +333,9 @@ void ElectrumState::updateCommonAudioData() {
     audioData.filters[i].baseCutoff = _cutoff;
     audioData.filters[i].baseResLin = _res;
     audioData.filters[i].baseGainLin = juce::Decibels::decibelsToGain(_gainDb);
+  }
+  // LFOs----------------------------------------------------
+  for (int i = 0; i < NUM_LFOS; ++i) {
+    audioData.lfos[i].updateData(*this, i);
   }
 }

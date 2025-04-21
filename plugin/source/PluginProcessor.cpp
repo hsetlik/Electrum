@@ -152,6 +152,7 @@ void ElectrumAudioProcessor::setStateInformation(const void* data,
   auto vt = ValueTree::fromXml(xmlStr);
   jassert(vt.isValid());
   tree.replaceState(vt);
+  tree.ensureLFOTree();
 }
 
 }  // namespace audio_plugin

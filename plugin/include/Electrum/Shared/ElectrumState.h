@@ -7,9 +7,9 @@
 
 // structs for modulations
 
-enum ModSourceE { Env1, Env2, Env3, ModWheel, Velocity };
+enum ModSourceE { Env1, Env2, Env3, LFO1, LFO2, LFO3, ModWheel, Velocity };
 
-#define MOD_SOURCES 5
+#define MOD_SOURCES 8
 
 enum ModDestE {
   osc1Coarse,
@@ -118,6 +118,7 @@ public:
   CommonAudioData audioData;
 
   void updateCommonAudioData();
+  void ensureLFOTree();
 
 private:
   ValueTree findTreeForRouting(const ValueTree& modTree, int src, int dest);

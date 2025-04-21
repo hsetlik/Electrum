@@ -27,4 +27,18 @@ inline float toFloat(const String& str) {
 inline String toString(float value) {
   return juce::Base64::toBase64(&value, sizeof(float));
 }
+
+inline size_t toSizeT(const String& str) {
+  size_t value = 0;
+  juce::MemoryOutputStream oStream(&value, sizeof(size_t));
+  if (juce::Base64::convertFromBase64(oStream, str)) {
+    return value;
+  }
+  return 0;
+}
+
+inline String toString(size_t value) {
+  size_t temp = value;
+  return juce::Base64::toBase64(&temp, sizeof(size_t));
+}
 }  // namespace B64

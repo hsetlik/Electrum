@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Electrum/Audio/Modulator/AHDSR.h"
+#include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/Identifiers.h"
 
@@ -18,5 +19,6 @@ public:
   Wavetable wOsc[NUM_OSCILLATORS];
   EnvelopeLUT env[NUM_ENVELOPES];
   shared_filter_params filters[NUM_FILTERS];
+  LowFrequencyLUT lfos[NUM_LFOS];
   CommonAudioData() = default;
 };
