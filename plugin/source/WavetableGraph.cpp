@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
+#include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/Wavetable/Mat3x3.h"
 #include "Electrum/Identifiers.h"
@@ -22,11 +23,32 @@ static void loadVertsForWave(wave_vertices_t& dest,
   dest[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
 }
 
+static float minYPosition(const wave_vertices_t& verts) {
+  float min = 10000000.0f;
+  for (auto& v : verts) {
+    if (v.y < min) {
+      min = v.y;
+    }
+  }
+  return min;
+}
+
+vec3D_f WavetableGraph::vertexLerp(const vec3D_f& a,
+                                   const vec3D_f& b,
+                                   float t) {
+  const float x = flerp(a.x, b.x, t);
+  const float y = flerp(a.y, b.y, t);
+  const float z = flerp(a.z, b.z, t);
+  jassert(y >= 0.0f);
+  return {x, y, z};
+}
+
 void WavetableGraph::updateVertices(const String& waveStr) {
   waveVertArrays.clear();
   auto waves = splitWaveStrings(waveStr);
   float waveBuf[TABLE_SIZE];
   float zPos;
+  minVertexY = 1000.0f;
   for (int i = 0; i < waves.size(); ++i) {
     zPos = ((float)i / (float)waves.size()) + Z_SETBACK;
     // 1. decode string into waveBuf
@@ -35,27 +57,50 @@ void WavetableGraph::updateVertices(const String& waveStr) {
     wave_vertices_t verts;
     loadVertsForWave(verts, waveBuf, zPos);
     waveVertArrays.push_back(verts);
+    // 3. check the minimum y vertex
+    float lowestY = minYPosition(verts);
+    if (lowestY < minVertexY) {
+      minVertexY = lowestY;
+    }
   }
+  DBG("Minimun y value: " + String(minVertexY));
   jassert(waveVertArrays.size() > 1);
+}
+
+size_t WavetableGraph::waveIndexBelow(float wavePos) const {
+  for (size_t i = 1; i < waveVertArrays.size(); ++i) {
+    const float prevPos = waveVertArrays[i - 1][0].z - Z_SETBACK;
+    const float currentPos = waveVertArrays[i][0].z - Z_SETBACK;
+    if (prevPos <= wavePos && currentPos > wavePos) {
+      return i - 1;
+    }
+  }
+  jassert(false);
+  return 0;
 }
 
 void WavetableGraph::updateVirtualVertices() {
   // 1. find our z position
-  const float zPos = currentWavePos + Z_SETBACK;
+  const float maxZPos = waveVertArrays.back()[0].z - 0.00021f;
+  const float zPos = std::min(currentWavePos + Z_SETBACK, maxZPos);
   // 2. figure out which two waves we're between and in what proportion
-  const size_t lowIdx = AudioUtil::fastFloor64(
-      currentWavePos * (float)(waveVertArrays.size() - 1));
+  const size_t lowIdx = waveIndexBelow(zPos - Z_SETBACK);
   const size_t highIdx = lowIdx + 1;
-  jassert(lowIdx != highIdx);
-  const float t = (zPos - waveVertArrays[lowIdx][0].z) /
-                  (waveVertArrays[highIdx][0].z - waveVertArrays[lowIdx][0].z);
+  // jassert(highIdx > lowIdx);
+  // jassert(highIdx > 0);
+  const float lowZ = waveVertArrays[lowIdx][0].z;
+  const float highZ = waveVertArrays[highIdx][0].z;
+  const float t = (zPos - lowZ) / (highZ - lowZ);
+  jassert(t <= 1.0f);
+  jassert(t >= 0.0f);
   // 3. calculate each vertex
   virtualVerts[0] = {0.0f, 0.0f, zPos};
-  float xPos, yPos;
-  for (size_t i = 1; i <= WAVE_GRAPH_POINTS; ++i) {
-    xPos = (float)i / (float)WAVE_GRAPH_POINTS;
-    yPos = flerp(waveVertArrays[lowIdx][i].y, waveVertArrays[highIdx][i].y, t);
-    virtualVerts[i] = {xPos, yPos, zPos};
+  for (size_t i = 0; i < WAVE_GRAPH_POINTS; ++i) {
+    auto& vLow = waveVertArrays[lowIdx][i];
+    auto& vHigh = waveVertArrays[highIdx][i];
+    const vec3D_f vert = vertexLerp(vLow, vHigh, t);
+    jassert(vert.y >= 0.0f);
+    virtualVerts[i + 1] = vert;
   }
   virtualVerts[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
 }
@@ -112,6 +157,7 @@ void WavetableGraph::redrawBitmap() {
   img.clear(img.getBounds());
   juce::Graphics g(img);
   wave_points_t pathPoints;
+  wave_points_t virtualPoints;
   const size_t virtualIdx = AudioUtil::fastFloor64(
       currentWavePos * (float)(waveVertArrays.size() - 1));
   for (size_t i = 0; i < waveVertArrays.size(); ++i) {
@@ -127,10 +173,10 @@ void WavetableGraph::redrawBitmap() {
     // 4. check if it's time to draw the virtual wave
     if (i == virtualIdx) {
       zPos = virtualVerts[0].z;
-      projectToPoints(virtualVerts, pathPoints, rotationMatrix);
+      projectToPoints(virtualVerts, virtualPoints, rotationMatrix);
       g.setColour(Color::qualifierPurple);
       stroke = _getStrokeWidth(zPos) * 1.035f;
-      drawWave(g, pathPoints, stroke);
+      drawWave(g, virtualPoints, stroke);
     }
   }
 }

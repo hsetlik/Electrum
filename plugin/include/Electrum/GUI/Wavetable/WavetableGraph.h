@@ -30,6 +30,7 @@ private:
 
   std::vector<wave_vertices_t> waveVertArrays = {};
   wave_vertices_t virtualVerts;
+  float minVertexY = 1000.0f;
 
   Mat3x3 rotationMatrix;
   bool wavesReady = false;
@@ -50,4 +51,6 @@ private:
   void updateVertices(const String& wavetableStr);
   void updateVirtualVertices();
   void redrawBitmap();
+  size_t waveIndexBelow(float wavePos) const;
+  static vec3D_f vertexLerp(const vec3D_f& a, const vec3D_f& b, float t);
 };
