@@ -24,7 +24,7 @@ private:
   // Oscillator views
   juce::OwnedArray<OscillatorPanel> oscs;
   // Filter panels
-  juce::OwnedArray<FilterComp> filters;
+  FilterTabs filterTabs;
   // Left panel modulators
   MacroModSources macroPanel;
   // patch browser panel

@@ -108,7 +108,7 @@ void WaveThumbnail::mouseEnter(const juce::MouseEvent& e) {
 
 WaveThumbnailBar::ThumbRow::ThumbRow(const String& fullStr) {
   auto waveStrings = splitWaveStrings(fullStr);
-  DLog::log("Table split into " + String(waveStrings.size()) + " waves");
+  // DLog::log("Table split into " + String(waveStrings.size()) + " waves");
   for (int i = 0; i < waveStrings.size(); ++i) {
     auto thumb = thumbnails.add(new WaveThumbnail(waveStrings[i], i));
     addAndMakeVisible(thumb);

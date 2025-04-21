@@ -11,10 +11,12 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
       state(s),
       processor(p),
       kbdView(p->engine.masterKeyboardState),
+      filterTabs(s),
       macroPanel(s),
       browser(s),
       envPanel(s) {
   addAndMakeVisible(&kbdView);
+  addAndMakeVisible(&filterTabs);
   addAndMakeVisible(&macroPanel);
   addAndMakeVisible(&envPanel);
   addAndMakeVisible(&browser);
@@ -22,11 +24,6 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     auto* osc = oscs.add(new OscillatorPanel(state, i));
     addAndMakeVisible(osc);
-  }
-  // add the filters
-  for (int i = 0; i < NUM_FILTERS; ++i) {
-    auto* filt = filters.add(new FilterComp(state, i));
-    addAndMakeVisible(filt);
   }
 }
 
@@ -50,9 +47,9 @@ void ElectrumMainView::resized() {
   static const int envHeight = 400;
   auto midPanel = iBounds.removeFromTop(envHeight);
   static const int envWidth = std::min(iBounds.getWidth() / 3, 450);
+  filterTabs.setBounds(midPanel.removeFromLeft(envWidth));
   envPanel.setBounds(midPanel.removeFromLeft(envWidth));
-  filters[0]->setBounds(midPanel.removeFromLeft(envWidth));
-  filters[1]->setBounds(midPanel.removeFromLeft(envWidth));
+  // TODO: put the LFOs in the rest of this row
 }
 //===================================================
 

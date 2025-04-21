@@ -60,3 +60,11 @@ void FilterComp::paint(juce::Graphics& g) {
 }
 
 //===================================================
+
+FilterTabs::FilterTabs(ElectrumState* s)
+    : juce::TabbedComponent(TabBar::Orientation::TabsAtLeft) {
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    String name = "VCF " + String(i + 1);
+    addTab(name, UIColor::widgetBkgnd, new FilterComp(s, i), true);
+  }
+}

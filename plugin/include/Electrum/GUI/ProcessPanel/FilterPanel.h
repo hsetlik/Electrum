@@ -20,3 +20,10 @@ public:
   void paint(juce::Graphics& g) override;
   void resized() override;
 };
+
+//=======================================
+
+class FilterTabs : public juce::TabbedComponent {
+public:
+  FilterTabs(ElectrumState* s);
+};

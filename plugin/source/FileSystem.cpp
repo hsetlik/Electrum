@@ -219,7 +219,7 @@ bool ElectrumUserLib::isWaveNameLegal(const String& name) const {
 
 bool ElectrumUserLib::validatePatchData(patch_meta_t* patch) const {
   if (!isPatchNameLegal(patch->name)) {
-    DLog::log("Illegal patch name: " + patch->name);
+    // DLog::log("Illegal patch name: " + patch->name);
     return false;
   }
   if (patch->category > (int)patch_categ_t::Other || patch->category < 0) {
@@ -298,7 +298,7 @@ juce::StringArray ElectrumUserLib::getAvailableWaveNames() const {
   for (size_t i = 0; i < waves.size(); ++i) {
     names.add(waves[i].name);
   }
-  DLog::log("Found " + String(waves.size()) + " wavetable files");
+  // DLog::log("Found " + String(waves.size()) + " wavetable files");
   return names;
 }
 
