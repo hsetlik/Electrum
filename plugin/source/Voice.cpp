@@ -233,6 +233,6 @@ void ElectrumVoice::updateGraphData(GraphingData* gd) {
   }
   // LFOs
   for (int i = 0; i < NUM_LFOS; ++i) {
-    gd->updateLFOLevel(i, lfos[i]->getCurrentSample());
+    gd->updateLFOPhase(i, lfos[i]->getCurrentPhase());
   }
 }

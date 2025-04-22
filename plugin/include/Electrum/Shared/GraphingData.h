@@ -47,7 +47,7 @@ private:
 
   std::array<float_at, NUM_OSCILLATORS> newestOscPositions;
   std::array<float_at, NUM_ENVELOPES> newestEnvLevels;
-  std::array<float_at, NUM_LFOS> newestLfoLevels;
+  std::array<float_at, NUM_LFOS> newestLfoPhases;
 
   // keep track of when we want updates
   bool_at updateRequested;
@@ -63,7 +63,8 @@ public:
   GraphingData();
   void timerCallback() override { updateRequested = true; }
   bool wantsUpdate() const {
-    return updateRequested.load() && newestVoice != -1;
+    // return updateRequested.load() && newestVoice != -1;
+    return updateRequested.load();
   }
   void updateFinished() {
     _notifyListeners();
@@ -89,11 +90,12 @@ public:
   float getEnvLevel(int envID) const {
     return newestEnvLevels[(size_t)envID].load();
   }
-  void updateLFOLevel(int lfoID, float value) {
-    newestLfoLevels[(size_t)lfoID] = value;
+  void updateLFOPhase(int lfoID, float value) {
+    newestLfoPhases[(size_t)lfoID] = value;
   }
-  float getLFOLevel(int lfoID) const {
-    return newestOscPositions[(size_t)lfoID].load();
+
+  float getLFOPhase(int lfoID) const {
+    return newestLfoPhases[(size_t)lfoID].load();
   }
 
   // wave string stuff

@@ -171,6 +171,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/WaveEditor/FrameWarp.h
 				source/LFO.cpp
 				${INCLUDE_DIR}/Audio/Modulator/LFO.h
+				source/LFOComponent.cpp
+				${INCLUDE_DIR}/GUI/ModulatorPanel/LFOComponent.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

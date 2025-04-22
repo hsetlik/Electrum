@@ -165,3 +165,10 @@ void VoiceLFO::gateStarted() {
       return;
   }
 }
+
+float VoiceLFO::getCurrentPhase() const {
+  if (lut->getTriggerMode() == LFOTriggerE::Global) {
+    return lut->getGlobalPhase();
+  }
+  return phase;
+}

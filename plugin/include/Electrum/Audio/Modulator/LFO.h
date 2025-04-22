@@ -59,6 +59,7 @@ public:
   void handleAsyncUpdate() override;
   void timerCallback() override;
   float getSample(float normPhase) const;
+  float getGlobalPhase() const { return globalPhase; }
   // call this in per-block update
   void updateData(apvts& tree, int lfoIDX);
   // call this once per sample to advance the global phase
@@ -92,4 +93,5 @@ public:
   void tick();
   void gateStarted();
   float getCurrentSample() const { return lastOutput; }
+  float getCurrentPhase() const;
 };

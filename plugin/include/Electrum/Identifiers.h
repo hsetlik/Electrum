@@ -176,6 +176,7 @@ DECLARE_ID(waveStringData)
 
 DECLARE_ID(LFO_INFO)
 DECLARE_ID(lfoShapeString)
+DECLARE_ID(lfoShapeHash)
 
 apvts::ParameterLayout getParameterLayout();
 }  // namespace ID
