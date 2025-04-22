@@ -49,6 +49,10 @@ private:
   float lfoHz = 0.05f;
   float phaseDelt = 0.00001f;
 
+  float globalPhase = 0.0f;
+
+  LFOTriggerE trigMode = LFOTriggerE::Global;
+
 public:
   LowFrequencyLUT();
   bool wantsUpdate() const { return needsData; }
@@ -57,10 +61,35 @@ public:
   float getSample(float normPhase) const;
   // call this in per-block update
   void updateData(apvts& tree, int lfoIDX);
+  // call this once per sample to advance the global phase
+  void tick();
   void setHz(float freq) {
     lfoHz = freq;
     phaseDelt = (float)((double)lfoHz / SampleRate::get());
   }
+  void setTriggerMode(float fTrigMode) {
+    int iMode = (int)fTrigMode;
+    trigMode = (LFOTriggerE)iMode;
+  }
+
   float getHz() const { return lfoHz; }
   float getPhaseDelt() const { return phaseDelt; }
+  LFOTriggerE getTriggerMode() const { return trigMode; }
+};
+
+//=============================================================
+
+class VoiceLFO {
+private:
+  juce::Random rng;
+  LowFrequencyLUT* const lut;
+  float phase = 0.0f;
+  float lastOutput = 0.0f;
+  float _getNext();
+
+public:
+  VoiceLFO(LowFrequencyLUT* l);
+  void tick();
+  void gateStarted();
+  float getCurrentSample() const { return lastOutput; }
 };

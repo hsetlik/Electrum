@@ -337,5 +337,13 @@ void ElectrumState::updateCommonAudioData() {
   // LFOs----------------------------------------------------
   for (int i = 0; i < NUM_LFOS; ++i) {
     audioData.lfos[i].updateData(*this, i);
+    String iStr(i);
+    const String freqID = ID::lfoFrequency.toString() + iStr;
+    const String trigModeId = ID::lfoTriggerMode.toString() + iStr;
+
+    const float _freq = getRawParameterValue(freqID)->load();
+    const float _fMode = getRawParameterValue(trigModeId)->load();
+    audioData.lfos[i].setHz(_freq);
+    audioData.lfos[i].setTriggerMode(_fMode);
   }
 }

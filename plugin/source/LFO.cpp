@@ -131,8 +131,37 @@ void LowFrequencyLUT::handleAsyncUpdate() {
   tIdle = prevActive;
 }
 
+void LowFrequencyLUT::tick() {
+  if (trigMode == LFOTriggerE::Global) {
+    globalPhase = std::fmod(globalPhase + phaseDelt, 1.0f);
+  }
+}
+
 float LowFrequencyLUT::getSample(float normPhase) const {
-  const size_t idx = (size_t)(normPhase * (float)(LFO_SIZE - 1));
+  auto phase = (trigMode == LFOTriggerE::Global) ? globalPhase : normPhase;
+  const size_t idx = (size_t)(phase * (float)(LFO_SIZE - 1));
   const lfo_table_t& arr = *tActive;
   return arr[idx];
+}
+
+//===============================================================================
+
+VoiceLFO::VoiceLFO(LowFrequencyLUT* l) : lut(l) {}
+
+void VoiceLFO::tick() {
+  phase = std::fmod(phase + lut->getPhaseDelt(), 1.0f);
+  lastOutput = lut->getSample(phase);
+}
+
+void VoiceLFO::gateStarted() {
+  switch (lut->getTriggerMode()) {
+    case Global:
+      return;
+    case RetrigStart:
+      phase = 0.0f;
+      return;
+    case RetrigRand:
+      phase = rng.nextFloat();
+      return;
+  }
 }

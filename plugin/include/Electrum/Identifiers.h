@@ -42,6 +42,13 @@ enum FilterTypeE { LadderLPLinear, LadderLPSaturated };
 
 juce::StringArray getFilterTypeNames();
 #define NUM_FILTER_TYPES 2
+
+// similar thing for LFO trigger types
+enum LFOTriggerE { Global, RetrigStart, RetrigRand };
+inline juce::StringArray getTriggerModeNames() {
+  return {"Global", "Retrigger", "Retrigger (random phase)"};
+}
+#define NUM_TRIGGER_MODES 3
 // defines for param ranges
 // Every Identifier for every parameter should be in here
 #define NUM_OSCILLATORS 3
@@ -147,10 +154,8 @@ DECLARE_ID(filterResonance)
 DECLARE_ID(filterGainDb)
 
 // LFO
-DECLARE_ID(lfoActive)
 DECLARE_ID(lfoFrequency)
 DECLARE_ID(lfoTriggerMode)
-DECLARE_ID(lfoShapeHash)
 
 //--------------------------------------------------
 // patch metadata stuff

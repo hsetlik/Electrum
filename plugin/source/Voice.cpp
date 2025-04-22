@@ -47,8 +47,10 @@ bool VoiceGateEnvelope::isFinished() const {
 // in ElectrumState.h
 float ElectrumVoice::_currentModSrcVal(int src) {
   const ModSourceE id = (ModSourceE)src;
-  if (id < ModSourceE::ModWheel) {
+  if (id < ModSourceE::LFO1) {
     return envs[src]->getCurrentSample();
+  } else if (id < ModSourceE::ModWheel) {
+    return lfos[src - NUM_ENVELOPES]->getCurrentSample();
   }
   // TODO: other modulation sources get implemented here
   else
@@ -114,6 +116,10 @@ ElectrumVoice::ElectrumVoice(ElectrumState* s, int idx)
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
     envs.add(new AHDSREnvelope(&state->audioData.env[i], i));
   }
+  // instantiate the LFOs
+  for (int i = 0; i < NUM_LFOS; i++) {
+    lfos.add(new VoiceLFO(&state->audioData.lfos[i]));
+  }
   // instantiate the filters
   for (int i = 0; i < NUM_FILTERS; ++i) {
     auto* params = &state->audioData.filters[i];
@@ -132,6 +138,9 @@ void ElectrumVoice::startNote(int note, float vel) {
   vge.start();
   for (auto* e : envs) {
     e->gateStart(vel);
+  }
+  for (auto* l : lfos) {
+    l->gateStarted();
   }
 }
 
@@ -172,9 +181,11 @@ void ElectrumVoice::renderNextSample(float& left,
     }
     return;
   }
-  // 1. tick the envelopes
+  // 1. tick the envelopes and LFOs
   for (auto* e : envs)
     e->tick();
+  for (auto* l : lfos)
+    l->tick();
   vge.tick();
   // 2. update modulation dests if needed
   if (updateDests)
@@ -219,5 +230,9 @@ void ElectrumVoice::updateGraphData(GraphingData* gd) {
   // envelopes
   for (int i = 0; i < NUM_ENVELOPES; ++i) {
     gd->updateEnvLevel(i, envs[i]->getCurrentSample());
+  }
+  // LFOs
+  for (int i = 0; i < NUM_LFOS; ++i) {
+    gd->updateLFOLevel(i, lfos[i]->getCurrentSample());
   }
 }

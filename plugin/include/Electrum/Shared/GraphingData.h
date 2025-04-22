@@ -47,6 +47,7 @@ private:
 
   std::array<float_at, NUM_OSCILLATORS> newestOscPositions;
   std::array<float_at, NUM_ENVELOPES> newestEnvLevels;
+  std::array<float_at, NUM_LFOS> newestLfoLevels;
 
   // keep track of when we want updates
   bool_at updateRequested;
@@ -88,6 +89,13 @@ public:
   float getEnvLevel(int envID) const {
     return newestEnvLevels[(size_t)envID].load();
   }
+  void updateLFOLevel(int lfoID, float value) {
+    newestLfoLevels[(size_t)lfoID] = value;
+  }
+  float getLFOLevel(int lfoID) const {
+    return newestOscPositions[(size_t)lfoID].load();
+  }
+
   // wave string stuff
   bool needsWavetableData() const { return needsWaveStrings; }
   bool wavetablesChanged() const { return waveStringsHaveChanged; }

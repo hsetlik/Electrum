@@ -2,6 +2,7 @@
 #include "Electrum/Audio/Filters/VoiceFilter.h"
 #include "Electrum/Audio/Generator/Oscillator.h"
 #include "Electrum/Audio/Modulator/AHDSR.h"
+#include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
@@ -66,6 +67,8 @@ private:
   osc_mod_t oscModState[NUM_OSCILLATORS];
   // envelopes
   juce::OwnedArray<AHDSREnvelope> envs;
+  // LFOs
+  juce::OwnedArray<VoiceLFO> lfos;
   // filters
   juce::OwnedArray<VoiceFilter> filters;
 

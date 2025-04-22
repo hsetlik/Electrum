@@ -100,6 +100,9 @@ void SynthEngine::handleMidiMessage(juce::MidiMessage& message) {
 void SynthEngine::renderNextSample(float& left,
                                    float& right,
                                    bool updateDests) {
+  for (auto& lfo : state->audioData.lfos) {
+    lfo.tick();
+  }
   for (auto* v : voices) {
     v->renderNextSample(left, right, updateDests);
   }
