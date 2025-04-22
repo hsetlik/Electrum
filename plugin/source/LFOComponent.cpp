@@ -47,26 +47,35 @@ static juce::Path s_generateLfoPath(const frect_t& bounds,
                                     const std::vector<fpoint_t>& points) {
   juce::Path p;
   p.startNewSubPath(bounds.getBottomLeft());
+  const float waveMaxY = bounds.getBottom() - 3.5f;
+  const float waveMaxH = (bounds.getHeight() - 3.5f) * 0.9f;
   for (auto& point : points) {
     const float xPos = bounds.getX() + (bounds.getWidth() * point.x);
-    const float yPos = bounds.getBottom() - (bounds.getHeight() * point.y);
+    const float yPos = waveMaxY - (point.y * waveMaxH);
     p.lineTo(xPos, yPos);
   }
   p.lineTo(bounds.getBottomRight());
   return p;
 }
 
+static frect_t s_makeThumbnailBounds(const frect_t& input) {
+  const float width = input.getWidth();
+  const float height = width * 0.85f;
+  return input.withSizeKeepingCentre(width, height);
+}
+
 void LFOThumbnail::paint(juce::Graphics& g) {
   // 1. fill the background
   auto fBounds = getLocalBounds().toFloat();
   g.setColour(UIColor::menuBkgnd);
+  fBounds = s_makeThumbnailBounds(fBounds);
   g.fillRect(fBounds);
   fBounds = fBounds.reduced(2.0f);
   // 2. draw the outline
   auto color =
       isEnabled() ? Color::qualifierPurple : Color::qualifierPurple.darker();
   g.setColour(color);
-  static const float strokeWidth = 2.0f;
+  static const float strokeWidth = 1.7f;
   juce::PathStrokeType pst(strokeWidth);
   g.drawRect(fBounds, strokeWidth);
 
