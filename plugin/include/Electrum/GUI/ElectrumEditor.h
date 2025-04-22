@@ -3,6 +3,7 @@
 #include "Electrum/GUI/KeyboardView.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
+#include "Electrum/GUI/ModulatorPanel/LFOComponent.h"
 #include "Electrum/GUI/ModulatorPanel/MacroModSources.h"
 #include "Electrum/GUI/PatchBrowser.h"
 #include "Electrum/GUI/ProcessPanel/FilterPanel.h"
@@ -31,6 +32,8 @@ private:
   PatchBrowser browser;
   // Envelope panel
   EnvGroupComponent envPanel;
+  // LFO panel
+  LFOTabs lfoPanel;
 
 public:
   ElectrumMainView(ElectrumState* s, audio_plugin::ElectrumAudioProcessor* p);

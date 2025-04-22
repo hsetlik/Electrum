@@ -14,11 +14,13 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
       filterTabs(s),
       macroPanel(s),
       browser(s),
-      envPanel(s) {
+      envPanel(s),
+      lfoPanel(s) {
   addAndMakeVisible(&kbdView);
   addAndMakeVisible(&filterTabs);
   addAndMakeVisible(&macroPanel);
   addAndMakeVisible(&envPanel);
+  addAndMakeVisible(&lfoPanel);
   addAndMakeVisible(&browser);
   // add the oscs
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
@@ -49,7 +51,7 @@ void ElectrumMainView::resized() {
   static const int envWidth = std::min(iBounds.getWidth() / 3, 450);
   filterTabs.setBounds(midPanel.removeFromLeft(envWidth));
   envPanel.setBounds(midPanel.removeFromLeft(envWidth));
-  // TODO: put the LFOs in the rest of this row
+  lfoPanel.setBounds(midPanel);
 }
 //===================================================
 
