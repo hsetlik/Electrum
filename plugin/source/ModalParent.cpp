@@ -9,6 +9,12 @@ void ModalParent::openWaveEditor(Component* comp,
   ptr->_openWaveEditor(s, wt, idx);
 }
 
+void ModalParent::openLFOEditor(Component* comp, ElectrumState* s, int idx) {
+  auto* ptr = comp->findParentComponentOfClass<ModalParent>();
+  jassert(ptr != nullptr);
+  ptr->_openLFOEditor(s, idx);
+}
+
 void ModalParent::exitModalView(Component* comp) {
   auto* ptr = comp->findParentComponentOfClass<ModalParent>();
   ptr->_exitModalView();

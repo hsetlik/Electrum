@@ -1,4 +1,5 @@
 #include "Electrum/GUI/ElectrumEditor.h"
+#include "Electrum/GUI/LFOEditor/LFOEdit.h"
 #include "Electrum/GUI/Modulation/ModContextComponent.h"
 #include "Electrum/GUI/Wavetable/OscillatorPanel.h"
 #include "Electrum/Identifiers.h"
@@ -66,17 +67,29 @@ ElectrumEditor::~ElectrumEditor() {
   setLookAndFeel(nullptr);
 }
 
+void ElectrumEditor::_openLFOEditor(ElectrumState* s, int id) {
+  lfoView.reset(new LFOEditor(s, id));
+  mainView.setEnabled(false);
+  currentModalComp = lfoView.get();
+  addAndMakeVisible(lfoView.get());
+  modalIsOpen = true;
+  resized();
+}
+
 void ElectrumEditor::_openWaveEditor(ElectrumState* s, Wavetable* wt, int idx) {
   waveView.reset(new WaveEditor(s, wt, idx));
   mainView.setEnabled(false);
   addAndMakeVisible(waveView.get());
-  waveViewOpen = true;
+  modalIsOpen = true;
+  currentModalComp = waveView.get();
   resized();
 }
 
 void ElectrumEditor::_exitModalView() {
   waveView.reset(nullptr);
-  waveViewOpen = false;
+  lfoView.reset(nullptr);
+  modalIsOpen = false;
+  currentModalComp = nullptr;
   mainView.setEnabled(true);
   resized();
 }
@@ -86,9 +99,9 @@ void ElectrumEditor::resized() {
   mainView.setBounds(iBounds);
   static const int maxModalW = 1000;
   static const int maxModalH = 800;
-  if (waveViewOpen) {
+  if (modalIsOpen) {
     auto wBounds = iBounds.withSizeKeepingCentre(maxModalW, maxModalH);
-    waveView->setBounds(wBounds);
-    waveView->toFront(true);
+    currentModalComp->setBounds(wBounds);
+    currentModalComp->toFront(true);
   }
 }

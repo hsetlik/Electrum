@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Electrum/GUI/KeyboardView.h"
+#include "Electrum/GUI/LFOEditor/LFOEdit.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/GUI/ModulatorPanel/EnvelopeComponent.h"
 #include "Electrum/GUI/ModulatorPanel/LFOComponent.h"
@@ -48,8 +49,11 @@ private:
 
   ElectrumMainView mainView;
   std::unique_ptr<WaveEditor> waveView;
-  bool waveViewOpen = false;
+  std::unique_ptr<LFOEditor> lfoView;
+  Component* currentModalComp = nullptr;
+  bool modalIsOpen = false;
   void _openWaveEditor(ElectrumState* s, Wavetable* wt, int idx) override;
+  void _openLFOEditor(ElectrumState* s, int idx) override;
   void _exitModalView() override;
 
 public:

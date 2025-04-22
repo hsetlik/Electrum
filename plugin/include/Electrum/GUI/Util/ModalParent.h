@@ -11,6 +11,7 @@ public:
   // these should be overridden
 protected:
   virtual void _openWaveEditor(ElectrumState* s, Wavetable* wt, int idx) = 0;
+  virtual void _openLFOEditor(ElectrumState* s, int idx) = 0;
   virtual void _exitModalView() = 0;
 
 public:
@@ -21,5 +22,6 @@ public:
                              ElectrumState* s,
                              Wavetable* wt,
                              int idx);
+  static void openLFOEditor(Component* comp, ElectrumState* s, int idx);
   static void exitModalView(Component* comp);
 };
