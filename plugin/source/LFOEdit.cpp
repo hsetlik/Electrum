@@ -11,22 +11,23 @@ ValueTree getLFOEditorTree(ElectrumState* s, int idx) {
   LFO::stringDecode(fullStr, handles);
   ValueTree vt(LFO_EDIT_STATE);
   vt.setProperty(lfoIndex, idx, nullptr);
-  int editIdx = 0;
   for (auto& h : handles) {
     ValueTree child(LFO_HANDLE_STATE);
     child.setProperty(handleLevel, h.level, nullptr);
     child.setProperty(handleTableIndex, (int)h.tableIdx, nullptr);
-    child.setProperty(handleIndex, editIdx, nullptr);
     child.setProperty(handleIsLocked, false, nullptr);
     vt.appendChild(child, nullptr);
-    ++editIdx;
   }
   return vt;
 }
 }  // namespace LFOID
 
 static bool compareEditHandles(edit_handle_t a, edit_handle_t b) {
-  return a.handleIdx < b.handleIdx;
+  return a.tableIdx < b.tableIdx;
+}
+
+static bool compareEditPtrs(edit_handle_t* a, edit_handle_t* b) {
+  return a->tableIdx < b->tableIdx;
 }
 //---------------------------------------------------
 std::vector<edit_handle_t> edit_handle_t::parseValueTree(
@@ -36,10 +37,9 @@ std::vector<edit_handle_t> edit_handle_t::parseValueTree(
   for (auto it = tree.begin(); it != tree.end(); ++it) {
     auto hTree = *it;
     const int _t = hTree[LFOID::handleTableIndex];
-    const int _h = hTree[LFOID::handleIndex];
     const float lvl = hTree[LFOID::handleLevel];
     const bool locked = hTree[LFOID::handleIsLocked];
-    vec.push_back({_t, _h, lvl, locked});
+    vec.push_back({_t, lvl, locked});
   }
   std::sort(vec.begin(), vec.end(), compareEditHandles);
   return vec;
@@ -71,9 +71,13 @@ int LFOEditState::handleIndexAt(int tableIndex) const {
 }
 
 bool LFOEditState::handleCanMoveTo(int handleIndex, int newTableIndex) const {
-  if (handleIndex < 1)
-    return (newTableIndex == 0);
+  if (handleIndex < 1) {
+    return newTableIndex == 0;
+  }
   auto& h = handles[(size_t)handleIndex];
+  if (h.locked) {
+    return false;
+  }
   // 1. determine which direction we're asking to move
   if (newTableIndex < h.tableIdx) {
     return handles[(size_t)handleIndex - 1].tableIdx < newTableIndex;
@@ -88,6 +92,11 @@ bool LFOEditState::handleCanMoveTo(int handleIndex, int newTableIndex) const {
 
 bool LFOEditState::handleIsLocked(int handleIndex) const {
   return handleIndex < 1 || handles[(size_t)handleIndex].locked;
+}
+
+bool LFOEditState::handleCanMoveTo(edit_handle_t* ptr, int tableIdx) const {
+  auto idx = indexOf(ptr);
+  return handleCanMoveTo(idx, tableIdx);
 }
 
 //----------------------------------------------
@@ -111,6 +120,15 @@ bool LFOEditState::canCreateHandle(int tableIdx, float lvl) const {
   return lvl >= 0.0f && lvl < 1.0f;
 }
 
+int LFOEditState::indexOf(edit_handle_t* handle) const {
+  for (size_t i = 0; i < handles.size(); ++i) {
+    if (handle == &handles[i])
+      return (int)i;
+  }
+  jassert(false);
+  return -1;
+}
+
 int LFOEditState::createHandle(int tableIdx, float level) {
   if (canCreateHandle(tableIdx, level)) {
     // 1. find the neighbor
@@ -120,20 +138,13 @@ int LFOEditState::createHandle(int tableIdx, float level) {
     jassert(leftObj.tableIdx < tableIdx);
     // 2. create the object
     edit_handle_t eh;
-    eh.handleIdx = leftHandle + 1;
     eh.tableIdx = tableIdx;
     eh.level = level;
     eh.locked = false;
-    // 3. insert it and hold on to the iterator
-    auto insIterator = std::next(handles.begin(), leftHandle);
-    handles.insert(insIterator, eh);
-    if (leftHandle < (int)(handles.size() - 1)) {
-      // 4. increment the handle idx of everything to the right
-      for (auto it = insIterator + 1; it != handles.end(); ++it) {
-        auto& obj = *it;
-        ++obj.handleIdx;
-      }
-    }
+
+    // 3. add it to the vector and sort
+    handles.push_back(eh);
+    std::sort(handles.begin(), handles.end(), compareEditHandles);
     return leftHandle + 1;
   }
   return -1;
@@ -141,25 +152,195 @@ int LFOEditState::createHandle(int tableIdx, float level) {
 
 bool LFOEditState::removeHandle(int handleIdx) {
   if (handleIdx > 0 && handleIdx < (int)handles.size()) {
-    if (!handleIsLocked(handleIdx)) {
+    if (!handleIsLocked(handleIdx) && handles.size() > 2) {
       // 1. remove from the vector
       auto removeIt = std::next(handles.begin(), handleIdx);
       handles.erase(removeIt);
-      // 2. decrement remaining objects
-      auto decrIt = std::next(handles.begin(), handleIdx);
-      while (decrIt != handles.end()) {
-        auto& obj = *decrIt;
-        --obj.handleIdx;
-        ++decrIt;
-      }
     }
-    // TODO: notify listeners here
     return true;
   }
   return false;
 }
 
 // Mouse Handling stuff=======================================
+edit_handle_t* LFOEditState::getHandleWithinDist(const frect_t& bounds,
+                                                 const fpoint_t& point,
+                                                 float thresh) {
+  int nearestIdx = findClosestEditHandle(bounds, point);
+  if (nearestIdx < 1)
+    return nullptr;
+  auto& handle = handles[(size_t)nearestIdx];
+  auto hPoint = projectHandleToPoint(bounds, handle);
+  if (point.getDistanceFrom(hPoint) < thresh) {
+    return &handle;
+  }
+  return nullptr;
+}
+
+void LFOEditState::selectHandle(edit_handle_t* hand) {
+  if (hand->locked)
+    return;
+  if (hand != lastSelectedHandle) {
+    lastSelectedHandle = hand;
+    selectedHandles.push_back(hand);
+    std::sort(selectedHandles.begin(), selectedHandles.end(), compareEditPtrs);
+  }
+}
+
+void LFOEditState::deselectHandle(edit_handle_t* hand) {
+  if (lastSelectedHandle == hand) {
+    lastSelectedHandle = nullptr;
+  }
+  auto it = std::next(handles.begin(), indexOf(hand));
+  handles.erase(it);
+  if (lastSelectedHandle == nullptr && !handles.empty()) {
+    lastSelectedHandle = &handles.back();
+  }
+}
+
+bool LFOEditState::isSelected(edit_handle_t* hand) const {
+  for (auto* h : selectedHandles) {
+    if (h == hand)
+      return true;
+  }
+  return false;
+}
+
+void LFOEditState::loadLassoIntoSelection(const frect_t& bounds,
+                                          const fpoint_t& cornerA,
+                                          const fpoint_t& cornerB) {
+  selectedHandles.clear();
+  frect_t lassoBounds(cornerA, cornerB);
+  for (auto& h : handles) {
+    if (!h.locked) {
+      auto hPoint = projectHandleToPoint(bounds, h);
+      if (lassoBounds.contains(hPoint)) {
+        selectedHandles.push_back(&h);
+      }
+    }
+  }
+  std::sort(selectedHandles.begin(), selectedHandles.end(), compareEditPtrs);
+}
+
+bool LFOEditState::dragMovementIsLegal(const frect_t& bounds,
+                                       const fpoint_t& startPt,
+                                       const fpoint_t& endPt) const {
+  // 1. figure out how much we've moved along each
+  // axis in relative (normalized) terms
+  const float dXNorm = (endPt.x - startPt.x) / bounds.getWidth();
+  const float dYNorm = (endPt.y - startPt.y) / bounds.getHeight();
+  // 2. translate that to changes in level/tableIdx
+  const int tableIdxDelta = (int)(dXNorm * (float)(LFO_SIZE - 1));
+  const float levelDelta = 1.0f - dYNorm;
+  // 3. check each selected point
+  for (auto* s : selectedHandles) {
+    auto newTIdx = s->tableIdx + tableIdxDelta;
+    auto newLvl = s->level + levelDelta;
+    if (newLvl < 0.0f || newLvl > 1.0f) {  // level out of bounds
+      return false;
+    }
+    if (!handleCanMoveTo(s, newTIdx))
+      return false;
+  }
+  return true;
+}
+
+void LFOEditState::dragCurrentSelection(const frect_t& bounds,
+                                        const fpoint_t& startPt,
+                                        const fpoint_t& endPt) {
+  const float dXNorm = (endPt.x - startPt.x) / bounds.getWidth();
+  const float dYNorm = (endPt.y - startPt.y) / bounds.getHeight();
+  const int tableIdxDelta = (int)(dXNorm * (float)(LFO_SIZE - 1));
+  const float levelDelta = 1.0f - dYNorm;
+  for (auto* s : selectedHandles) {
+    auto newTIdx = s->tableIdx + tableIdxDelta;
+    auto newLvl = s->level + levelDelta;
+    s->tableIdx = newTIdx;
+    s->level = newLvl;
+  }
+}
+
+void LFOEditState::processMouseDown(const frect_t& bounds,
+                                    const juce::MouseEvent& me) {
+  isDraggingSelection = false;
+  // 1. update these bits of state in any case
+  mouseIsDown = true;
+  lastMouseDownHandlePos = projectPointToHandle(bounds, me.position);
+  lastDragUpdateHandlePos = lastMouseDownHandlePos;
+  // 2. if we're close to an existing handle, we may have more to do
+  auto nearbyHandle = getHandleWithinDist(bounds, me.position);
+  if (nearbyHandle != nullptr && nearbyHandle->tableIdx > 0) {
+    if (me.mods.isCommandDown()) {
+      if (isSelected(nearbyHandle)) {
+        deselectHandle(nearbyHandle);
+      } else {
+        selectHandle(nearbyHandle);
+        isDraggingSelection = true;
+      }
+    } else if (isSelected(nearbyHandle) && selectedHandles.size() > 1) {
+      isDraggingSelection = true;
+    } else {
+      clearSelection();
+      selectHandle(nearbyHandle);
+      isDraggingSelection = true;
+    }
+  } else {  // no legal handle was clicked
+    clearSelection();
+  }
+}
+
+void LFOEditState::processMouseDrag(const frect_t& bounds,
+                                    const juce::MouseEvent& me) {
+  // two situations where we have to do something:
+  // 1. we're dragging a selection, we have to validate
+  // and move all the selected handles
+  // 2. we're drawing a lasso, we need to update the selection with
+  // the handles that are inside of the lasso
+  if (isDraggingSelection) {
+    // 1. convert the click coords into a lfo_handle_t
+    auto mouseHandlePos = projectPointToHandle(bounds, me.position);
+    // 2. find our start& end points
+    auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
+    // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
+    if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
+      dragCurrentSelection(bounds, lastUpdatePt, me.position);
+      lastDragUpdateHandlePos = mouseHandlePos;
+    }
+  } else if (mouseIsDown) {
+    auto startPt = projectHandleToPoint(bounds, lastMouseDownHandlePos);
+    loadLassoIntoSelection(bounds, me.position, startPt);
+  }
+}
+
+void LFOEditState::processMouseUp(const frect_t& bounds,
+                                  const juce::MouseEvent& me) {
+  // 1. if we've been dragging, update the drag selection one more time
+  if (isDraggingSelection) {
+    // 1. convert the click coords into a lfo_handle_t
+    auto mouseHandlePos = projectPointToHandle(bounds, me.position);
+    // 2. find our start& end points
+    auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
+    // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
+    if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
+      dragCurrentSelection(bounds, lastUpdatePt, me.position);
+      lastDragUpdateHandlePos = mouseHandlePos;
+    }
+  }
+  // 2. set state variables
+  mouseIsDown = false;
+  isDraggingSelection = false;
+}
+
+void LFOEditState::processDoubleClick(const frect_t& bounds,
+                                      const juce::MouseEvent& me) {
+  auto* existing = getHandleWithinDist(bounds, me.position);
+  if (existing != nullptr && !existing->locked) {
+    auto idx = indexOf(existing);
+    removeHandle(idx);
+  } else {
+    // figure out what table index was clicked on
+  }
+}
 
 //-----------------------------------------------------------
 int LFOEditState::findClosestEditHandle(const frect_t& bounds,
