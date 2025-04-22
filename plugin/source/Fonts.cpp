@@ -56,6 +56,7 @@ static typeface_ptr _ptrForEFont(FontE id) {
           FontData::HelveticaNeueRegular_otfSize);
       break;
     default:
+      jassert(false);
       return juce::Typeface::createSystemTypefaceFor(
           FontData::FuturaLightCondensed_otf,
           FontData::FuturaLightCondensed_otfSize);

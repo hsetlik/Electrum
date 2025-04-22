@@ -3,10 +3,19 @@
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
+#include "Electrum/GUI/Modulation/ModSourceButton.h"
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/ElectrumState.h"
 LFOThumbnail::LFOThumbnail(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
   loadShapePoints();
+}
+
+LFOThumbnail::~LFOThumbnail() {
+  auto* parent = getParentComponent();
+  if (parent != nullptr) {
+    parent->removeChildComponent(this);
+  }
 }
 
 void LFOThumbnail::loadShapePoints() {
@@ -30,6 +39,10 @@ void LFOThumbnail::graphingDataUpdated(GraphingData* gd) {
   }
 }
 
+void LFOThumbnail::resized() {
+  repaint();
+}
+
 static juce::Path s_generateLfoPath(const frect_t& bounds,
                                     const std::vector<fpoint_t>& points) {
   juce::Path p;
@@ -46,7 +59,7 @@ static juce::Path s_generateLfoPath(const frect_t& bounds,
 void LFOThumbnail::paint(juce::Graphics& g) {
   // 1. fill the background
   auto fBounds = getLocalBounds().toFloat();
-  g.setColour(UIColor::windowBkgnd);
+  g.setColour(UIColor::menuBkgnd);
   g.fillRect(fBounds);
   fBounds = fBounds.reduced(2.0f);
   // 2. draw the outline
@@ -73,7 +86,6 @@ void LFOThumbnail::paint(juce::Graphics& g) {
 //===================================================
 
 LFOComponent::LFOComponent(ElectrumState* s, int idx) : state(s), lfoID(idx) {
-  setLookAndFeel(&lnf);
   // 1. set up the freq slider/attachment
   freqSlider.setSliderStyle(juce::Slider::Rotary);
   freqSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 45, 12);
@@ -110,9 +122,7 @@ LFOComponent::LFOComponent(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   startTimerHz(LFO_STRING_CHECK_HZ);
 }
 
-LFOComponent::~LFOComponent() {
-  setLookAndFeel(nullptr);
-}
+LFOComponent::~LFOComponent() {}
 
 void LFOComponent::timerCallback() {
   if (isVisible()) {
@@ -124,8 +134,8 @@ void LFOComponent::timerCallback() {
     if (newHash != lastLfoHash) {
       lastLfoHash = newHash;
       thumb.reset(new LFOThumbnail(state, lfoID));
-      // addAndMakeVisible(thumb.get());
-      repaint();
+      addAndMakeVisible(thumb.get());
+      resized();
     }
   }
 }
@@ -137,13 +147,16 @@ void LFOComponent::resized() {
   // 1. place the name label
   nameLabel.bounds = topRowBounds.removeFromLeft(fBounds.getWidth() * 0.75f);
   // 2. place the thumbnail
-  auto thumbBounds = fBounds.removeFromRight(fBounds.getWidth() * 0.6f);
+  thumbBounds =
+      fBounds.removeFromRight(fBounds.getWidth() * 0.6f).reduced(3.0f);
   thumb->setBounds(thumbBounds.toNearestInt());
+  jassert(thumb->getParentComponent() != nullptr);
+  thumb->toFront(false);
   // 3. place the trigger mode controls
   const float trigHeight = std::max(32.0f, fBounds.getHeight() / 3.3f);
   trigModeLabel.bounds = fBounds.removeFromTop(trigHeight / 2.0f);
   auto tBoxBounds = fBounds.removeFromTop(trigHeight / 2.0f);
-  trigModeCB.setBounds(tBoxBounds.reduced(3.0f).toNearestInt());
+  trigModeCB.setBounds(tBoxBounds.reduced(3.5f).toNearestInt());
   freqLabel.bounds = fBounds.removeFromTop(trigHeight / 2.0f);
   freqSlider.setBounds(fBounds.reduced(8.0f).toNearestInt());
 }
@@ -159,15 +172,54 @@ void LFOComponent::paint(juce::Graphics& g) {
   nameLabel.draw(g);
   freqLabel.draw(g);
   trigModeLabel.draw(g);
+
+  // check if the thumbBounds we set
+  // matches the thumbnail's actual position
+  auto _thumbBounds = thumb->getBoundsInParent();
+  jassert(_thumbBounds == thumbBounds.toNearestInt());
+  // g.setColour(Color::periwinkle);
+  // g.fillRect(thumbBounds);
 }
 
 //---------------------------------------------------------
-LFOTabs::LFOTabs(ElectrumState* s)
-    : juce::TabbedComponent(TabBar::Orientation::TabsAtLeft) {
+LFOTabs::LFOTabs(ElectrumState* s) {
   for (int i = 0; i < NUM_LFOS; ++i) {
+    // 1. add the content panels
+    auto* lfo = lfos.add(new LFOComponent(s, i));
+    addAndMakeVisible(lfo);
+    // 2. add the buttons
     String name = "LFO " + String(i + 1);
-    addTab(name, UIColor::widgetBkgnd, new LFOComponent(s, i), true);
+    const int srcID = (int)(ModSourceE::LFO1) + i;
+    auto* btn = buttons.add(new ModSourceButton(s, srcID, name));
+    btn->onClick = [this, i]() { setSelected(i); };
+    addAndMakeVisible(btn);
+  }
+  buttons.getLast()->setSelected(true);
+}
+
+void LFOTabs::setSelected(int idx) {
+  if (idx != selectedLfo) {
+    selectedLfo = idx;
+    for (int i = 0; i < NUM_LFOS; ++i) {
+      const bool sel = i == selectedLfo;
+      buttons[i]->setSelected(sel);
+      lfos[i]->setVisible(sel);
+      lfos[i]->setEnabled(sel);
+    }
   }
   resized();
 }
 
+void LFOTabs::resized() {
+  auto fBounds = getLocalBounds().toFloat();
+  static constexpr float tabWidth = 85.0f;
+  static constexpr float maxTabHeight = 37.0f;
+  const float tabHeight =
+      std::min(fBounds.getHeight() / (float)NUM_LFOS, maxTabHeight);
+  auto tabBounds = fBounds.removeFromLeft(tabWidth);
+  for (int i = 0; i < lfos.size(); ++i) {
+    lfos[i]->setBounds(fBounds.toNearestInt());
+    auto tBounds = tabBounds.removeFromTop(tabHeight);
+    buttons[i]->setBounds(tBounds.toNearestInt());
+  }
+}

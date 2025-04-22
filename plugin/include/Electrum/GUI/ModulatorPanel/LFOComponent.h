@@ -1,6 +1,7 @@
 #pragma once
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
+#include "Electrum/GUI/Modulation/ModSourceButton.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Shared/GraphingData.h"
@@ -18,8 +19,10 @@ private:
 public:
   const int lfoID;
   LFOThumbnail(ElectrumState* s, int idx);
+  ~LFOThumbnail() override;
   void graphingDataUpdated(GraphingData* gd) override;
   void paint(juce::Graphics& g) override;
+  void resized() override;
 };
 
 //---------------------------------------------------------
@@ -43,6 +46,7 @@ private:
 
   size_t lastLfoHash = 0;
   ElectrumLnF lnf;
+  frect_t thumbBounds;
 
 public:
   const int lfoID;
@@ -56,7 +60,15 @@ public:
 
 //---------------------------------------------------------
 
-class LFOTabs : public juce::TabbedComponent {
+class LFOTabs : public Component {
+private:
+  juce::OwnedArray<LFOComponent> lfos;
+  juce::OwnedArray<ModSourceButton> buttons;
+  //---------------
+  int selectedLfo = -1;
+  void setSelected(int idx);
+
 public:
   LFOTabs(ElectrumState* s);
+  void resized() override;
 };
