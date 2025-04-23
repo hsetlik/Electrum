@@ -12,6 +12,7 @@
 
 class OscillatorPanel : public Component,
                         public juce::ComboBox::Listener,
+                        public juce::Button::Listener,
                         public ElectrumUserLib::Listener {
 private:
   ElectrumState* const state;
@@ -45,6 +46,7 @@ public:
   void resized() override;
   void paint(juce::Graphics& g) override;
   void comboBoxChanged(juce::ComboBox* cb) override;
+  void buttonClicked(juce::Button* b) override;
   void waveWasSaved(wave_meta_t* w) override;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscillatorPanel)

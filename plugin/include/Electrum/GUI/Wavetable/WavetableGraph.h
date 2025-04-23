@@ -8,7 +8,7 @@
 #include "juce_events/juce_events.h"
 #include "../GUITypedefs.h"
 
-#define GRAPH_REFRESH_HZ 24
+#define GRAPH_REFRESH_HZ 12
 #define GRAPH_W 512
 #define GRAPH_H 512
 
@@ -43,6 +43,7 @@ public:
   void timerCallback() override;
   void paint(juce::Graphics& g) override;
   void mouseUp(const juce::MouseEvent& me) override;
+  void enablementChanged() override;
   void graphingDataUpdated(GraphingData* gd) override {
     if (gd->wavetablesChanged()) {
       wavesReady = false;

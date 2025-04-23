@@ -237,6 +237,15 @@ void WavetableGraph::mouseUp(const juce::MouseEvent& me) {
   }
 }
 
+void WavetableGraph::enablementChanged() {
+  if (isEnabled()) {
+    if (!isTimerRunning())
+      startTimerHz(GRAPH_REFRESH_HZ);
+  } else {
+    stopTimer();
+  }
+}
+
 void WavetableGraph::timerCallback() {
   if (wavesReady) {
     auto _pos = state->graph.getOscPos(oscID);

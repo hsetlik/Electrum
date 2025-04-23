@@ -32,6 +32,7 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   addAndMakeVisible(sPan);
   addAndMakeVisible(graph.get());
   addAndMakeVisible(powerBtn);
+  powerBtn.addListener(this);
   // now set up the comboBox and Listener
   auto waveNames = state->userLib.getAvailableWaveNames();
   wavetableCB.addItemList(waveNames, 1);
@@ -79,6 +80,15 @@ void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
     state->graph.requestWavetableString(oscID);
     resized();
   }
+}
+
+void OscillatorPanel::buttonClicked(juce::Button* b) {
+  const bool enabled = b->getToggleState();
+  sCoarse.setEnabled(enabled);
+  sFine.setEnabled(enabled);
+  sPos.setEnabled(enabled);
+  sLevel.setEnabled(enabled);
+  sPan.setEnabled(enabled);
 }
 
 void OscillatorPanel::resized() {
