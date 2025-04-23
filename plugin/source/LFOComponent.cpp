@@ -4,8 +4,10 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/GUI/Modulation/ModSourceButton.h"
+#include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_core/juce_core.h"
 LFOThumbnail::LFOThumbnail(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
   loadShapePoints();
@@ -37,6 +39,11 @@ void LFOThumbnail::graphingDataUpdated(GraphingData* gd) {
     currentPhase = _phase;
     repaint();
   }
+}
+
+void LFOThumbnail::mouseDoubleClick(const juce::MouseEvent& me) {
+  juce::ignoreUnused(me);
+  ModalParent::openLFOEditor(this, state, lfoID);
 }
 
 void LFOThumbnail::resized() {

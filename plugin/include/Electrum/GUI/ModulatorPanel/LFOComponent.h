@@ -6,6 +6,7 @@
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Shared/GraphingData.h"
 #include "juce_events/juce_events.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 // the small graph of the current LFO (not for editing)
 class LFOThumbnail : public Component, public GraphingData::Listener {
@@ -23,6 +24,7 @@ public:
   void graphingDataUpdated(GraphingData* gd) override;
   void paint(juce::Graphics& g) override;
   void resized() override;
+  void mouseDoubleClick(const juce::MouseEvent& me) override;
 };
 
 //---------------------------------------------------------

@@ -38,8 +38,8 @@ struct edit_handle_t {
   static std::vector<edit_handle_t> parseValueTree(const ValueTree& tree);
 };
 
-// this boy holds onto the state of our editing state, relevant components will
-// get a pointer to it
+// this holds onto our editing state, our main click
+// click viewport editor will own one.
 class LFOEditState {
 private:
   ValueTree editState;
@@ -83,7 +83,11 @@ public:
                    float xNormStart,
                    float xNormEnd) const;
 
+  bool shouldRedraw() const { return needsRedraw.load(); }
+
 private:
+  // help us not redraw 5 gajillion times
+  std::atomic<bool> needsRedraw;
   // clicking/dragging helpers
   bool mouseIsDown = false;
   bool isDraggingSelection = false;
@@ -146,14 +150,53 @@ private:
 };
 
 //============================================================
+//--------------COMPONENTS------------------------------------
+//============================================================
+class ViewedLFOEditor : public Component, public juce::Timer {
+private:
+  LFOEditState editState;
+
+public:
+  ViewedLFOEditor(ElectrumState* s, int idx);
+  void resized() override;
+  void paint(juce::Graphics& g) override;
+  void timerCallback() override;
+  void setWidthForScale(float normScale);
+
+  void mouseDown(const juce::MouseEvent& me) override {
+    editState.processMouseDown(getLocalBounds().toFloat(), me);
+  }
+  void mouseUp(const juce::MouseEvent& me) override {
+    editState.processMouseUp(getLocalBounds().toFloat(), me);
+  }
+  void mouseDrag(const juce::MouseEvent& me) override {
+    editState.processMouseDrag(getLocalBounds().toFloat(), me);
+  }
+  void mouseDoubleClick(const juce::MouseEvent& me) override {
+    editState.processDoubleClick(getLocalBounds().toFloat(), me);
+  }
+};
 
 // This is the main modal component that holds our editor
 class LFOEditor : public Component {
 private:
   ElectrumState* const state;
   const int lfoID;
-  // this tree is watching the state of
+  // main editor
+  ViewedLFOEditor editor;
+  juce::Viewport vpt;
+
+  // save/close buttons
+  juce::TextButton saveButton;
+  juce::TextButton closeButton;
+
+  // zoom scaling slider/label
+  juce::Slider zoomSlider;
+  BoundedAttString zoomStr;
 
 public:
   LFOEditor(ElectrumState* s, int idx);
+  ~LFOEditor() override;
+  void resized() override;
+  void paint(juce::Graphics& g) override;
 };

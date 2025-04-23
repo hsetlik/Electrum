@@ -1,7 +1,11 @@
 #include "Electrum/GUI/LFOEditor/LFOEdit.h"
 #include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
+#include "Electrum/GUI/LookAndFeel/Fonts.h"
+#include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
+#include "Electrum/Shared/ElectrumState.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 namespace LFOID {
 
 ValueTree getLFOEditorTree(ElectrumState* s, int idx) {
@@ -50,7 +54,8 @@ std::vector<edit_handle_t> edit_handle_t::parseValueTree(
 LFOEditState::LFOEditState(ElectrumState* s, int idx)
     : editState(LFOID::getLFOEditorTree(s, idx)),
       handles(edit_handle_t::parseValueTree(editState)),
-      lfoID(idx) {
+      lfoID(idx),
+      needsRedraw(true) {
   DBG("Parsed " + String(handles.size()) + " edit handles");
 }
 
@@ -146,6 +151,7 @@ int LFOEditState::createHandle(int tableIdx, float level) {
     // 3. add it to the vector and sort
     handles.push_back(eh);
     std::sort(handles.begin(), handles.end(), compareEditHandles);
+    needsRedraw = true;
     return leftHandle + 1;
   }
   return -1;
@@ -157,6 +163,7 @@ bool LFOEditState::removeHandle(int handleIdx) {
       // 1. remove from the vector
       auto removeIt = std::next(handles.begin(), handleIdx);
       handles.erase(removeIt);
+      needsRedraw = true;
     }
     return true;
   }
@@ -185,6 +192,7 @@ void LFOEditState::selectHandle(edit_handle_t* hand) {
     lastSelectedHandle = hand;
     selectedHandles.push_back(hand);
     std::sort(selectedHandles.begin(), selectedHandles.end(), compareEditPtrs);
+    needsRedraw = true;
   }
 }
 
@@ -204,6 +212,7 @@ void LFOEditState::deleteSelectedHandles() {
     jassert(hIdx > -1);
     jassert(removeHandle(hIdx));
   }
+  needsRedraw = true;
 }
 
 void LFOEditState::deselectHandle(edit_handle_t* hand) {
@@ -212,6 +221,7 @@ void LFOEditState::deselectHandle(edit_handle_t* hand) {
   }
   auto it = std::next(handles.begin(), indexOf(hand));
   handles.erase(it);
+  needsRedraw = true;
   if (lastSelectedHandle == nullptr && !handles.empty()) {
     lastSelectedHandle = &handles.back();
   }
@@ -239,6 +249,7 @@ void LFOEditState::loadLassoIntoSelection(const frect_t& bounds,
     }
   }
   std::sort(selectedHandles.begin(), selectedHandles.end(), compareEditPtrs);
+  needsRedraw = true;
 }
 
 bool LFOEditState::dragMovementIsLegal(const frect_t& bounds,
@@ -277,6 +288,7 @@ void LFOEditState::dragCurrentSelection(const frect_t& bounds,
     s->tableIdx = newTIdx;
     s->level = newLvl;
   }
+  needsRedraw = true;
 }
 
 void LFOEditState::processMouseDown(const frect_t& bounds,
@@ -303,8 +315,9 @@ void LFOEditState::processMouseDown(const frect_t& bounds,
       selectHandle(nearbyHandle);
       isDraggingSelection = true;
     }
-  } else {  // no legal handle was clicked
+  } else if (selectedHandles.size() > 0) {  // no legal handle was clicked
     clearSelection();
+    needsRedraw = true;
   }
 }
 
@@ -390,7 +403,8 @@ int LFOEditState::findClosestEditHandle(const frect_t& bounds,
 int LFOEditState::firstHandleToDraw(float xStart) const {
   for (size_t i = 0; i < handles.size() - 1; ++i) {
     const float normLow = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
-    const float normHigh = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
+    const float normHigh =
+        (float)handles[i + 1].tableIdx / (float)(LFO_SIZE - 1);
     if (normLow <= xStart && normHigh > xStart)
       return (int)i;
   }
@@ -441,10 +455,13 @@ void LFOEditState::drawShape(juce::Graphics& g,
                              float normEnd) const {
   auto startHIdx = firstHandleToDraw(normStart);
   auto endHIdx = lastHandleToDraw(normEnd);
+  jassert(endHIdx > startHIdx);
   juce::Path p;
   p.startNewSubPath(projectHandleToPoint(bounds, handles[(size_t)startHIdx]));
+  std::vector<fpoint_t> pPoints = {};
   for (int i = startHIdx + 1; i <= endHIdx; ++i) {
-    p.lineTo(projectHandleToPoint(bounds, handles[(size_t)i]));
+    pPoints.push_back(projectHandleToPoint(bounds, handles[(size_t)i]));
+    p.lineTo(pPoints.back());
   }
   juce::PathStrokeType pst(2.0f);
   g.setColour(Color::qualifierPurple);
@@ -501,3 +518,134 @@ lfo_handle_t LFOEditState::projectPointToHandle(const frect_t& bounds,
   return {tableIdx, lvl};
 }
 
+//============================================================
+//--------------COMPONENTS------------------------------------
+//============================================================
+
+ViewedLFOEditor::ViewedLFOEditor(ElectrumState* s, int idx)
+    : editState(s, idx) {
+  startTimerHz(24);
+}
+
+void ViewedLFOEditor::timerCallback() {
+  repaint();
+  // if (editState.shouldRedraw()) {
+  //   repaint();
+  // }
+}
+
+void ViewedLFOEditor::resized() {
+  auto* vpt = findParentComponentOfClass<juce::Viewport>();
+  if (vpt != nullptr) {
+    int width = getLocalBounds().getWidth();
+    const float height = (float)vpt->getMaximumVisibleHeight();
+    const int viewWidth = vpt->getMaximumVisibleWidth();
+    // make sure we can't zoom out so far that part of the viewport is empty
+    if (viewWidth > width)
+      width = viewWidth;
+    setSize(width, (int)(height * 0.9f));
+  }
+}
+
+void ViewedLFOEditor::setWidthForScale(float normScale) {
+  static frange_t scaleRange = rangeWithCenter(1.0f, 12.0f, 4.5f);
+  const float fScale = scaleRange.convertFrom0to1(normScale);
+  auto* vpt = findParentComponentOfClass<juce::Viewport>();
+  if (vpt != nullptr) {
+    int width = (int)(fScale * (float)LFO_SIZE);
+    const float height = (float)vpt->getMaximumVisibleHeight();
+    const int viewWidth = vpt->getMaximumVisibleWidth();
+    // make sure we can't zoom out so far that part of the viewport is empty
+    if (viewWidth > width)
+      width = viewWidth;
+    setSize(width, (int)(height * 0.9f));
+  }
+}
+
+void ViewedLFOEditor::paint(juce::Graphics& g) {
+  // 1. grip the parent viewport and find the normalized start/end points
+  auto fBounds = getLocalBounds().toFloat();
+  auto* vpt = findParentComponentOfClass<juce::Viewport>();
+  jassert(vpt != nullptr);
+  auto viewedBounds = vpt->getViewArea().toFloat();
+  const float normStart = viewedBounds.getX() / fBounds.getWidth();
+  const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
+  // 2. have the `LFOEditState` do the drawing
+  editState.drawSection(g, fBounds, normStart, normEnd);
+}
+
+//============================================================
+
+LFOEditor::LFOEditor(ElectrumState* s, int idx)
+    : state(s), lfoID(idx), editor(s, idx) {
+  // 1. set up the view port
+  vpt.setViewedComponent(&editor, false);
+  vpt.setViewPosition(0, 0);
+  vpt.setInterceptsMouseClicks(true, true);
+  vpt.setRepaintsOnMouseActivity(true);
+  addAndMakeVisible(vpt);
+  editor.resized();
+  // 2. set up the zoom slider
+  zoomSlider.setSliderStyle(juce::Slider::LinearVertical);
+  zoomSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
+  zoomSlider.setRange(0.0, 1.0);
+  addAndMakeVisible(zoomSlider);
+  zoomSlider.onValueChange = [this]() {
+    const float zNorm = (float)zoomSlider.getValue();
+    editor.setWidthForScale(zNorm);
+  };
+  // 4. set up the label strings
+  zoomStr.aString.setText("Zoom");
+  zoomStr.aString.setJustification(juce::Justification::centred);
+  zoomStr.aString.setFont(FontData::getFontWithHeight(FontE::RobotoMI, 14.0f));
+  zoomStr.aString.setColour(UIColor::defaultText);
+  // 5. set up the save and close buttons
+  saveButton.setButtonText("Save");
+  addAndMakeVisible(saveButton);
+  saveButton.onClick = [this]() {
+    // TODO: needs to get a stringified wave shape from the
+    //  editor and send it to the ElectrumState here
+    ModalParent::exitModalView(this);
+  };
+  closeButton.setButtonText("Close");
+  addAndMakeVisible(closeButton);
+  closeButton.onClick = [this]() { ModalParent::exitModalView(this); };
+  zoomSlider.setValue(0.2);
+}
+
+LFOEditor::~LFOEditor() {
+  auto parent = getParentComponent();
+  if (parent != nullptr) {
+    parent->removeChildComponent(this);
+  }
+}
+
+void LFOEditor::resized() {
+  auto fBounds = getLocalBounds().toFloat().reduced(12.0f);
+
+  // 1. bottom buttons
+  auto btnArea = fBounds.removeFromBottom(30.0f);
+  auto closeArea = btnArea.removeFromLeft(btnArea.getWidth() / 2).reduced(3.0f);
+  auto saveArea = btnArea.reduced(3.0f);
+  saveButton.setBounds(saveArea.toNearestInt());
+  closeButton.setBounds(closeArea.toNearestInt());
+  // 2. zoom slider
+  auto zArea = fBounds.removeFromLeft(40.0f);
+  zoomStr.bounds = zArea.removeFromTop(16.0f);
+  auto sliderArea = zArea.reduced(2.5f);
+  zoomSlider.setBounds(sliderArea.toNearestInt());
+  // 3. editor
+  auto vptBounds = fBounds.reduced(2.0f);
+  vpt.setBounds(vptBounds.toNearestInt());
+  vpt.toFront(true);
+}
+
+void LFOEditor::paint(juce::Graphics& g) {
+  auto fBounds = getLocalBounds().toFloat();
+  g.setColour(Color::assignmentPink);
+  g.fillRect(fBounds);
+  fBounds = fBounds.reduced(2.5f);
+  g.setColour(UIColor::menuBkgnd);
+  g.fillRect(fBounds);
+  zoomStr.draw(g);
+}
