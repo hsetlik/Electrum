@@ -373,16 +373,15 @@ void LFOEditState::processMouseDrag(const frect_t& bounds,
   // and move all the selected handles
   // 2. we're drawing a lasso, we need to update the selection with
   // the handles that are inside of the lasso
+  auto mouseHandlePos = projectPointToHandle(bounds, me.position);
   if (isDraggingSelection) {
     if (selectedHandles.size() > 1) {
       // 1. convert the click coords into a lfo_handle_t
-      auto mouseHandlePos = projectPointToHandle(bounds, me.position);
       // 2. find our start& end points
       auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
       // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
       if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
         dragCurrentSelection(bounds, lastUpdatePt, me.position);
-        lastDragUpdateHandlePos = mouseHandlePos;
       }
     } else {
       jassert(!selectedHandles.empty());
@@ -393,6 +392,7 @@ void LFOEditState::processMouseDrag(const frect_t& bounds,
     auto startPt = projectHandleToPoint(bounds, lastMouseDownHandlePos);
     loadLassoIntoSelection(bounds, me.position, startPt);
   }
+  lastDragUpdateHandlePos = mouseHandlePos;
 }
 
 void LFOEditState::processMouseUp(const frect_t& bounds,
@@ -419,6 +419,7 @@ void LFOEditState::processMouseUp(const frect_t& bounds,
   mouseIsDown = false;
   isDraggingSelection = false;
   shouldDrawLasso = false;
+  needsRedraw = true;
 }
 
 void LFOEditState::processDoubleClick(const frect_t& bounds,
@@ -477,8 +478,7 @@ int LFOEditState::lastHandleToDraw(float xEnd) const {
     if (xNorm >= xEnd)
       return (int)i;
   }
-  jassert(false);
-  return -1;
+  return (int)handles.size() - 1;
 }
 
 void LFOEditState::drawSection(juce::Graphics& g,
@@ -488,6 +488,12 @@ void LFOEditState::drawSection(juce::Graphics& g,
   drawBackground(g, bounds, xStart, xEnd);
   drawShape(g, bounds, xStart, xEnd);
   drawHandles(g, bounds, xStart, xEnd);
+  if (shouldDrawLasso) {
+    auto p1 = projectHandleToPoint(bounds, lastMouseDownHandlePos);
+    auto p2 = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
+    frect_t lassoBox(p1, p2);
+    drawLasso(g, lassoBox);
+  }
 }
 
 static frect_t s_getVisibleWindow(const frect_t& bounds,
@@ -549,6 +555,16 @@ void LFOEditState::drawHandles(juce::Graphics& g,
   }
 }
 
+void LFOEditState::drawLasso(juce::Graphics& g,
+                             const frect_t& lassoLimits) const {
+  auto strokeColor = Color::commentGray.withAlpha(0.75f);
+  auto fillColor = Color::commentGray.withAlpha(0.3f);
+  g.setColour(strokeColor);
+  g.drawRect(lassoLimits, 1.0f);
+  g.setColour(fillColor);
+  g.fillRect(lassoLimits);
+}
+
 //===========================================================================
 
 // we do a little geometry/projection
@@ -602,7 +618,7 @@ void ViewedLFOEditor::resized() {
 }
 
 void ViewedLFOEditor::setWidthForScale(float normScale) {
-  static frange_t scaleRange = rangeWithCenter(1.0f, 12.0f, 4.5f);
+  static frange_t scaleRange = rangeWithCenter(0.3f, 5.0f, 1.0f);
   const float fScale = scaleRange.convertFrom0to1(normScale);
   auto* vpt = findParentComponentOfClass<juce::Viewport>();
   if (vpt != nullptr) {
@@ -613,6 +629,7 @@ void ViewedLFOEditor::setWidthForScale(float normScale) {
     if (viewWidth > width)
       width = viewWidth;
     setSize(width, (int)(height * 0.9f));
+    viewportChanged = true;
   }
 }
 
@@ -625,8 +642,11 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
   const float normStart = viewedBounds.getX() / fBounds.getWidth();
   const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
   // 2. have the `LFOEditState` do the drawing
-  eState->drawSection(g, fBounds, normStart, normEnd);
-  eState->redrawFinished();
+  if (eState->shouldRedraw() || viewportChanged) {
+    eState->drawSection(g, fBounds, normStart, normEnd);
+    eState->redrawFinished();
+    viewportChanged = false;
+  }
 }
 
 //============================================================
@@ -637,7 +657,7 @@ LFOEditor::LFOEditor(ElectrumState* s, int idx)
   vpt.setViewedComponent(&editor, false);
   vpt.setViewPosition(0, 0);
   vpt.setInterceptsMouseClicks(true, true);
-  vpt.setRepaintsOnMouseActivity(true);
+  vpt.setRepaintsOnMouseActivity(false);
   addAndMakeVisible(vpt);
   editor.resized();
   // 2. set up the zoom slider
@@ -665,7 +685,7 @@ LFOEditor::LFOEditor(ElectrumState* s, int idx)
   closeButton.setButtonText("Close");
   addAndMakeVisible(closeButton);
   closeButton.onClick = [this]() { ModalParent::exitModalView(this); };
-  zoomSlider.setValue(0.2);
+  zoomSlider.setValue(0.015);
 }
 
 LFOEditor::~LFOEditor() {

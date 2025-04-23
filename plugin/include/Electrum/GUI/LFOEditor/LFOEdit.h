@@ -59,7 +59,6 @@ public:
   bool canCreateHandle(int tableIdx, float lvl) const;
   // These handle sending the LFO shape to & from the shared state------------
   String encodeCurrentShapeString() const;
-  void loadShapeString(const String& newShape);
   //-------------------------------------------
 
   // Mode/create/delete LFO points
@@ -147,10 +146,7 @@ private:
                    const frect_t& bounds,
                    float xNormStart,
                    float xNormEnd) const;
-  void drawLasso(juce::Graphics& g,
-                 const frect_t& bounds,
-                 float xNormStart,
-                 float xNormEnd) const;
+  void drawLasso(juce::Graphics& g, const frect_t& bounds) const;
   //-----------------------------------------------------------
 
   // we do a little geometry/projection
@@ -167,6 +163,7 @@ private:
 //============================================================
 class ViewedLFOEditor : public Component, public juce::Timer {
 private:
+  bool viewportChanged = false;
   std::unique_ptr<LFOEditState> eState;
 
 public:
