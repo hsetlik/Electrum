@@ -44,6 +44,7 @@ std::vector<edit_handle_t> edit_handle_t::parseValueTree(
     const int _t = hTree[LFOID::handleTableIndex];
     const float lvl = hTree[LFOID::handleLevel];
     const bool locked = hTree[LFOID::handleIsLocked];
+    jassert(lvl <= 1.0f);
     vec.push_back({_t, lvl, locked});
   }
   std::sort(vec.begin(), vec.end(), compareEditHandles);
@@ -261,7 +262,7 @@ bool LFOEditState::dragMovementIsLegal(const frect_t& bounds,
   const float dYNorm = (endPt.y - startPt.y) / bounds.getHeight();
   // 2. translate that to changes in level/tableIdx
   const int tableIdxDelta = (int)(dXNorm * (float)(LFO_SIZE - 1));
-  const float levelDelta = 1.0f - dYNorm;
+  const float levelDelta = -dYNorm;
   // 3. check each selected point
   for (auto* s : selectedHandles) {
     auto newTIdx = s->tableIdx + tableIdxDelta;
@@ -281,7 +282,7 @@ void LFOEditState::dragCurrentSelection(const frect_t& bounds,
   const float dXNorm = (endPt.x - startPt.x) / bounds.getWidth();
   const float dYNorm = (endPt.y - startPt.y) / bounds.getHeight();
   const int tableIdxDelta = (int)(dXNorm * (float)(LFO_SIZE - 1));
-  const float levelDelta = 1.0f - dYNorm;
+  const float levelDelta = -dYNorm;
   for (auto* s : selectedHandles) {
     auto newTIdx = s->tableIdx + tableIdxDelta;
     auto newLvl = s->level + levelDelta;
@@ -300,23 +301,44 @@ void LFOEditState::processMouseDown(const frect_t& bounds,
   lastDragUpdateHandlePos = lastMouseDownHandlePos;
   // 2. if we're close to an existing handle, we may have more to do
   auto nearbyHandle = getHandleWithinDist(bounds, me.position);
-  if (nearbyHandle != nullptr && nearbyHandle->tableIdx > 0) {
+  if (nearbyHandle != nullptr &&
+      nearbyHandle->tableIdx > 0) {  // a legal handle was clicked
+    // 1. first, handle the command modifier cases
     if (me.mods.isCommandDown()) {
+      // just toggle the selection of the clicked handle
       if (isSelected(nearbyHandle)) {
         deselectHandle(nearbyHandle);
       } else {
         selectHandle(nearbyHandle);
         isDraggingSelection = true;
       }
-    } else if (isSelected(nearbyHandle) && selectedHandles.size() > 1) {
-      isDraggingSelection = true;
-    } else {
-      clearSelection();
-      selectHandle(nearbyHandle);
-      isDraggingSelection = true;
+    } else {  // 2. deal with normal clicks
+      // if the point we clicked wasn't already selected,
+      // deselect the others and select it
+      if (!isSelected(nearbyHandle)) {
+        clearSelection();
+        selectHandle(nearbyHandle);
+        isDraggingSelection = true;
+      } else {
+        // otherwise, we're dragging an existing selection
+        isDraggingSelection = true;
+      }
     }
   } else if (selectedHandles.size() > 0) {  // no legal handle was clicked
     clearSelection();
+    needsRedraw = true;
+  }
+}
+
+void LFOEditState::dragSinglePoint(const frect_t& bounds,
+                                   const fpoint_t& point) {
+  auto* pt = selectedHandles[0];
+  auto newPtHandle = projectPointToHandle(bounds, point);
+  const int newTIdx = (int)newPtHandle.tableIdx;
+  const float newLvl = newPtHandle.level;
+  if (handleCanMoveTo(pt, newTIdx) && !(newLvl < 0.0f || newLvl > 1.0f)) {
+    pt->tableIdx = newTIdx;
+    pt->level = newLvl;
     needsRedraw = true;
   }
 }
@@ -329,16 +351,22 @@ void LFOEditState::processMouseDrag(const frect_t& bounds,
   // 2. we're drawing a lasso, we need to update the selection with
   // the handles that are inside of the lasso
   if (isDraggingSelection) {
-    // 1. convert the click coords into a lfo_handle_t
-    auto mouseHandlePos = projectPointToHandle(bounds, me.position);
-    // 2. find our start& end points
-    auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
-    // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
-    if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
-      dragCurrentSelection(bounds, lastUpdatePt, me.position);
-      lastDragUpdateHandlePos = mouseHandlePos;
+    if (selectedHandles.size() > 1) {
+      // 1. convert the click coords into a lfo_handle_t
+      auto mouseHandlePos = projectPointToHandle(bounds, me.position);
+      // 2. find our start& end points
+      auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
+      // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
+      if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
+        dragCurrentSelection(bounds, lastUpdatePt, me.position);
+        lastDragUpdateHandlePos = mouseHandlePos;
+      }
+    } else {
+      jassert(!selectedHandles.empty());
+      dragSinglePoint(bounds, me.position);
     }
   } else if (mouseIsDown) {
+    shouldDrawLasso = true;
     auto startPt = projectHandleToPoint(bounds, lastMouseDownHandlePos);
     loadLassoIntoSelection(bounds, me.position, startPt);
   }
@@ -348,19 +376,26 @@ void LFOEditState::processMouseUp(const frect_t& bounds,
                                   const juce::MouseEvent& me) {
   // 1. if we've been dragging, update the drag selection one more time
   if (isDraggingSelection) {
-    // 1. convert the click coords into a lfo_handle_t
-    auto mouseHandlePos = projectPointToHandle(bounds, me.position);
-    // 2. find our start& end points
-    auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
-    // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
-    if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
-      dragCurrentSelection(bounds, lastUpdatePt, me.position);
-      lastDragUpdateHandlePos = mouseHandlePos;
+    if (selectedHandles.size() > 1) {
+      // 1. convert the click coords into a lfo_handle_t
+      auto mouseHandlePos = projectPointToHandle(bounds, me.position);
+      // 2. find our start& end points
+      auto lastUpdatePt = projectHandleToPoint(bounds, lastDragUpdateHandlePos);
+      // 3. if legal, move the selection and update `lastDragUpdateHandlePos`
+      if (dragMovementIsLegal(bounds, lastUpdatePt, me.position)) {
+        dragCurrentSelection(bounds, lastUpdatePt, me.position);
+        lastDragUpdateHandlePos = mouseHandlePos;
+      }
+    } else {
+      jassert(!selectedHandles.empty());
+      dragSinglePoint(bounds, me.position);
+      clearSelection();
     }
   }
   // 2. set state variables
   mouseIsDown = false;
   isDraggingSelection = false;
+  shouldDrawLasso = false;
 }
 
 void LFOEditState::processDoubleClick(const frect_t& bounds,
@@ -458,13 +493,11 @@ void LFOEditState::drawShape(juce::Graphics& g,
   jassert(endHIdx > startHIdx);
   juce::Path p;
   p.startNewSubPath(projectHandleToPoint(bounds, handles[(size_t)startHIdx]));
-  std::vector<fpoint_t> pPoints = {};
   for (int i = startHIdx + 1; i <= endHIdx; ++i) {
-    pPoints.push_back(projectHandleToPoint(bounds, handles[(size_t)i]));
-    p.lineTo(pPoints.back());
+    p.lineTo(projectHandleToPoint(bounds, handles[(size_t)i]));
   }
   juce::PathStrokeType pst(2.0f);
-  g.setColour(Color::qualifierPurple);
+  g.setColour(Color::literalOrangeBright);
   g.strokePath(p, pst);
 }
 
@@ -475,8 +508,7 @@ static void s_drawHandle(juce::Graphics& g,
   frect_t hBounds;
   hBounds.setCentre(centerPt);
   hBounds = hBounds.withSizeKeepingCentre(handleWidth, handleWidth);
-  auto color =
-      isSelected ? Color::qualifierPurple.brighter() : Color::qualifierPurple;
+  auto color = isSelected ? Color::qualifierPurple : Color::literalOrangeBright;
   g.setColour(color);
   g.fillEllipse(hBounds);
 }
@@ -528,10 +560,9 @@ ViewedLFOEditor::ViewedLFOEditor(ElectrumState* s, int idx)
 }
 
 void ViewedLFOEditor::timerCallback() {
-  repaint();
-  // if (editState.shouldRedraw()) {
-  //   repaint();
-  // }
+  if (editState.shouldRedraw()) {
+    repaint();
+  }
 }
 
 void ViewedLFOEditor::resized() {
@@ -572,6 +603,7 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
   const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
   // 2. have the `LFOEditState` do the drawing
   editState.drawSection(g, fBounds, normStart, normEnd);
+  editState.redrawFinished();
 }
 
 //============================================================

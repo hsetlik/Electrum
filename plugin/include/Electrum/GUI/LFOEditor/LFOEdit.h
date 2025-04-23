@@ -83,23 +83,28 @@ public:
                    float xNormStart,
                    float xNormEnd) const;
 
-  bool shouldRedraw() const { return needsRedraw.load(); }
+  bool shouldRedraw() const { return needsRedraw; }
+  void redrawFinished() { needsRedraw = false; }
 
 private:
   // help us not redraw 5 gajillion times
-  std::atomic<bool> needsRedraw;
+  bool needsRedraw;
   // clicking/dragging helpers
   bool mouseIsDown = false;
   bool isDraggingSelection = false;
   lfo_handle_t lastMouseDownHandlePos;
   lfo_handle_t lastDragUpdateHandlePos;
-  // checks if the current relative movement is legal for the current selection
+
+  // lasso-drawing logic
+  bool shouldDrawLasso = false;
+
   bool dragMovementIsLegal(const frect_t& bounds,
                            const fpoint_t& startPt,
                            const fpoint_t& endPt) const;
   void dragCurrentSelection(const frect_t& bounds,
                             const fpoint_t& startPt,
                             const fpoint_t& endPt);
+  void dragSinglePoint(const frect_t& bounds, const fpoint_t& point);
   // returns the handleIndex of the handle closest to the given point
   int findClosestEditHandle(const frect_t& bounds, const fpoint_t& point);
   // returns a pointer to the edit handle within the given distance or nullptr
