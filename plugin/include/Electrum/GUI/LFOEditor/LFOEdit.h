@@ -36,19 +36,19 @@ struct edit_handle_t {
   bool locked;
   // this can run in the initializer
   static std::vector<edit_handle_t> parseValueTree(const ValueTree& tree);
+  static std::vector<edit_handle_t> parseShapeString(const String& str);
 };
 
 // this holds onto our editing state, our main click
 // click viewport editor will own one.
 class LFOEditState {
 private:
-  ValueTree editState;
   std::vector<edit_handle_t> handles;
   int indexOf(edit_handle_t* handle) const;
 
 public:
-  const int lfoID;
   LFOEditState(ElectrumState* s, int idx);
+  LFOEditState(const String& shapeStr);
 
   // Validation for adding/moving/deleting handles---------------------------
   bool handleExistsAt(int tableIdx) const;
@@ -57,6 +57,10 @@ public:
   bool handleCanMoveTo(edit_handle_t* ptr, int tableIdx) const;
   int handleIdxToLeft(int tableIdx) const;
   bool canCreateHandle(int tableIdx, float lvl) const;
+  // These handle sending the LFO shape to & from the shared state------------
+  String encodeCurrentShapeString() const;
+  void loadShapeString(const String& newShape);
+  //-------------------------------------------
 
   // Mode/create/delete LFO points
   // creates a handle at the specified tableIdx and level. returns
@@ -143,6 +147,10 @@ private:
                    const frect_t& bounds,
                    float xNormStart,
                    float xNormEnd) const;
+  void drawLasso(juce::Graphics& g,
+                 const frect_t& bounds,
+                 float xNormStart,
+                 float xNormEnd) const;
   //-----------------------------------------------------------
 
   // we do a little geometry/projection
@@ -159,7 +167,7 @@ private:
 //============================================================
 class ViewedLFOEditor : public Component, public juce::Timer {
 private:
-  LFOEditState editState;
+  std::unique_ptr<LFOEditState> eState;
 
 public:
   ViewedLFOEditor(ElectrumState* s, int idx);
@@ -169,16 +177,16 @@ public:
   void setWidthForScale(float normScale);
 
   void mouseDown(const juce::MouseEvent& me) override {
-    editState.processMouseDown(getLocalBounds().toFloat(), me);
+    eState->processMouseDown(getLocalBounds().toFloat(), me);
   }
   void mouseUp(const juce::MouseEvent& me) override {
-    editState.processMouseUp(getLocalBounds().toFloat(), me);
+    eState->processMouseUp(getLocalBounds().toFloat(), me);
   }
   void mouseDrag(const juce::MouseEvent& me) override {
-    editState.processMouseDrag(getLocalBounds().toFloat(), me);
+    eState->processMouseDrag(getLocalBounds().toFloat(), me);
   }
   void mouseDoubleClick(const juce::MouseEvent& me) override {
-    editState.processDoubleClick(getLocalBounds().toFloat(), me);
+    eState->processDoubleClick(getLocalBounds().toFloat(), me);
   }
 };
 

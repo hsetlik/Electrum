@@ -25,6 +25,7 @@ ValueTree getLFOEditorTree(ElectrumState* s, int idx) {
   }
   return vt;
 }
+
 }  // namespace LFOID
 
 static bool compareEditHandles(edit_handle_t a, edit_handle_t b) {
@@ -50,13 +51,26 @@ std::vector<edit_handle_t> edit_handle_t::parseValueTree(
   std::sort(vec.begin(), vec.end(), compareEditHandles);
   return vec;
 }
+
+std::vector<edit_handle_t> edit_handle_t::parseShapeString(const String& str) {
+  std::vector<lfo_handle_t> chudHandles = {};
+  LFO::stringDecode(str, chudHandles);
+  std::vector<edit_handle_t> handles = {};
+  for (auto& ch : chudHandles) {
+    handles.push_back({(int)ch.tableIdx, ch.level, false});
+  }
+  return handles;
+}
 //===================================================
 
 LFOEditState::LFOEditState(ElectrumState* s, int idx)
-    : editState(LFOID::getLFOEditorTree(s, idx)),
-      handles(edit_handle_t::parseValueTree(editState)),
-      lfoID(idx),
+    : handles(edit_handle_t::parseValueTree(LFOID::getLFOEditorTree(s, idx))),
       needsRedraw(true) {
+  DBG("Parsed " + String(handles.size()) + " edit handles");
+}
+
+LFOEditState::LFOEditState(const String& str)
+    : handles(edit_handle_t::parseShapeString(str)) {
   DBG("Parsed " + String(handles.size()) + " edit handles");
 }
 
@@ -134,6 +148,15 @@ int LFOEditState::indexOf(edit_handle_t* handle) const {
   }
   jassert(false);
   return -1;
+}
+
+String LFOEditState::encodeCurrentShapeString() const {
+  // 1. convert our handles into lfo_handle_t
+  std::vector<lfo_handle_t> lHandles = {};
+  for (auto& h : handles) {
+    lHandles.push_back({(size_t)h.tableIdx, h.level});
+  }
+  return LFO::stringEncode(lHandles);
 }
 
 int LFOEditState::createHandle(int tableIdx, float level) {
@@ -555,12 +578,12 @@ lfo_handle_t LFOEditState::projectPointToHandle(const frect_t& bounds,
 //============================================================
 
 ViewedLFOEditor::ViewedLFOEditor(ElectrumState* s, int idx)
-    : editState(s, idx) {
+    : eState(std::make_unique<LFOEditState>(s, idx)) {
   startTimerHz(24);
 }
 
 void ViewedLFOEditor::timerCallback() {
-  if (editState.shouldRedraw()) {
+  if (eState->shouldRedraw()) {
     repaint();
   }
 }
@@ -602,8 +625,8 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
   const float normStart = viewedBounds.getX() / fBounds.getWidth();
   const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
   // 2. have the `LFOEditState` do the drawing
-  editState.drawSection(g, fBounds, normStart, normEnd);
-  editState.redrawFinished();
+  eState->drawSection(g, fBounds, normStart, normEnd);
+  eState->redrawFinished();
 }
 
 //============================================================
