@@ -1,5 +1,6 @@
 #include "Electrum/GUI/LFOEditor/LFOEdit.h"
 #include "Electrum/Audio/Modulator/LFO.h"
+#include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/Identifiers.h"
 namespace LFOID {
 
@@ -187,6 +188,24 @@ void LFOEditState::selectHandle(edit_handle_t* hand) {
   }
 }
 
+void LFOEditState::deleteSelectedHandles() {
+  // 1. copy the table indices of the currently selected
+  // handles into a new vector on da stack
+  std::vector<int> selectedTableIndices = {};
+  for (auto* s : selectedHandles) {
+    selectedTableIndices.push_back(s->tableIdx);
+  }
+  // 2. empty the `selectedHandles` vector and so on
+  selectedTableIndices.clear();
+  lastSelectedHandle = nullptr;
+  // 3. find and delete each of the handles by index
+  for (auto& tIdx : selectedTableIndices) {
+    int hIdx = handleIndexAt(tIdx);
+    jassert(hIdx > -1);
+    jassert(removeHandle(hIdx));
+  }
+}
+
 void LFOEditState::deselectHandle(edit_handle_t* hand) {
   if (lastSelectedHandle == hand) {
     lastSelectedHandle = nullptr;
@@ -198,7 +217,7 @@ void LFOEditState::deselectHandle(edit_handle_t* hand) {
   }
 }
 
-bool LFOEditState::isSelected(edit_handle_t* hand) const {
+bool LFOEditState::isSelected(const edit_handle_t* hand) const {
   for (auto* h : selectedHandles) {
     if (h == hand)
       return true;
@@ -339,6 +358,13 @@ void LFOEditState::processDoubleClick(const frect_t& bounds,
     removeHandle(idx);
   } else {
     // figure out what table index was clicked on
+    const float xNorm = (me.position.x - bounds.getX()) / bounds.getWidth();
+    const int tIdx = (int)(xNorm * (float)(LFO_SIZE - 1));
+    if (!handleExistsAt(tIdx)) {
+      const float lvl =
+          (bounds.getBottom() - me.position.y) / bounds.getHeight();
+      createHandle(tIdx, lvl);
+    }
   }
 }
 
@@ -359,6 +385,100 @@ int LFOEditState::findClosestEditHandle(const frect_t& bounds,
   }
 }
 
+// Drawing===================================================================
+
+int LFOEditState::firstHandleToDraw(float xStart) const {
+  for (size_t i = 0; i < handles.size() - 1; ++i) {
+    const float normLow = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
+    const float normHigh = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
+    if (normLow <= xStart && normHigh > xStart)
+      return (int)i;
+  }
+  jassert(false);
+  return -1;
+}
+
+int LFOEditState::lastHandleToDraw(float xEnd) const {
+  for (size_t i = 0; i < handles.size(); ++i) {
+    // easy bc `handles` is sorted
+    const float xNorm = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
+    if (xNorm >= xEnd)
+      return (int)i;
+  }
+  jassert(false);
+  return -1;
+}
+
+void LFOEditState::drawSection(juce::Graphics& g,
+                               const frect_t& bounds,
+                               float xStart,
+                               float xEnd) const {
+  drawBackground(g, bounds, xStart, xEnd);
+  drawShape(g, bounds, xStart, xEnd);
+  drawHandles(g, bounds, xStart, xEnd);
+}
+
+static frect_t s_getVisibleWindow(const frect_t& bounds,
+                                  float xStart,
+                                  float xEnd) {
+  const float xLeft = bounds.getX() + (xStart * bounds.getWidth());
+  const float xRight = bounds.getX() + (xEnd * bounds.getWidth());
+  return {xLeft, bounds.getY(), xRight - xLeft, bounds.getHeight()};
+}
+
+void LFOEditState::drawBackground(juce::Graphics& g,
+                                  const frect_t& bounds,
+                                  float normStart,
+                                  float normEnd) const {
+  auto window = s_getVisibleWindow(bounds, normStart, normEnd);
+  g.setColour(Color::nearBlack);
+  g.fillRect(window);
+}
+
+void LFOEditState::drawShape(juce::Graphics& g,
+                             const frect_t& bounds,
+                             float normStart,
+                             float normEnd) const {
+  auto startHIdx = firstHandleToDraw(normStart);
+  auto endHIdx = lastHandleToDraw(normEnd);
+  juce::Path p;
+  p.startNewSubPath(projectHandleToPoint(bounds, handles[(size_t)startHIdx]));
+  for (int i = startHIdx + 1; i <= endHIdx; ++i) {
+    p.lineTo(projectHandleToPoint(bounds, handles[(size_t)i]));
+  }
+  juce::PathStrokeType pst(2.0f);
+  g.setColour(Color::qualifierPurple);
+  g.strokePath(p, pst);
+}
+
+static void s_drawHandle(juce::Graphics& g,
+                         const fpoint_t& centerPt,
+                         bool isSelected) {
+  const float handleWidth = 13.0f;
+  frect_t hBounds;
+  hBounds.setCentre(centerPt);
+  hBounds = hBounds.withSizeKeepingCentre(handleWidth, handleWidth);
+  auto color =
+      isSelected ? Color::qualifierPurple.brighter() : Color::qualifierPurple;
+  g.setColour(color);
+  g.fillEllipse(hBounds);
+}
+
+void LFOEditState::drawHandles(juce::Graphics& g,
+                               const frect_t& bounds,
+                               float normStart,
+                               float normEnd) const {
+  auto startHIdx = firstHandleToDraw(normStart);
+  auto endHIdx = lastHandleToDraw(normEnd);
+  for (auto i = startHIdx; i <= endHIdx; ++i) {
+    auto& h = handles[(size_t)i];
+    auto center = projectHandleToPoint(bounds, h);
+    s_drawHandle(g, center, isSelected(&handles[(size_t)i]));
+  }
+}
+
+//===========================================================================
+
 // we do a little geometry/projection
 fpoint_t LFOEditState::projectHandleToPoint(const frect_t& bounds,
                                             const lfo_handle_t& handle) {
@@ -372,8 +492,9 @@ fpoint_t LFOEditState::projectHandleToPoint(const frect_t& bounds,
   lfo_handle_t lHand = {(size_t)handle.tableIdx, handle.level};
   return projectHandleToPoint(bounds, lHand);
 }
-static lfo_handle_t projectPointToHandle(const frect_t& bounds,
-                                         const fpoint_t& point) {
+
+lfo_handle_t LFOEditState::projectPointToHandle(const frect_t& bounds,
+                                                const fpoint_t& point) {
   const float xNorm = (point.getX() - bounds.getX()) / bounds.getWidth();
   const float lvl = (bounds.getBottom() - point.y) / bounds.getHeight();
   auto tableIdx = (size_t)(xNorm * (float)(LFO_SIZE - 1));

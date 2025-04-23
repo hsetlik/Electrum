@@ -75,7 +75,13 @@ public:
   void processMouseUp(const frect_t& bounds, const juce::MouseEvent& me);
   void processDoubleClick(const frect_t& bounds, const juce::MouseEvent& me);
 
+  // buttons/keystrokes should call these as appropriate-----
+  void deleteSelectedHandles();
   // Drawing callback---------------------------------------
+  void drawSection(juce::Graphics& g,
+                   const frect_t& bounds,
+                   float xNormStart,
+                   float xNormEnd) const;
 
 private:
   // clicking/dragging helpers
@@ -100,7 +106,7 @@ private:
 
   // selection handling stuff-----------------------------------
   edit_handle_t* lastSelectedHandle = nullptr;
-  bool isSelected(edit_handle_t* hand) const;
+  bool isSelected(const edit_handle_t* hand) const;
   void selectHandle(edit_handle_t* hand);
   void deselectHandle(edit_handle_t* hand);
   void clearSelection() {
@@ -113,6 +119,21 @@ private:
                               const fpoint_t& cornerA,
                               const fpoint_t& cornerB);
 
+  // drawing helpers-------------------------------------------
+  int firstHandleToDraw(float xStart) const;
+  int lastHandleToDraw(float xEnd) const;
+  void drawBackground(juce::Graphics& g,
+                      const frect_t& bounds,
+                      float xNormStart,
+                      float xNormEnd) const;
+  void drawShape(juce::Graphics& g,
+                 const frect_t& bounds,
+                 float xNormStart,
+                 float xNormEnd) const;
+  void drawHandles(juce::Graphics& g,
+                   const frect_t& bounds,
+                   float xNormStart,
+                   float xNormEnd) const;
   //-----------------------------------------------------------
 
   // we do a little geometry/projection
