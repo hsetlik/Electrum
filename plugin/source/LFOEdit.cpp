@@ -5,6 +5,7 @@
 #include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_core/juce_core.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 namespace LFOID {
 
@@ -72,6 +73,7 @@ LFOEditState::LFOEditState(ElectrumState* s, int idx)
 LFOEditState::LFOEditState(const String& str)
     : handles(edit_handle_t::parseShapeString(str)) {
   DBG("Parsed " + String(handles.size()) + " edit handles");
+  needsRedraw = true;
 }
 
 bool LFOEditState::handleExistsAt(int tableIdx) const {
@@ -154,8 +156,9 @@ String LFOEditState::encodeCurrentShapeString() const {
   // 1. convert our handles into lfo_handle_t
   std::vector<lfo_handle_t> lHandles = {};
   for (auto& h : handles) {
-    lHandles.push_back({(size_t)h.tableIdx, h.level});
+    lHandles.push_back({h.tableIdx, h.level});
   }
+  // 2. parse that list into a string
   return LFO::stringEncode(lHandles);
 }
 
@@ -577,7 +580,7 @@ fpoint_t LFOEditState::projectHandleToPoint(const frect_t& bounds,
 
 fpoint_t LFOEditState::projectHandleToPoint(const frect_t& bounds,
                                             const edit_handle_t& handle) {
-  lfo_handle_t lHand = {(size_t)handle.tableIdx, handle.level};
+  lfo_handle_t lHand = {handle.tableIdx, handle.level};
   return projectHandleToPoint(bounds, lHand);
 }
 
@@ -585,7 +588,7 @@ lfo_handle_t LFOEditState::projectPointToHandle(const frect_t& bounds,
                                                 const fpoint_t& point) {
   const float xNorm = (point.getX() - bounds.getX()) / bounds.getWidth();
   const float lvl = (bounds.getBottom() - point.y) / bounds.getHeight();
-  auto tableIdx = (size_t)(xNorm * (float)(LFO_SIZE - 1));
+  auto tableIdx = (int)(xNorm * (float)(LFO_SIZE - 1));
   return {tableIdx, lvl};
 }
 
@@ -603,7 +606,7 @@ void ViewedLFOEditor::timerCallback() {
     repaint();
   }
   auto now = juce::Time::getMillisecondCounter();
-  if (now - lastShapeUpdateMs) {
+  if (now - lastShapeUpdateMs > 850) {
     checkShapeUpdate();
     lastShapeUpdateMs = now;
   }
@@ -643,7 +646,7 @@ void ViewedLFOEditor::setWidthForScale(float normScale) {
     if (viewWidth > width)
       width = viewWidth;
     setSize(width, (int)(height * 0.9f));
-    viewportChanged = true;
+    eState->requestRedraw();
   }
 }
 
@@ -656,11 +659,193 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
   const float normStart = viewedBounds.getX() / fBounds.getWidth();
   const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
   // 2. have the `LFOEditState` do the drawing
-  if (eState->shouldRedraw() || viewportChanged) {
+  if (eState->shouldRedraw()) {
     eState->drawSection(g, fBounds, normStart, normEnd);
     eState->redrawFinished();
-    viewportChanged = false;
   }
+}
+
+//============================================================
+BasicShapeMenu::BasicShapeMenu() {
+  // 1. set up the Labels
+  headerLabel.aString.setText("Basic LFO Shapes");
+  headerLabel.aString.setJustification(juce::Justification::centred);
+  headerLabel.aString.setFont(
+      FontData::getFontWithHeight(FontE::RobotoMI, 18.0f));
+  headerLabel.aString.setColour(UIColor::defaultText);
+
+  shapeLabel.aString.setText("Shape:");
+  shapeLabel.aString.setJustification(juce::Justification::centredLeft);
+  shapeLabel.aString.setFont(
+      FontData::getFontWithHeight(FontE::RobotoMI, 14.0f));
+  shapeLabel.aString.setColour(UIColor::defaultText);
+
+  pointsLabel.aString.setText("Points:");
+  pointsLabel.aString.setJustification(juce::Justification::centredLeft);
+  pointsLabel.aString.setFont(
+      FontData::getFontWithHeight(FontE::RobotoMI, 14.0f));
+  pointsLabel.aString.setColour(UIColor::defaultText);
+
+  // 2. set up the comboBox
+  shapeBox.addItemList(BasicShapeNames, 1);
+  shapeBox.setSelectedItemIndex(0);
+  addAndMakeVisible(shapeBox);
+  // lambda keeps the slider's range appropriate for the
+  // shape
+  shapeBox.onChange = [this]() {
+    BasicShapeE id = (BasicShapeE)shapeBox.getSelectedItemIndex();
+    updateSliderRange(id);
+  };
+
+  // 3. set up the slider
+  pointsSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+  pointsSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 30, 12);
+  addAndMakeVisible(pointsSlider);
+  updateSliderRange(BasicShapeE::Sine);
+
+  // 4. set up the OK button
+  okButton.setButtonText("Ok");
+  addAndMakeVisible(okButton);
+  okButton.onClick = [this]() { loadSelectionToEditor(); };
+}
+
+void BasicShapeMenu::updateSliderRange(BasicShapeE id) {
+  juce::Range<double> range;
+  double defaultVal;
+  switch (id) {
+    case Sine:
+      range = juce::Range<double>(5.0, 100.0);
+      defaultVal = 35.0;
+      break;
+    case RisingRamp:
+      range = juce::Range<double>(1.0, 100.0);
+      defaultVal = 1.0;
+      break;
+    case FallingRamp:
+      range = juce::Range<double>(1.0, 100.0);
+      defaultVal = 1.0;
+      break;
+    case Triangle:
+      range = juce::Range<double>(2.0, 100.0);
+      defaultVal = 2.0;
+      break;
+    case Random:
+      range = juce::Range<double>(3.0, 100.0);
+      defaultVal = 8.0;
+      break;
+  }
+  pointsSlider.setRange(range, 1.0);
+  pointsSlider.setValue(defaultVal);
+}
+
+static handle_vector_t s_getSineHandles(int numPoints) {
+  handle_vector_t handles = {};
+  for (int i = 0; i <= numPoints; ++i) {
+    float normPhase = (float)i / (float)numPoints;
+    const float angle = normPhase * juce::MathConstants<float>::twoPi;
+    const float lvl = (std::sinf(angle) + 1.0f) * 0.5f;
+    const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
+    handles.push_back({tIdx, lvl});
+  }
+  return handles;
+}
+
+static handle_vector_t s_getRisingHandles(int numPoints) {
+  handle_vector_t handles = {};
+  for (int i = 0; i <= numPoints; ++i) {
+    float normPhase = (float)i / (float)numPoints;
+    const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
+    handles.push_back({tIdx, normPhase});
+  }
+  return handles;
+}
+
+static handle_vector_t s_getFallingHandles(int numPoints) {
+  handle_vector_t handles = {};
+  for (int i = 0; i <= numPoints; ++i) {
+    float normPhase = (float)i / (float)numPoints;
+    const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
+    handles.push_back({tIdx, 1.0f - normPhase});
+  }
+  return handles;
+}
+
+static handle_vector_t s_getTriangleHandles(int numPoints) {
+  handle_vector_t handles = {};
+  for (int i = 0; i <= numPoints; ++i) {
+    float normPhase = (float)i / (float)numPoints;
+    const float distFromPeak = std::fabs(0.5f - normPhase);
+    const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
+    handles.push_back({tIdx, 1.0f - (2.0f * distFromPeak)});
+  }
+  return handles;
+}
+
+static handle_vector_t s_getRandomHandles(int numPoints) {
+  juce::Random rng;
+  handle_vector_t handles = {};
+  for (int i = 0; i <= numPoints; ++i) {
+    float normPhase = (float)i / (float)numPoints;
+    const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
+    handles.push_back({tIdx, rng.nextFloat()});
+  }
+  return handles;
+}
+
+handle_vector_t BasicShapeMenu::getHandlesForSelection() {
+  const int numPoints = (int)pointsSlider.getValue() + 1;
+  BasicShapeE id = (BasicShapeE)shapeBox.getSelectedItemIndex();
+  switch (id) {
+    case Sine:
+      return s_getSineHandles(numPoints);
+    case RisingRamp:
+      return s_getRisingHandles(numPoints);
+    case FallingRamp:
+      return s_getFallingHandles(numPoints);
+    case Triangle:
+      return s_getTriangleHandles(numPoints);
+    case Random:
+      return s_getRandomHandles(numPoints);
+  }
+  jassert(false);
+  return s_getSineHandles(numPoints);
+}
+
+void BasicShapeMenu::loadSelectionToEditor() {
+  auto editor = findParentComponentOfClass<LFOEditor>();
+  if (editor != nullptr) {
+    auto handles = getHandlesForSelection();
+    const String shapeStr = LFO::stringEncode(handles);
+    editor->replaceEditorShapeString(shapeStr);
+  } else {
+    jassert(false);
+  }
+}
+
+void BasicShapeMenu::resized() {
+  auto fBounds = getLocalBounds().toFloat().reduced(5.0f);
+  headerLabel.bounds = fBounds.removeFromTop(30.0f);
+  shapeLabel.bounds = fBounds.removeFromTop(16.0f);
+
+  auto shapeArea = fBounds.removeFromTop(30.0f).reduced(2.0f);
+  shapeBox.setBounds(shapeArea.toNearestInt());
+
+  pointsLabel.bounds = fBounds.removeFromTop(16.0f);
+
+  auto ptsArea = fBounds.removeFromTop(45.0f).reduced(2.0f);
+  pointsSlider.setBounds(ptsArea.toNearestInt());
+
+  auto okBounds = fBounds.removeFromTop(30.0f).reduced(2.0f);
+  okButton.setBounds(okBounds.toNearestInt());
+}
+
+void BasicShapeMenu::paint(juce::Graphics& g) {
+  auto fBounds = getLocalBounds().toFloat();
+  g.setColour(UIColor::menuBkgnd);
+  g.fillRect(fBounds);
+  headerLabel.draw(g);
+  shapeLabel.draw(g);
+  pointsLabel.draw(g);
 }
 
 //============================================================
@@ -689,7 +874,7 @@ void LFOEditor::PreviewBtn::paintButton(juce::Graphics& g, bool, bool) {
 LFOEditor::LFOEditor(ElectrumState* s, int idx)
     : state(s), lfoID(idx), editor(s, idx) {
   // grip the saved shape string
-
+  savedShapeString = editor.getCurrentShapeString();
   // 1. set up the view port
   vpt.setViewedComponent(&editor, false);
   vpt.setViewPosition(0, 0);
@@ -715,19 +900,24 @@ LFOEditor::LFOEditor(ElectrumState* s, int idx)
   saveButton.setButtonText("Save");
   addAndMakeVisible(saveButton);
   saveButton.onClick = [this]() {
-    // TODO: needs to get a stringified wave shape from the
-    //  editor and send it to the ElectrumState here
+    pushShapeString(editor.getCurrentShapeString());
     ModalParent::exitModalView(this);
   };
   closeButton.setButtonText("Close");
   addAndMakeVisible(closeButton);
-  closeButton.onClick = [this]() { ModalParent::exitModalView(this); };
+  closeButton.onClick = [this]() {
+    if (previewEditorShape) {
+      pushShapeString(savedShapeString);
+    }
+    ModalParent::exitModalView(this);
+  };
   zoomSlider.setValue(0.015);
   // and the "preview button"
   savedShapeString = editor.getCurrentShapeString();
   addAndMakeVisible(previewBtn);
   // assign the callback
   previewBtn.onClick = [this] { previewBtnClicked(); };
+  addAndMakeVisible(basicMenu);
 }
 
 LFOEditor::~LFOEditor() {
@@ -755,7 +945,10 @@ void LFOEditor::resized() {
   zoomStr.bounds = zArea.removeFromTop(16.0f);
   auto sliderArea = zArea.reduced(2.5f);
   zoomSlider.setBounds(sliderArea.toNearestInt());
-  // 3. editor
+  // 3. basic menu
+  auto menuArea = fBounds.removeFromRight(140.0f);
+  basicMenu.setBounds(menuArea.toNearestInt());
+  // 4. editor
   auto vptBounds = fBounds.reduced(2.0f);
   vpt.setBounds(vptBounds.toNearestInt());
   vpt.toFront(true);

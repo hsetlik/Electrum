@@ -129,7 +129,7 @@ static String s_defaultSineLFOString() {
   const size_t numHandles = 55;
   for (size_t i = 0; i < numHandles; ++i) {
     float normPhase = (float)i / (float)numHandles;
-    size_t bin = (size_t)(normPhase * (float)(LFO_SIZE - 1));
+    int bin = (int)(normPhase * (float)(LFO_SIZE - 1));
     float lvl = (float)std::sin(normPhase * juce::MathConstants<float>::twoPi);
     lvl = (lvl + 1.0f) * 0.5f;
     handles.push_back({bin, lvl});
@@ -169,16 +169,15 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
   // 3. add our LFO info child tree
   auto lfoTree = s_makeLfoInfoTree();
   state.appendChild(lfoTree, undo);
-  // TODO: set the LFO string hash parameters eventually
 }
 
 void ElectrumState::ensureLFOTree() {
   auto existing = state.getChildWithName(ID::LFO_INFO);
-  if (existing.isValid()) {
-    state.removeChild(existing, undoManager);
+  if (!existing.isValid()) {
+    // state.removeChild(existing, undoManager);
+    auto lfoTree = s_makeLfoInfoTree();
+    state.appendChild(lfoTree, undoManager);
   }
-  auto lfoTree = s_makeLfoInfoTree();
-  state.appendChild(lfoTree, undoManager);
 }
 
 float ElectrumState::getModulatedDestValue(int destID,

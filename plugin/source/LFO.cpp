@@ -11,7 +11,7 @@ static const String handleDelim = "_HNDL";
 static const String indexDelim = "_IDX";
 
 static String s_handleToString(const lfo_handle_t& h) {
-  String out = B64::toString(h.tableIdx) + indexDelim;
+  String out = B64::toString((size_t)h.tableIdx) + indexDelim;
   out += B64::toString(h.level) + handleDelim;
   return out;
 }
@@ -33,15 +33,15 @@ static std::vector<String> s_extractHandleStrings(const String& lfoStr) {
 static lfo_handle_t s_parseHandleString(const String& str) {
   int idxEnd = str.indexOf(indexDelim);
   auto indexString = str.substring(0, idxEnd);
-  const size_t tableIdx = B64::toSizeT(indexString);
+  const int tableIdx = (int)B64::toSizeT(indexString);
   auto remaining = str.substring(idxEnd + indexDelim.length());
   const float lvl = B64::toFloat(remaining);
   return {tableIdx, lvl};
 }
 //---------------------------------------------------------
 
-void stringDecode(const String& str, std::vector<lfo_handle_t>& dest);
-String stringEncode(std::vector<lfo_handle_t>& handles) {
+void stringDecode(const String& str, handle_vector_t& dest);
+String stringEncode(handle_vector_t& handles) {
   String out = lfoStartToken;
   for (auto& h : handles) {
     out += s_handleToString(h);
@@ -50,7 +50,7 @@ String stringEncode(std::vector<lfo_handle_t>& handles) {
   return out;
 }
 
-void stringDecode(const String& str, std::vector<lfo_handle_t>& dest) {
+void stringDecode(const String& str, handle_vector_t& dest) {
   // 1. clear out the list
   dest.clear();
   // 2. split into handle strings
@@ -60,8 +60,7 @@ void stringDecode(const String& str, std::vector<lfo_handle_t>& dest) {
   }
 }
 
-void parseHandlesToTable(const std::vector<lfo_handle_t>& handles,
-                         lfo_table_t& dest) {
+void parseHandlesToTable(const handle_vector_t& handles, lfo_table_t& dest) {
   jassert(handles.size() > 2);
   size_t leftHandleIdx = 0;
   bool wrapped = false;
@@ -69,7 +68,7 @@ void parseHandlesToTable(const std::vector<lfo_handle_t>& handles,
     jassert(leftHandleIdx < handles.size());
     auto* lHandle = &handles[leftHandleIdx];
     auto* rHandle = &handles[leftHandleIdx + 1];
-    while (rHandle->tableIdx <= i && !wrapped) {
+    while (rHandle->tableIdx <= (int)i && !wrapped) {
       ++leftHandleIdx;
       if (leftHandleIdx < handles.size() - 1) {
         lHandle = &handles[leftHandleIdx];
@@ -80,7 +79,7 @@ void parseHandlesToTable(const std::vector<lfo_handle_t>& handles,
         wrapped = true;
       }
     }
-    const float t = (float)(i - lHandle->tableIdx) /
+    const float t = (float)((int)i - lHandle->tableIdx) /
                     (float)(rHandle->tableIdx - lHandle->tableIdx);
     dest[i] = flerp(lHandle->level, rHandle->level, t);
   }

@@ -11,9 +11,11 @@ typedef std::array<float, LFO_SIZE> lfo_table_t;
 // represents one editable point on the LFO
 // a vector of these can be used to compute the table
 struct lfo_handle_t {
-  size_t tableIdx;
+  int tableIdx;
   float level;
 };
+
+typedef std::vector<lfo_handle_t> handle_vector_t;
 
 struct lfo_bin_state {
   lfo_handle_t* leftHandle;
@@ -23,12 +25,11 @@ struct lfo_bin_state {
 
 namespace LFO {
 // converts the `lfo_handle_t` vector into a string to be saved/loaded
-String stringEncode(std::vector<lfo_handle_t>& handles);
+String stringEncode(handle_vector_t& handles);
 // parses the given string into a list of LFO handles
-void stringDecode(const String& str, std::vector<lfo_handle_t>& dest);
+void stringDecode(const String& str, handle_vector_t& dest);
 // parses a list of handles into an actual LUT
-void parseHandlesToTable(const std::vector<lfo_handle_t>& handles,
-                         lfo_table_t& dest);
+void parseHandlesToTable(const handle_vector_t& handles, lfo_table_t& dest);
 }  // namespace LFO
 
 // the shared data for our LFOs, analogous to EnvelopeLUT
@@ -42,7 +43,7 @@ private:
   lfo_table_t* tIdle = &table2;
   size_t currentLfoHash = 0;
   String currentLfoString = "";
-  std::vector<lfo_handle_t> handles;
+  handle_vector_t handles;
 
   bool needsData = true;
 

@@ -57,7 +57,8 @@ public:
   bool handleCanMoveTo(edit_handle_t* ptr, int tableIdx) const;
   int handleIdxToLeft(int tableIdx) const;
   bool canCreateHandle(int tableIdx, float lvl) const;
-  // These handle sending the LFO shape to & from the shared state------------
+  // This gets the editor's state as a string to sent to a `LowFrequencyLUT`
+  // object
   String encodeCurrentShapeString() const;
   //-------------------------------------------
 
@@ -88,6 +89,7 @@ public:
 
   bool shouldRedraw() const { return needsRedraw; }
   void redrawFinished() { needsRedraw = false; }
+  void requestRedraw() { needsRedraw = true; }
 
 private:
   // help us not redraw 5 gajillion times
@@ -180,6 +182,8 @@ public:
     return eState->encodeCurrentShapeString();
   }
 
+  void replaceStateStr(const String& s) { eState.reset(new LFOEditState(s)); }
+
   void mouseDown(const juce::MouseEvent& me) override {
     eState->processMouseDown(getLocalBounds().toFloat(), me);
   }
@@ -194,6 +198,37 @@ public:
   }
 };
 
+//------------------------------------
+enum BasicShapeE { Sine, RisingRamp, FallingRamp, Triangle, Random };
+
+const juce::StringArray BasicShapeNames = {
+    "Sine", "Rising Ramp", "Falling Ramp", "Triangle", "Random"};
+
+class BasicShapeMenu : public Component {
+private:
+  BoundedAttString headerLabel;
+
+  BoundedAttString shapeLabel;
+  juce::ComboBox shapeBox;
+
+  BoundedAttString pointsLabel;
+  juce::Slider pointsSlider;
+
+  juce::TextButton okButton;
+  // callback for keeping the slider in range
+  void updateSliderRange(BasicShapeE tShape);
+  // callback for the ok button;
+  void loadSelectionToEditor();
+  std::vector<lfo_handle_t> getHandlesForSelection();
+
+public:
+  BasicShapeMenu();
+  void resized() override;
+  void paint(juce::Graphics& g) override;
+};
+
+//-----------------------------------
+
 // This is the main modal component that holds our editor
 class LFOEditor : public Component {
 private:
@@ -207,6 +242,9 @@ private:
   // save/close buttons
   juce::TextButton saveButton;
   juce::TextButton closeButton;
+
+  // side panel
+  BasicShapeMenu basicMenu;
 
   class PreviewBtn : public juce::Button {
     AttString aStr;
@@ -234,5 +272,8 @@ public:
   // the editor can call this to update the shared state's shape string
   void pushShapeString(const String& str);
   // other children can call this to send a new wave to the editor
-  void replaceEditorShapeString(const String& str);
+  void replaceEditorShapeString(const String& str) {
+    editor.replaceStateStr(str);
+    resized();
+  }
 };
