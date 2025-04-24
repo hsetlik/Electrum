@@ -347,3 +347,13 @@ void ElectrumState::updateCommonAudioData() {
     audioData.lfos[i].setTriggerMode(_fMode);
   }
 }
+
+void ElectrumState::updateLFOString(const String& shapeString, int lfoID) {
+  auto lfoTree = state.getChildWithName(ID::LFO_INFO);
+  if (lfoTree.isValid()) {
+    String shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
+    lfoTree.setProperty(shapeStringID, shapeString, nullptr);
+  } else {
+    jassert(false);
+  }
+}

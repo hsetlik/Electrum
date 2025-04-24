@@ -117,6 +117,8 @@ public:
   // the shared LUTs and such four our voices
   CommonAudioData audioData;
 
+  void updateLFOString(const String& shapeString, int lfoID);
+
   void updateCommonAudioData();
   void ensureLFOTree();
 

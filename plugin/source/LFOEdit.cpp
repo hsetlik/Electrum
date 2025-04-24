@@ -602,6 +602,20 @@ void ViewedLFOEditor::timerCallback() {
   if (eState->shouldRedraw()) {
     repaint();
   }
+  auto now = juce::Time::getMillisecondCounter();
+  if (now - lastShapeUpdateMs) {
+    checkShapeUpdate();
+    lastShapeUpdateMs = now;
+  }
+}
+
+void ViewedLFOEditor::checkShapeUpdate() {
+  auto* parent = findParentComponentOfClass<LFOEditor>();
+  if (parent != nullptr) {
+    if (parent->wantsPreviews()) {
+      parent->pushShapeString(getCurrentShapeString());
+    }
+  }
 }
 
 void ViewedLFOEditor::resized() {
@@ -651,8 +665,31 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
 
 //============================================================
 
+LFOEditor::PreviewBtn::PreviewBtn() : juce::Button("PreviewBtn") {
+  aStr.setFont(FontData::getFontWithHeight(FontE::RobotoMI, 14.0f));
+  aStr.setJustification(juce::Justification::centred);
+  aStr.setText("Preview");
+  setClickingTogglesState(true);
+}
+
+void LFOEditor::PreviewBtn::paintButton(juce::Graphics& g, bool, bool) {
+  auto fBounds = getLocalBounds().toFloat();
+  static const float corner = 3.0f;
+  g.setColour(UIColor::widgetBkgnd);
+  g.fillRoundedRectangle(fBounds, corner);
+  auto fillColor =
+      getToggleState() ? Color::assignmentPink : Color::commentGray;
+  g.setColour(fillColor);
+  g.drawRoundedRectangle(fBounds, corner, 1.8f);
+  aStr.setColour(fillColor);
+  auto textBounds = fBounds.reduced(2.0f);
+  aStr.draw(g, textBounds);
+}
+
 LFOEditor::LFOEditor(ElectrumState* s, int idx)
     : state(s), lfoID(idx), editor(s, idx) {
+  // grip the saved shape string
+
   // 1. set up the view port
   vpt.setViewedComponent(&editor, false);
   vpt.setViewPosition(0, 0);
@@ -686,6 +723,11 @@ LFOEditor::LFOEditor(ElectrumState* s, int idx)
   addAndMakeVisible(closeButton);
   closeButton.onClick = [this]() { ModalParent::exitModalView(this); };
   zoomSlider.setValue(0.015);
+  // and the "preview button"
+  savedShapeString = editor.getCurrentShapeString();
+  addAndMakeVisible(previewBtn);
+  // assign the callback
+  previewBtn.onClick = [this] { previewBtnClicked(); };
 }
 
 LFOEditor::~LFOEditor() {
@@ -700,10 +742,14 @@ void LFOEditor::resized() {
 
   // 1. bottom buttons
   auto btnArea = fBounds.removeFromBottom(30.0f);
-  auto closeArea = btnArea.removeFromLeft(btnArea.getWidth() / 2).reduced(3.0f);
-  auto saveArea = btnArea.reduced(3.0f);
+  auto closeArea =
+      btnArea.removeFromLeft(btnArea.getWidth() / 3.0f).reduced(3.0f);
+  auto saveArea =
+      btnArea.removeFromLeft(btnArea.getWidth() / 3.0f).reduced(3.0f);
+  auto previewArea = btnArea.reduced(3.0f);
   saveButton.setBounds(saveArea.toNearestInt());
   closeButton.setBounds(closeArea.toNearestInt());
+  previewBtn.setBounds(previewArea.toNearestInt());
   // 2. zoom slider
   auto zArea = fBounds.removeFromLeft(40.0f);
   zoomStr.bounds = zArea.removeFromTop(16.0f);
@@ -723,4 +769,22 @@ void LFOEditor::paint(juce::Graphics& g) {
   g.setColour(UIColor::menuBkgnd);
   g.fillRect(fBounds);
   zoomStr.draw(g);
+}
+
+void LFOEditor::previewBtnClicked() {
+  auto newState = previewBtn.getToggleState();
+  if (newState != previewEditorShape) {
+    previewEditorShape = newState;
+    if (previewEditorShape) {
+      auto newShape = editor.getCurrentShapeString();
+      pushShapeString(newShape);
+    } else {
+      pushShapeString(savedShapeString);
+    }
+  }
+}
+
+void LFOEditor::pushShapeString(const String& str) {
+  // sinple
+  state->updateLFOString(str, lfoID);
 }

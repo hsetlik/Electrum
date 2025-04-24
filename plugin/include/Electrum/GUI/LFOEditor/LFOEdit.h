@@ -161,10 +161,13 @@ private:
 //============================================================
 //--------------COMPONENTS------------------------------------
 //============================================================
+
 class ViewedLFOEditor : public Component, public juce::Timer {
 private:
   bool viewportChanged = false;
   std::unique_ptr<LFOEditState> eState;
+  uint32_t lastShapeUpdateMs = 0;
+  void checkShapeUpdate();
 
 public:
   ViewedLFOEditor(ElectrumState* s, int idx);
@@ -172,6 +175,10 @@ public:
   void paint(juce::Graphics& g) override;
   void timerCallback() override;
   void setWidthForScale(float normScale);
+
+  String getCurrentShapeString() const {
+    return eState->encodeCurrentShapeString();
+  }
 
   void mouseDown(const juce::MouseEvent& me) override {
     eState->processMouseDown(getLocalBounds().toFloat(), me);
@@ -192,6 +199,7 @@ class LFOEditor : public Component {
 private:
   ElectrumState* const state;
   const int lfoID;
+  bool previewEditorShape = false;
   // main editor
   ViewedLFOEditor editor;
   juce::Viewport vpt;
@@ -200,6 +208,17 @@ private:
   juce::TextButton saveButton;
   juce::TextButton closeButton;
 
+  class PreviewBtn : public juce::Button {
+    AttString aStr;
+
+  public:
+    PreviewBtn();
+    void paintButton(juce::Graphics& g, bool, bool) override;
+  };
+  PreviewBtn previewBtn;
+  String savedShapeString;
+  // preview button callback
+  void previewBtnClicked();
   // zoom scaling slider/label
   juce::Slider zoomSlider;
   BoundedAttString zoomStr;
@@ -209,4 +228,11 @@ public:
   ~LFOEditor() override;
   void resized() override;
   void paint(juce::Graphics& g) override;
+  // children can call this to check if they need to send data to the
+  // shared state
+  bool wantsPreviews() const { return previewEditorShape; }
+  // the editor can call this to update the shared state's shape string
+  void pushShapeString(const String& str);
+  // other children can call this to send a new wave to the editor
+  void replaceEditorShapeString(const String& str);
 };

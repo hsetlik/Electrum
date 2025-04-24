@@ -103,7 +103,7 @@ void LowFrequencyLUT::timerCallback() {
 
 void LowFrequencyLUT::updateData(apvts& tree, int idx) {
   if (needsData) {
-    auto childTree = tree.state.getChildWithName(ID::LFO_INFO).createCopy();
+    auto childTree = tree.state.getChildWithName(ID::LFO_INFO);
     if (childTree.isValid()) {
       String propID = ID::lfoShapeString.toString() + String(idx);
       const String _lfoStr = childTree[propID];
