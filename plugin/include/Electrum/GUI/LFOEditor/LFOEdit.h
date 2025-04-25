@@ -182,7 +182,10 @@ public:
     return eState->encodeCurrentShapeString();
   }
 
-  void replaceStateStr(const String& s) { eState.reset(new LFOEditState(s)); }
+  void replaceStateStr(const String& s) {
+    setWidthForScale(0.5f);
+    eState.reset(new LFOEditState(s));
+  }
 
   void mouseDown(const juce::MouseEvent& me) override {
     eState->processMouseDown(getLocalBounds().toFloat(), me);

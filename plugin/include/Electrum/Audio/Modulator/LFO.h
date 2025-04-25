@@ -47,7 +47,7 @@ private:
 
   bool needsData = true;
 
-  float lfoHz = 0.05f;
+  float lfoHz = 0.5f;
   float phaseDelt = 0.00001f;
 
   float globalPhase = 0.0f;
@@ -60,6 +60,7 @@ public:
   void handleAsyncUpdate() override;
   void timerCallback() override;
   float getSample(float normPhase) const;
+  float processSample(float& currentPhase) const;
   float getGlobalPhase() const { return globalPhase; }
   // call this in per-block update
   void updateData(apvts& tree, int lfoIDX);

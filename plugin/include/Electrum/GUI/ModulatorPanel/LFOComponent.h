@@ -9,7 +9,9 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 
 // the small graph of the current LFO (not for editing)
-class LFOThumbnail : public Component, public GraphingData::Listener {
+class LFOThumbnail : public Component,
+                     public GraphingData::Listener,
+                     public juce::AsyncUpdater {
 private:
   ElectrumState* const state;
   String shapeStringID;
@@ -23,6 +25,7 @@ public:
   ~LFOThumbnail() override;
   void graphingDataUpdated(GraphingData* gd) override;
   void paint(juce::Graphics& g) override;
+  void handleAsyncUpdate() override;
   void resized() override;
   void mouseDoubleClick(const juce::MouseEvent& me) override;
 };

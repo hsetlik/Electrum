@@ -11,6 +11,8 @@
 LFOThumbnail::LFOThumbnail(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
   loadShapePoints();
+  // attach itself as a listener
+  state->graph.addListener(this);
 }
 
 LFOThumbnail::~LFOThumbnail() {
@@ -18,6 +20,7 @@ LFOThumbnail::~LFOThumbnail() {
   if (parent != nullptr) {
     parent->removeChildComponent(this);
   }
+  state->graph.removeListener(this);
 }
 
 void LFOThumbnail::loadShapePoints() {
@@ -37,8 +40,13 @@ void LFOThumbnail::graphingDataUpdated(GraphingData* gd) {
   const float _phase = gd->getLFOPhase(lfoID);
   if (!fequal(_phase, currentPhase)) {
     currentPhase = _phase;
-    repaint();
+    triggerAsyncUpdate();
   }
+}
+
+void LFOThumbnail::handleAsyncUpdate() {
+  // TODO: we also need to load the new shape if needed
+  repaint();
 }
 
 void LFOThumbnail::mouseDoubleClick(const juce::MouseEvent& me) {
@@ -91,7 +99,7 @@ void LFOThumbnail::paint(juce::Graphics& g) {
   g.strokePath(wavePath, pst);
 
   // 4. draw the leading voice position
-  if (isEnabled()) {
+  if (isEnabled() && !fequal(currentPhase, 0.0f)) {
     juce::Path leadPath;
     const float xPos = fBounds.getX() + (fBounds.getWidth() * currentPhase);
     leadPath.startNewSubPath(xPos, fBounds.getY());
