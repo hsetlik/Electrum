@@ -167,8 +167,7 @@ ElectrumState::ElectrumState(juce::AudioProcessor& proc,
     lastWaveIndices[i] = 0;
   }
   // 3. add our LFO info child tree
-  auto lfoTree = s_makeLfoInfoTree();
-  state.appendChild(lfoTree, undo);
+  ensureLFOTree();
 }
 
 void ElectrumState::ensureLFOTree() {
@@ -348,11 +347,12 @@ void ElectrumState::updateCommonAudioData() {
 }
 
 void ElectrumState::updateLFOString(const String& shapeString, int lfoID) {
-  auto lfoTree = state.getChildWithName(ID::LFO_INFO);
-  if (lfoTree.isValid()) {
-    String shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
-    lfoTree.setProperty(shapeStringID, shapeString, nullptr);
-  } else {
-    jassert(false);
-  }
+  juce::ignoreUnused(shapeString, lfoID);
+  // auto lfoTree = state.getChildWithName(ID::LFO_INFO);
+  // if (lfoTree.isValid()) {
+  //   String shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
+  //   lfoTree.setProperty(shapeStringID, shapeString, nullptr);
+  // } else {
+  //   jassert(false);
+  // }
 }

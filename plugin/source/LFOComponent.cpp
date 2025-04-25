@@ -122,10 +122,10 @@ LFOComponent::LFOComponent(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   // 2. set up the trigger mode selector/attachment
   trigModeCB.addItemList(getTriggerModeNames(), 1);
   trigModeCB.setSelectedItemIndex(0);
+  addAndMakeVisible(trigModeCB);
   const String trigParamID = ID::lfoTriggerMode.toString() + String(lfoID);
   trigModeAttach.reset(
       new apvts::ComboBoxAttachment(*state, trigParamID, trigModeCB));
-  addAndMakeVisible(trigModeCB);
   // 3. set up the thumbnail
   thumb.reset(new LFOThumbnail(state, lfoID));
   addAndMakeVisible(thumb.get());

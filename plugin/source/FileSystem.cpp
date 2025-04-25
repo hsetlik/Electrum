@@ -152,7 +152,8 @@ String loadTableStringForWave(const String& name) {
   auto file = getWavetablesFolder().getChildFile(name + waveFileExt);
   if (!file.existsAsFile()) {
     DBG("File Invalid!");
-    jassert(false);
+    // jassert(false);
+    return Wavetable::getDefaultWavesetString();
   }
   auto fileStr = file.loadFileAsString();
   auto topTree = ValueTree::fromXml(fileStr);

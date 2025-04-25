@@ -251,6 +251,7 @@ PatchList::PatchList(ElectrumState* s) : state(s) {
   const int numPatches = state->userLib.numPatches();
   for (int i = 0; i < numPatches; ++i) {
     auto p = state->userLib.getPatchAtIndex(i);
+    jassert(p != nullptr);
     auto comp = patches.add(new PatchListEntry(p));
     addAndMakeVisible(comp);
     comp->onClick = [this, p]() { setSelectedPatch(p); };

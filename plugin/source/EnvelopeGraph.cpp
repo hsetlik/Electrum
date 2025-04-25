@@ -416,6 +416,7 @@ fpoint_t EnvelopeGraph::getPosFromParam(const String& paramID,
   }
   DLog::log("Warning: requested position for invalid param ID: \"" + paramID +
             "\"");
+  jassert(false);
   return {0.0f, 0.0f};
 }
 
