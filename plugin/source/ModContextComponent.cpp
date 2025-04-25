@@ -80,22 +80,22 @@ void ModContextComponent::valueTreeChildRemoved(ValueTree& parent,
     }
   }
 }
-
-static std::vector<mod_src_t> modsForDest(const ValueTree& modTree,
-                                          int destID) {
-  std::vector<mod_src_t> vec = {};
-  for (auto it = modTree.begin(); it != modTree.end(); ++it) {
-    auto mod = *it;
-    const int dest = mod[ID::modDestID];
-    if (dest == destID) {
-      const int src = mod[ID::modSourceID];
-      const float depth = mod[ID::modDepth];
-      vec.push_back({src, depth});
-    }
-  }
-  return vec;
-}
-
+//
+// static std::vector<mod_src_t> modsForDest(const ValueTree& modTree,
+//                                           int destID) {
+//   std::vector<mod_src_t> vec = {};
+//   for (auto it = modTree.begin(); it != modTree.end(); ++it) {
+//     auto mod = *it;
+//     const int dest = mod[ID::modDestID];
+//     if (dest == destID) {
+//       const int src = mod[ID::modSourceID];
+//       const float depth = mod[ID::modDepth];
+//       vec.push_back({src, depth});
+//     }
+//   }
+//   return vec;
+// }
+//
 void ModContextComponent::valueTreeRedirected(ValueTree& changed) {
   auto modTree = changed.getChildWithName(ID::ELECTRUM_MOD_TREE);
   jassert(modTree.isValid());

@@ -18,7 +18,7 @@ private:
   ElectrumVoice* const parent;
   bool gate;
   bool forceKillQuick;
-  size_t samplesSinceGateChange;
+  // size_t samplesSinceGateChange;
   float lastOutput;
   float levelDelta() const {
     return SampleRate::getf() / (QUICK_KILL_MS / 1000.0f);

@@ -19,7 +19,8 @@ WaveViewerTabs::WaveViewerTabs(ValueTree& vt)
 //===================================================
 
 WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
-    : state(s), wavetable(wt), oscID(idx), thumbBar(nullptr), tabs(nullptr) {
+    : state(s), oscID(idx), thumbBar(nullptr), tabs(nullptr) {
+  juce::ignoreUnused(wt);
   // 1. figure out which file we need to load
   String indexID = ID::oscillatorWaveIndex.toString() + String(oscID);
   const int waveIdx = (int)state->getRawParameterValue(indexID)->load();

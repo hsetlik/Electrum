@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditValueTree.h"
+#include "WaveMenu.h"
 #include "Electrum/Identifiers.h"
 
 class WaveEditListener;

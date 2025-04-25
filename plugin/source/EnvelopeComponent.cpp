@@ -101,7 +101,7 @@ void EnvParamLabel::setTextForValue(float val) {
 //===================================================================================
 
 EnvelopeComponent::EnvelopeComponent(ElectrumState* s, int id)
-    : state(s), envID(id), graph(s, id) {
+    : envID(id), graph(s, id) {
   // set up the labels
   String iStr(envID);
   const String aID = ID::attackMs.toString() + iStr;

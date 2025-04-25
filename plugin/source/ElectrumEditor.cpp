@@ -10,13 +10,14 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
                                    audio_plugin::ElectrumAudioProcessor* p)
     : ModContextComponent(s),
       state(s),
-      processor(p),
+      // processor(p),
       kbdView(p->engine.masterKeyboardState),
       filterTabs(s),
       macroPanel(s),
       browser(s),
       envPanel(s),
       lfoPanel(s) {
+  juce::ignoreUnused(p);
   addAndMakeVisible(&kbdView);
   addAndMakeVisible(&filterTabs);
   addAndMakeVisible(&macroPanel);

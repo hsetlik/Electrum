@@ -2,9 +2,11 @@
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Identifiers.h"
 #include "juce_audio_basics/juce_audio_basics.h"
+#include "juce_core/juce_core.h"
 
-WavetableOscillator::WavetableOscillator(Wavetable* w, int idx)
-    : wave(w), index(idx) {}
+WavetableOscillator::WavetableOscillator(Wavetable* w, int idx) : wave(w) {
+  juce::ignoreUnused(idx);
+}
 //===================================================
 //
 

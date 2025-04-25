@@ -9,9 +9,6 @@
 
 class ModSourceComponent : public Component,
                            public juce::SettableTooltipClient {
-private:
-  ElectrumState* const state;
-
 public:
   const int sourceID;
   ModSourceComponent(ElectrumState* s, int src);

@@ -48,6 +48,13 @@ enum LFOTriggerE { Global, RetrigStart, RetrigRand };
 inline juce::StringArray getTriggerModeNames() {
   return {"Global", "Retrigger", "Retrigger (random phase)"};
 }
+
+enum NoteSubdivE { _16, _16t, _8, _8t, _4, _4t, _12, _1, _2 };
+
+inline juce::StringArray getNoteSubdivNames() {
+  return {"1/16", "1/16t", "1/8", "1/8t", "1/4", "1/4t", "1/2", "1", "2"};
+}
+
 #define NUM_TRIGGER_MODES 3
 // defines for param ranges
 // Every Identifier for every parameter should be in here
@@ -154,8 +161,10 @@ DECLARE_ID(filterResonance)
 DECLARE_ID(filterGainDb)
 
 // LFO
-DECLARE_ID(lfoFrequency)
+DECLARE_ID(lfoFrequencyHz)
 DECLARE_ID(lfoTriggerMode)
+DECLARE_ID(lfoFrequencySubdiv)
+DECLARE_ID(lfoBeatSync)
 
 //--------------------------------------------------
 // patch metadata stuff

@@ -216,7 +216,7 @@ target_compile_definitions(${PROJECT_NAME}
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
 else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wno-unused-variable -Wno-unused-private-field)
 endif()
 
 # In Visual Studio this command provides a nice grouping of source files in "filters".

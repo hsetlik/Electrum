@@ -1,4 +1,4 @@
-#include "ELectrum/GUI/LookAndFeel/Fonts.h"
+#include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/Common.h"
 #include "FontData.h"
 #include "juce_core/system/juce_PlatformDefs.h"

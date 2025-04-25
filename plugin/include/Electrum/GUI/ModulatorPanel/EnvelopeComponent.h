@@ -31,9 +31,6 @@ private:
 
 // the component for a single envelope
 class EnvelopeComponent : public juce::Component {
-private:
-  ElectrumState* const state;
-
 public:
   const int envID;
   EnvelopeComponent(ElectrumState* s, int id);

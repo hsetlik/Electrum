@@ -150,20 +150,20 @@ void EnvelopeLUT::_computeLUTs() {
   }
 }
 // helper for smooth voice stealing
-
-static float _phaseMsForStealLevel(float lvl, EnvelopeLUT* env) {
-  /*
-    currentMs = samples * 1000 / sampleRate
-    and t = currentMs / attackMs
-    value = t^(log(midpoint)/log(0.5))
-    t = value^(log(0.5) / log(midpoint))
-    currentMs = attackMs * t
-  */
-  const float t =
-      std::powf(lvl, std::log(0.5f) / std::log(env->getAttackCurve()));
-  return env->getAttackMs() * t;
-}
-
+//
+// static float _phaseMsForStealLevel(float lvl, EnvelopeLUT* env) {
+//   /*
+//     currentMs = samples * 1000 / sampleRate
+//     and t = currentMs / attackMs
+//     value = t^(log(midpoint)/log(0.5))
+//     t = value^(log(0.5) / log(midpoint))
+//     currentMs = attackMs * t
+//   */
+//   const float t =
+//       std::powf(lvl, std::log(0.5f) / std::log(env->getAttackCurve()));
+//   return env->getAttackMs() * t;
+// }
+//
 // just a basic binary search to get the closest
 // LUT value to the given level
 int EnvelopeLUT::phaseSamplesForLevel(float lvl) const {

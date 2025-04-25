@@ -1,4 +1,5 @@
 #include "Electrum/Identifiers.h"
+#include <memory>
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
@@ -127,19 +128,32 @@ apvts::ParameterLayout ID::getParameterLayout() {
     layout.add(
         std::make_unique<juce::AudioParameterBool>(pID, activeName, i < 1));
   }
+  // LFO params--------------------------------------
   frange_t lfoHzRange = rangeWithCenter(LFO_HZ_MIN, LFO_HZ_MAX, LFO_HZ_CENTER);
   for (int i = 0; i < NUM_LFOS; ++i) {
     String iStr(i);
-    const String freqID = lfoFrequency.toString() + iStr;
+    const String freqID = lfoFrequencyHz.toString() + iStr;
     const String freqName = "LFO " + iStr + " speed (hz)";
     const String trigModeID = lfoTriggerMode.toString() + iStr;
     const String trigModeName = "LFO " + iStr + " trigger mode";
+    const String syncID = lfoBeatSync.toString() + iStr;
+    const String syncName = "LFO " + iStr + " beat sync";
+    const String subdivID = lfoFrequencySubdiv.toString() + iStr;
+    const String subdivName = "LFO " + iStr + " speed (beat sync)";
+
     addFloatParam(&layout, freqID, freqName, lfoHzRange, LFO_HZ_CENTER);
     juce::ParameterID trigPID{trigModeID, 1};
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         trigPID, trigModeName, getTriggerModeNames(), 0));
+
+    juce::ParameterID syncPID{syncID, 1};
+    layout.add(
+        std::make_unique<juce::AudioParameterBool>(syncPID, syncName, false));
+
+    juce::ParameterID subdivPID{subdivID, 1};
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        subdivPID, subdivName, getNoteSubdivNames(), 4));
   }
-  // LFO params--------------------------------------
 
   return layout;
 }

@@ -1,6 +1,5 @@
 #pragma once
 #include "../Util/ModalParent.h"
-#include "Electrum/GUI/WaveEditor/TimeView.h"
 #include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
 #include "Electrum/GUI/WaveEditor/WaveThumbnail.h"
 #include "Electrum/Shared/FileSystem.h"
@@ -16,10 +15,9 @@ public:
 // an editor/viewer for one of our wavetable oscillators
 class WaveEditor : public WaveEditorContext,
                    public juce::TextEditor::Listener,
-                   WaveThumbnailBar::Listener {
+                   public WaveThumbnailBar::Listener {
 private:
   ElectrumState* const state;
-  Wavetable* const wavetable;
   const int oscID;
   // this ValueTree holds the state of our wavetable editing
   wave_meta_t waveMeta;
@@ -31,7 +29,7 @@ private:
 
   // Thumbnail view of our waves
   std::unique_ptr<WaveThumbnailBar> thumbBar;
-  // time view
+  // various editor views
   std::unique_ptr<WaveViewerTabs> tabs;
 
 public:
@@ -43,4 +41,6 @@ public:
   void textEditorTextChanged(juce::TextEditor& te) override;
   void paint(juce::Graphics& g) override;
   void previewEditsOnOscillator() override;
+
+  //===============================================================
 };

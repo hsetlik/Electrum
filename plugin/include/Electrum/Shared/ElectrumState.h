@@ -67,6 +67,8 @@ public:
   void getSourcesSafe(mod_src_t* arr, int* numSources, int destID) const;
 };
 
+//===========================================================
+
 struct timed_midi_msg {
   int timestamp;
   juce::MidiMessage message;

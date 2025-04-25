@@ -19,7 +19,7 @@ class ElectrumMainView : public ModContextComponent,
                          public juce::DragAndDropContainer {
 private:
   ElectrumState* const state;
-  audio_plugin::ElectrumAudioProcessor* const processor;
+  // audio_plugin::ElectrumAudioProcessor* const processor;
 
   // keyboard stuff
   KeyboardView kbdView;

@@ -8,29 +8,30 @@ static String _tooltipForModSource(ModSourceE id) {
   switch (id) {
     case Env1:
       return "Envelope 1";
-      break;
     case Env2:
       return "Envelope 2";
-      break;
     case Env3:
       return "Envelope 3";
-      break;
+    case LFO1:
+      return "LFO 1";
+    case LFO2:
+      return "LFO 2";
+    case LFO3:
+      return "LFO 3";
     case ModWheel:
       return "Mod. wheel";
-      break;
     case Velocity:
       return "Note Velocity";
-      break;
     default:
       return "Default source";
-      break;
   }
 }
 
 //===================================================
 
 ModSourceComponent::ModSourceComponent(ElectrumState* s, int src)
-    : state(s), sourceID(src) {
+    : sourceID(src) {
+  juce::ignoreUnused(s);
   setTooltip(_tooltipForModSource((ModSourceE)src));
 }
 

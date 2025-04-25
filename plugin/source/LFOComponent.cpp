@@ -64,11 +64,13 @@ static juce::Path s_generateLfoPath(const frect_t& bounds,
   p.startNewSubPath(bounds.getBottomLeft());
   const float waveMaxY = bounds.getBottom() - 3.5f;
   const float waveMaxH = (bounds.getHeight() - 3.5f) * 0.9f;
+  const float y0 = waveMaxY - (points[0].y * waveMaxH);
   for (auto& point : points) {
     const float xPos = bounds.getX() + (bounds.getWidth() * point.x);
     const float yPos = waveMaxY - (point.y * waveMaxH);
     p.lineTo(xPos, yPos);
   }
+  p.lineTo(bounds.getRight(), y0);
   p.lineTo(bounds.getBottomRight());
   return p;
 }
@@ -113,7 +115,7 @@ LFOComponent::LFOComponent(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   // 1. set up the freq slider/attachment
   freqSlider.setSliderStyle(juce::Slider::Rotary);
   freqSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 45, 12);
-  const String freqParamID = ID::lfoFrequency.toString() + String(lfoID);
+  const String freqParamID = ID::lfoFrequencyHz.toString() + String(lfoID);
   freqAttach.reset(
       new apvts::SliderAttachment(*state, freqParamID, freqSlider));
   addAndMakeVisible(freqSlider);

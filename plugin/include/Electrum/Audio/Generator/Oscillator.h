@@ -6,9 +6,8 @@
 class WavetableOscillator {
 private:
   Wavetable* const wave;
-  const int index;
   float phase = 0.0f;
-  float lastPositionFinal = 0.0f;
+  // float lastPositionFinal = 0.0f;
 
 public:
   WavetableOscillator(Wavetable* w, int idx);

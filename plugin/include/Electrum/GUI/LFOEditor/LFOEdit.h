@@ -166,7 +166,7 @@ private:
 
 class ViewedLFOEditor : public Component, public juce::Timer {
 private:
-  bool viewportChanged = false;
+  // bool viewportChanged = false;
   std::unique_ptr<LFOEditState> eState;
   uint32_t lastShapeUpdateMs = 0;
   void checkShapeUpdate();
