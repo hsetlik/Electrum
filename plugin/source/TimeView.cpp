@@ -4,6 +4,7 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
 #include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
+#include "Electrum/Shared/PointwiseWave.h"
 
 TimeView::TimeView(ValueTree& vt) : WaveEditListener(vt) {
   frameWasFocused(0);
@@ -13,6 +14,7 @@ void TimeView::frameWasFocused(int idx) {
   auto child = waveTree.getChild(idx);
   jassert(child.isValid() && child.hasType(WaveEdit::WAVE_FRAME));
   String waveStr = child[WaveEdit::frameStringData];
+  pFrame.reset(new Pointwise::Warp(waveStr));
   stringDecodeWave(waveStr, currentWave);
   repaint();
 }

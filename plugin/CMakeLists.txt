@@ -177,6 +177,10 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/LFOEditor/LFOEdit.h
 				source/BeatSyncToggle.cpp
 				${INCLUDE_DIR}/GUI/Util/BeatSyncToggle.h
+				source/PointwiseWave.cpp
+				${INCLUDE_DIR}/Shared/PointwiseWave.h
+				source/PointEditor.cpp
+				${INCLUDE_DIR}/GUI/WaveEditor/PointEditor.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h
