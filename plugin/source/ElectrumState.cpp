@@ -1,6 +1,5 @@
 
 #include "Electrum/Shared/ElectrumState.h"
-#include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/FileSystem.h"
@@ -243,6 +242,9 @@ float ElectrumState::modulationDepth(int src, int dest) {
 }
 
 //============================================================
+static bool s_parameterExists(apvts* state, const String& paramID) {
+  return (state->getParameter(paramID) != nullptr);
+}
 
 void ElectrumState::updateCommonAudioData() {
   // oscillators----------------------------------
@@ -256,8 +258,10 @@ void ElectrumState::updateCommonAudioData() {
     const String fineID = ID::oscillatorFineTune.toString() + iStr;
     const String panID = ID::oscillatorPan.toString() + iStr;
     const String activeID = ID::oscillatorActive.toString() + iStr;
+
+    // --------------------
     // 2. grab from the atomic values
-    const bool _active = getRawParameterValue(activeID)->load() > 0.5f;
+    const float _active = getRawParameterValue(activeID)->load();
     const float _pos = getRawParameterValue(posID)->load();
     const float _level = getRawParameterValue(levelID)->load();
     const float _coarse = getRawParameterValue(coarseID)->load();
@@ -265,7 +269,8 @@ void ElectrumState::updateCommonAudioData() {
     const float _pan = getRawParameterValue(panID)->load();
     const int _waveIdx = (int)getRawParameterValue(waveID)->load();
     // 3. replace the wavetable data if needed
-    if (_waveIdx != lastWaveIndices[(size_t)i]) {
+    if (_waveIdx != lastWaveIndices[(size_t)i] &&
+        _waveIdx < userLib.numWavetables()) {
       lastWaveIndices[(size_t)i] = _waveIdx;
       auto* data = userLib.getWavetableData((int)_waveIdx);
       jassert(data != nullptr);
@@ -274,7 +279,7 @@ void ElectrumState::updateCommonAudioData() {
     }
     // 4. assign to the DSP objects
     audioData.wOsc[i].setPos(_pos);
-    audioData.wOsc[i].setActive(_active);
+    audioData.wOsc[i].setActive(_active > 0.5f);
     audioData.wOsc[i].setLevel(_level);
     audioData.wOsc[i].setCoarse(_coarse);
     audioData.wOsc[i].setFine(_fine);
@@ -292,6 +297,16 @@ void ElectrumState::updateCommonAudioData() {
     const String rMsID = ID::releaseMs.toString() + iStr;
     const String rCurveID = ID::releaseCurve.toString() + iStr;
     const String vID = ID::velocityTracking.toString() + iStr;
+
+    jassert(s_parameterExists(this, aMsID));
+    jassert(s_parameterExists(this, aCurveID));
+    jassert(s_parameterExists(this, hID));
+    jassert(s_parameterExists(this, dMsID));
+    jassert(s_parameterExists(this, dCurveID));
+    jassert(s_parameterExists(this, sID));
+    jassert(s_parameterExists(this, rMsID));
+    jassert(s_parameterExists(this, rCurveID));
+    jassert(s_parameterExists(this, vID));
 
     ahdsr_data_t envParams;
     envParams.attackMs = getRawParameterValue(aMsID)->load();
@@ -319,7 +334,13 @@ void ElectrumState::updateCommonAudioData() {
     const String gainID = ID::filterGainDb.toString() + iStr;
     const String typeID = ID::filterType.toString() + iStr;
 
-    bool _isActive = getRawParameterValue(activeID)->load() > 0.5f;
+    // jassert(s_parameterExists(this, activeID));
+    // jassert(s_parameterExists(this, cutoffID));
+    // jassert(s_parameterExists(this, resID));
+    // jassert(s_parameterExists(this, gainID));
+    // jassert(s_parameterExists(this, typeID));
+
+    const float _fActive = getRawParameterValue(activeID)->load();
     const float _cutoff = getRawParameterValue(cutoffID)->load();
     const float _res = getRawParameterValue(resID)->load();
     const float _gainDb = getRawParameterValue(gainID)->load();
@@ -327,7 +348,7 @@ void ElectrumState::updateCommonAudioData() {
     const float normType = fTypeRange.convertTo0to1(_fType);
     audioData.filters[i].filterType =
         (FilterTypeE)(normType * (float)(NUM_FILTER_TYPES - 1));
-    audioData.filters[i].active = _isActive;
+    audioData.filters[i].active = _fActive > 0.5f;
     audioData.filters[i].baseCutoff = _cutoff;
     audioData.filters[i].baseResLin = _res;
     audioData.filters[i].baseGainLin = juce::Decibels::decibelsToGain(_gainDb);
@@ -339,6 +360,9 @@ void ElectrumState::updateCommonAudioData() {
     const String freqID = ID::lfoFrequencyHz.toString() + iStr;
     const String trigModeId = ID::lfoTriggerMode.toString() + iStr;
 
+    // jassert(s_parameterExists(this, freqID));
+    // jassert(s_parameterExists(this, trigModeId));
+
     const float _freq = getRawParameterValue(freqID)->load();
     const float _fMode = getRawParameterValue(trigModeId)->load();
     audioData.lfos[i].setHz(_freq);
@@ -347,12 +371,11 @@ void ElectrumState::updateCommonAudioData() {
 }
 
 void ElectrumState::updateLFOString(const String& shapeString, int lfoID) {
-  juce::ignoreUnused(shapeString, lfoID);
-  // auto lfoTree = state.getChildWithName(ID::LFO_INFO);
-  // if (lfoTree.isValid()) {
-  //   String shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
-  //   lfoTree.setProperty(shapeStringID, shapeString, nullptr);
-  // } else {
-  //   jassert(false);
-  // }
+  auto lfoTree = state.getChildWithName(ID::LFO_INFO);
+  if (lfoTree.isValid()) {
+    String shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
+    lfoTree.setProperty(shapeStringID, shapeString, nullptr);
+  } else {
+    jassert(false);
+  }
 }
