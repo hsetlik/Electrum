@@ -241,10 +241,36 @@ float ElectrumState::modulationDepth(int src, int dest) {
   return (float)mod[ID::modDepth];
 }
 
-//============================================================
-static bool s_parameterExists(apvts* state, const String& paramID) {
-  return (state->getParameter(paramID) != nullptr);
+void ElectrumState::updatePlayHead(juce::AudioPlayHead* ph) {
+  auto positionOpt = ph->getPosition();
+  if (positionOpt.hasValue()) {
+    auto tempoOpt = positionOpt->getBpm();
+    if (tempoOpt.hasValue()) {
+      auto timeSigOpt = positionOpt->getTimeSignature();
+      if (timeSigOpt.hasValue()) {
+        // only set the rhythm state if the host is providing
+        // all the info we need
+        rhythmState.bpm = *tempoOpt;
+        rhythmState.timeSigNum = timeSigOpt->numerator;
+        rhythmState.timeSigDen = timeSigOpt->denominator;
+        needsRhythmState = false;
+      } else {
+        shouldCheckTempo = false;
+      }
+    } else {
+      shouldCheckTempo = false;
+    }
+  } else {
+    shouldCheckTempo = false;
+  }
 }
+
+float ElectrumState::noteSubdivToHz(float quarterNotes) const {
+  const double currentTempoHz = rhythmState.bpm / 60.0;
+  return (float)(currentTempoHz / (double)quarterNotes);
+}
+
+//============================================================
 
 void ElectrumState::updateCommonAudioData() {
   // oscillators----------------------------------
@@ -297,16 +323,6 @@ void ElectrumState::updateCommonAudioData() {
     const String rMsID = ID::releaseMs.toString() + iStr;
     const String rCurveID = ID::releaseCurve.toString() + iStr;
     const String vID = ID::velocityTracking.toString() + iStr;
-
-    jassert(s_parameterExists(this, aMsID));
-    jassert(s_parameterExists(this, aCurveID));
-    jassert(s_parameterExists(this, hID));
-    jassert(s_parameterExists(this, dMsID));
-    jassert(s_parameterExists(this, dCurveID));
-    jassert(s_parameterExists(this, sID));
-    jassert(s_parameterExists(this, rMsID));
-    jassert(s_parameterExists(this, rCurveID));
-    jassert(s_parameterExists(this, vID));
 
     ahdsr_data_t envParams;
     envParams.attackMs = getRawParameterValue(aMsID)->load();

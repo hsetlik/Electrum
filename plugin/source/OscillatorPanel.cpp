@@ -40,13 +40,12 @@ OscillatorPanel::OscillatorPanel(ElectrumState* s, int id)
   addAndMakeVisible(wavetableCB);
   wavetableCB.addListener(this);
 
-  // auto waveLambda = [this](float fVal) { waveAttachCallback(fVal); };
-  // auto* waveParam =
-  //     state->getParameter(ID::oscillatorWaveIndex.toString() +
-  //     String(oscID));
-  // waveAttach.reset(new juce::ParameterAttachment(*waveParam, waveLambda,
-  //                                                state->undoManager));
-  // waveAttach->sendInitialUpdate();
+  auto waveLambda = [this](float fVal) { waveAttachCallback(fVal); };
+  auto* waveParam =
+      state->getParameter(ID::oscillatorWaveIndex.toString() + String(oscID));
+  waveAttach.reset(new juce::ParameterAttachment(*waveParam, waveLambda,
+                                                 state->undoManager));
+  waveAttach->sendInitialUpdate();
 
   // add this as a userLib listener
   state->userLib.addListener(this);
@@ -78,7 +77,7 @@ void OscillatorPanel::comboBoxChanged(juce::ComboBox* cb) {
       cb->getSelectedItemIndex() != waveIdx) {
     selectedWaveIdx = waveIdx;
     selectedWaveName = newWaveName;
-    // waveAttach->setValueAsCompleteGesture((float)waveIdx);
+    waveAttach->setValueAsCompleteGesture((float)waveIdx);
     state->graph.requestWavetableString(oscID);
     resized();
   }

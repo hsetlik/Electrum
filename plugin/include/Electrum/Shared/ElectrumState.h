@@ -3,6 +3,7 @@
 #include "Electrum/Shared/CommonAudioData.h"
 #include "Electrum/Shared/FileSystem.h"
 #include "GraphingData.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_data_structures/juce_data_structures.h"
 
 // structs for modulations
@@ -40,7 +41,12 @@ enum ModDestE {
 String paramIDForModDest(int destID);
 
 //======================================
-
+// stuff for handling sync with the plugin host's tempo/playhead info
+struct rhythm_state_t {
+  int timeSigNum = 4;
+  int timeSigDen = 4;
+  double bpm = 120.0;
+};
 //======================================
 
 typedef std::array<std::array<float, MOD_DESTS>, MOD_SOURCES> depth_array_t;
@@ -86,6 +92,16 @@ private:
   float modWheelValue = 0.0f;
   std::array<int, NUM_OSCILLATORS> lastWaveIndices;
 
+  // time signature/tempo stuff
+
+  // this sets whether we should check for tempo information, it should be set
+  // based on whether the host provides it during the first callback
+  bool shouldCheckTempo = true;
+  // will we ask for tempo info from the `AudioProcessor` on the next
+  // processBlock call
+  bool needsRhythmState = true;
+  rhythm_state_t rhythmState;
+
 public:
   ElectrumState(juce::AudioProcessor& proc, juce::UndoManager* undo);
   inline ValueTree getModulationTree() {
@@ -105,6 +121,13 @@ public:
     return getRawParameterValue(id)->load();
   }
 
+  // for setting up the tempo information
+  bool wantsPlayHeadUpdate() const {
+    return shouldCheckTempo && needsRhythmState;
+  }
+  void updatePlayHead(juce::AudioPlayHead* ph);
+  // convert a value in quarter notes to a frequency in hertz at the current BPM
+  float noteSubdivToHz(float quarterNotes) const;
   //-----------------------------------------------
   bool getSustainPedal() const { return sustainPedal; }
   void setSustainPedal(bool pedalDown) { sustainPedal = pedalDown; }

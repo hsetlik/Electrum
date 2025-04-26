@@ -124,6 +124,12 @@ void ElectrumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
   // Alternatively, you can process the samples with the channels
   // interleaved by keeping the same state.
   tree.modulations.updateMap(tree.getModulationTree());
+  // update the tempo information if needed
+  if (tree.wantsPlayHeadUpdate()) {
+    auto* ph = getPlayHead();
+    jassert(ph != nullptr);
+    tree.updatePlayHead(ph);
+  }
   engine.processBlock(buffer, midiMessages);
 }
 
