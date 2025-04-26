@@ -55,6 +55,11 @@ public:
   void processMouseDrag(const frect_t& bounds, const juce::MouseEvent& me);
   void processMouseUp(const frect_t& bounds, const juce::MouseEvent& me);
   void processDoubleClick(const frect_t& bounds, const juce::MouseEvent& me);
+  // drawing-------------------------------------------------------
+  void drawSection(juce::Graphics& g,
+                   const frect_t& bounds,
+                   float startNorm,
+                   float endNorm);
 
 private:
   // Selection stuff--------------------------
@@ -78,6 +83,28 @@ private:
   bool mouseIsDown = false;
   bool downOnSelection = false;
   bool shouldDrawLasso = false;
+
+  // drawing stuff------------------------------
+  float prevStartNorm = -50.0f;
+  float prevEndNorm = -50.0f;
+  bool waveTouched = false;
+  void drawAllParts(juce::Graphics& g,
+                    const frect_t& bounds,
+                    float startNorm,
+                    float endNorm) const;
+  void drawBackground(juce::Graphics& g,
+                      const frect_t& bounds,
+                      float startNorm,
+                      float endNorm) const;
+  void drawWave(juce::Graphics& g,
+                const frect_t& bounds,
+                float startNorm,
+                float endNorm) const;
+  void drawPointHandles(juce::Graphics& g,
+                        const frect_t& bounds,
+                        float startNorm,
+                        float endNorm) const;
+  void drawLasso(juce::Graphics& g, const frect_t& lassoArea) const;
 };
 
 }  // namespace Pointwise

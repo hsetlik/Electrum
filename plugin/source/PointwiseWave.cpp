@@ -1,6 +1,7 @@
 #include "Electrum/Shared/PointwiseWave.h"
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
+#include "Electrum/GUI/LookAndFeel/Color.h"
 
 namespace Pointwise {
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
@@ -169,6 +170,7 @@ void Warp::movePointConstrained(wave_point_t* pt, int waveIdx, float lvl) {
     const int maxWaveIdx = points[nRight].waveIdx - 1;
     pt->waveIdx = std::clamp(waveIdx, minWaveIdx, maxWaveIdx);
   }
+  waveTouched = true;
 }
 
 size_t Warp::createPoint(int waveIdx, float lvl, int wType) {
@@ -176,8 +178,9 @@ size_t Warp::createPoint(int waveIdx, float lvl, int wType) {
     wave_point_t newPoint = {waveIdx, lvl, false, wType};
     points.push_back(newPoint);
     sortPoints();
+    waveTouched = true;
   }
-  return closestPointIndex(waveIdx);
+  return 1;
 }
 
 bool Warp::deletePoint(size_t pointIdx) {
@@ -187,6 +190,7 @@ bool Warp::deletePoint(size_t pointIdx) {
   if (!points[pointIdx].xAxisLocked) {
     auto iDelete = std::next(points.begin(), (int)pointIdx);
     points.erase(iDelete);
+    waveTouched = true;
   }
   return true;
 }
@@ -204,6 +208,7 @@ void Warp::selectPoint(wave_point_t* pt) {
   if (!isPointSelected(pt) && !pt->xAxisLocked) {
     selectedPoints.push_back(pt);
     lastSelectedPt = pt;
+    waveTouched = true;
   }
 }
 
@@ -225,11 +230,13 @@ void Warp::deselectPoint(wave_point_t* pt) {
   if (lastSelectedPt == nullptr && !selectedPoints.empty()) {
     lastSelectedPt = selectedPoints.back();
   }
+  waveTouched = true;
 }
 
 void Warp::clearSelection() {
   lastSelectedPt = nullptr;
   selectedPoints.clear();
+  waveTouched = true;
 }
 
 // Mouse Handling------------------------------------------------
@@ -267,6 +274,7 @@ void Warp::attemptDragUpdate(const wave_point_t& newPoint) {
       sp->waveIdx += dIndex;
     }
     lastDragUpdatePoint = newPoint;
+    waveTouched = true;
   }
 }
 
@@ -329,6 +337,113 @@ void Warp::processDoubleClick(const frect_t& bounds,
     auto temp = projectSpaceToWavePoint(bounds, me.position);
     createPoint(temp.waveIdx, temp.level);
   }
+}
+
+// Drawing-----------------------------------------------------------------------------------
+
+void Warp::drawSection(juce::Graphics& g,
+                       const frect_t& bounds,
+                       float nStart,
+                       float nEnd) {
+  if (waveTouched || !fequal(nStart, prevStartNorm) ||
+      !fequal(nEnd, prevEndNorm)) {
+    drawAllParts(g, bounds, nStart, nEnd);
+    waveTouched = false;
+    prevStartNorm = nStart;
+    prevEndNorm = nEnd;
+  }
+}
+
+void Warp::drawAllParts(juce::Graphics& g,
+                        const frect_t& bounds,
+                        float nStart,
+                        float nEnd) const {
+  drawBackground(g, bounds, nStart, nEnd);
+  drawWave(g, bounds, nStart, nEnd);
+  drawPointHandles(g, bounds, nStart, nEnd);
+  if (shouldDrawLasso) {
+    auto c1 = projectWavePointToSpace(bounds, lastMouseDownPoint);
+    auto c2 = projectWavePointToSpace(bounds, lastDragUpdatePoint);
+    frect_t lassoArea(c1, c2);
+    drawLasso(g, lassoArea);
+  }
+}
+
+static color_t bkgndUpper = UIColor::windowBkgnd;
+static color_t bkgndLower = UIColor::windowBkgnd.brighter();
+
+void Warp::drawBackground(juce::Graphics& g,
+                          const frect_t& bounds,
+                          float nStart,
+                          float nEnd) const {
+  const float x = bounds.getX() + (nStart * bounds.getWidth());
+  const float xRight = bounds.getX() + (nEnd * bounds.getWidth());
+  frect_t areaUpper = {x, bounds.getY(), xRight - x, bounds.getHeight()};
+  frect_t areaLower = areaUpper.removeFromBottom(areaUpper.getHeight() / 2.0f);
+  g.setColour(bkgndUpper);
+  g.fillRect(areaUpper);
+  g.setColour(bkgndLower);
+  g.fillRect(areaLower);
+}
+
+void Warp::drawWave(juce::Graphics& g,
+                    const frect_t& bounds,
+                    float nStart,
+                    float nEnd) const {
+  const int waveStart = (int)(nStart * (float)(TABLE_SIZE - 1));
+  const int waveEnd = (int)(nEnd * (float)(TABLE_SIZE - 1));
+  const size_t firstPointIdx = leftNeighborPointIndex(waveStart);
+  const size_t lastPointIdx = leftNeighborPointIndex(waveEnd) + 1;
+
+  juce::Path pWave;
+  pWave.startNewSubPath(bounds.getX() + (bounds.getWidth() * nStart),
+                        bounds.getBottom());
+  for (size_t i = firstPointIdx; i <= lastPointIdx; ++i) {
+    pWave.lineTo(projectWavePointToSpace(bounds, points[i]));
+  }
+  pWave.lineTo(bounds.getX() + (bounds.getWidth() * nEnd), bounds.getBottom());
+  pWave.closeSubPath();
+
+  g.setColour(Color::qualifierPurple.withMultipliedSaturation(0.75f));
+  g.fillPath(pWave);
+}
+
+static void s_drawPointHandle(juce::Graphics& g,
+                              const fpoint_t& centerPoint,
+                              bool isSelected) {
+  static const float pointWidth = 12.0f;
+  frect_t bounds;
+  bounds.setCentre(centerPoint);
+  bounds = bounds.withSizeKeepingCentre(pointWidth, pointWidth);
+  auto color = isSelected
+                   ? Color::qualifierPurple
+                   : Color::qualifierPurple.withMultipliedSaturation(0.75f);
+  g.setColour(color);
+  g.fillEllipse(bounds);
+}
+
+void Warp::drawPointHandles(juce::Graphics& g,
+                            const frect_t& bounds,
+                            float nStart,
+                            float nEnd) const {
+  const int waveStart = (int)(nStart * (float)(TABLE_SIZE - 1));
+  const int waveEnd = (int)(nEnd * (float)(TABLE_SIZE - 1));
+  const size_t firstPointIdx = leftNeighborPointIndex(waveStart);
+  const size_t lastPointIdx = leftNeighborPointIndex(waveEnd) + 1;
+  for (size_t i = firstPointIdx; i <= lastPointIdx; ++i) {
+    auto& p = points[i];
+    auto center = projectWavePointToSpace(bounds, p);
+    s_drawPointHandle(g, center, isPointSelected(&p));
+  }
+}
+
+void Warp::drawLasso(juce::Graphics& g, const frect_t& lassoArea) const {
+  static color_t lassoOutline = UIColor::outline.withAlpha(0.65f);
+  static color_t lassoFill = Color::commentGray.withAlpha(0.45f);
+  g.setColour(lassoFill);
+  g.fillRect(lassoArea);
+  g.setColour(lassoOutline);
+  g.drawRect(lassoArea, 1.8f);
 }
 
 }  // namespace Pointwise
