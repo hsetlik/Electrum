@@ -51,9 +51,16 @@ inline juce::StringArray getTriggerModeNames() {
 
 enum NoteSubdivE { _16, _16t, _8, _8t, _4, _4t, _12, _1, _2 };
 
+// converts between our subdiv enum and a # of quarter notes
+float subdivToQuarterNotes(NoteSubdivE sd);
+float snapToSubdiv(float value);
+NoteSubdivE quarterNotesToSubdiv(float val);
+
 inline juce::StringArray getNoteSubdivNames() {
   return {"1/16", "1/16t", "1/8", "1/8t", "1/4", "1/4t", "1/2", "1", "2"};
 }
+
+#define NUM_SUBDIVS 9
 
 #define NUM_TRIGGER_MODES 3
 // defines for param ranges
@@ -163,7 +170,7 @@ DECLARE_ID(filterGainDb)
 // LFO
 DECLARE_ID(lfoFrequencyHz)
 DECLARE_ID(lfoTriggerMode)
-DECLARE_ID(lfoFrequencySubdiv)
+DECLARE_ID(lfoNoteSubdiv)
 DECLARE_ID(lfoBeatSync)
 
 //--------------------------------------------------

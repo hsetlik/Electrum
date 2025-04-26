@@ -7,7 +7,10 @@
 #include "Electrum/GUI/Util/ModalParent.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/juce_core.h"
+#include "juce_events/juce_events.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 LFOThumbnail::LFOThumbnail(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   shapeStringID = ID::lfoShapeString.toString() + String(lfoID);
   loadShapePoints();
@@ -111,14 +114,66 @@ void LFOThumbnail::paint(juce::Graphics& g) {
 }
 //===================================================
 
+SubdivSlider::SubdivSlider() {
+  setSliderStyle(juce::Slider::Rotary);
+  setTextBoxStyle(juce::Slider::TextBoxBelow, true, 45, 12);
+  juce::NormalisableRange<double> sRange(0.0, 9.0);
+  setNormalisableRange(sRange);
+}
+
+double SubdivSlider::snapValue(double attemptedValue, juce::Slider::DragMode) {
+  const int nearest = (int)attemptedValue;
+  return (double)std::min(nearest, NUM_SUBDIVS - 1);
+}
+
+String SubdivSlider::getTextFromValue(double value) {
+  auto names = getNoteSubdivNames();
+  return names[(int)value];
+}
+//===================================================
+
+void LFOComponent::subAttachCallback(float val) {
+  subSlider.setValue(val, juce::dontSendNotification);
+}
+
 LFOComponent::LFOComponent(ElectrumState* s, int idx) : state(s), lfoID(idx) {
   // 1. set up the freq slider/attachment
-  freqSlider.setSliderStyle(juce::Slider::Rotary);
-  freqSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 45, 12);
+  hzSlider.setSliderStyle(juce::Slider::Rotary);
+  hzSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 45, 12);
   const String freqParamID = ID::lfoFrequencyHz.toString() + String(lfoID);
-  freqAttach.reset(
-      new apvts::SliderAttachment(*state, freqParamID, freqSlider));
-  addAndMakeVisible(freqSlider);
+  hzAttach.reset(new apvts::SliderAttachment(*state, freqParamID, hzSlider));
+  addAndMakeVisible(hzSlider);
+
+  // 2. deal with the subdivision slider/ custom attachment
+  addAndMakeVisible(subSlider);
+  subSlider.setVisible(false);
+  const String subdivParamID = ID::lfoNoteSubdiv.toString() + String(lfoID);
+  auto* subdivParam = state->getParameter(subdivParamID);
+  jassert(subdivParam != nullptr);
+  auto subdivCallback = [this](float value) { subAttachCallback(value); };
+  subAttach.reset(new juce::ParameterAttachment(*subdivParam, subdivCallback,
+                                                state->undoManager));
+  subAttach->sendInitialUpdate();
+  // and a lambda fo handling the subSlider
+  subSlider.onValueChange = [this]() {
+    subAttach->setValueAsCompleteGesture((float)subSlider.getValue());
+  };
+
+  // 3. set up the BPM/Hz toggle button
+  addAndMakeVisible(syncBtn);
+  syncBtn.setClickingTogglesState(true);
+  const String syncParamID = ID::lfoBeatSync.toString() + String(lfoID);
+  syncAttach.reset(new apvts::ButtonAttachment(*state, syncParamID, syncBtn));
+  // toggle the visibility of the sliders
+  syncBtn.onClick = [this]() {
+    const bool subVisible = syncBtn.getToggleState();
+    hzSlider.setVisible(!subVisible);
+    hzSlider.setEnabled(!subVisible);
+    subSlider.setVisible(subVisible);
+    subSlider.setEnabled(subVisible);
+    repaint();
+  };
+
   // 2. set up the trigger mode selector/attachment
   trigModeCB.addItemList(getTriggerModeNames(), 1);
   trigModeCB.setSelectedItemIndex(0);
@@ -184,7 +239,11 @@ void LFOComponent::resized() {
   auto tBoxBounds = fBounds.removeFromTop(trigHeight / 2.0f);
   trigModeCB.setBounds(tBoxBounds.reduced(3.5f).toNearestInt());
   freqLabel.bounds = fBounds.removeFromTop(trigHeight / 2.0f);
-  freqSlider.setBounds(fBounds.reduced(8.0f).toNearestInt());
+  auto syncBounds = fBounds.removeFromRight(35.0f);
+  syncBtn.setBounds(syncBounds.removeFromTop(18.0f).toNearestInt());
+  auto sBounds = fBounds.reduced(8.0f).toNearestInt();
+  hzSlider.setBounds(sBounds);
+  subSlider.setBounds(sBounds);
 }
 
 void LFOComponent::paint(juce::Graphics& g) {
@@ -198,13 +257,6 @@ void LFOComponent::paint(juce::Graphics& g) {
   nameLabel.draw(g);
   freqLabel.draw(g);
   trigModeLabel.draw(g);
-
-  // check if the thumbBounds we set
-  // matches the thumbnail's actual position
-  auto _thumbBounds = thumb->getBoundsInParent();
-  jassert(_thumbBounds == thumbBounds.toNearestInt());
-  // g.setColour(Color::periwinkle);
-  // g.fillRect(thumbBounds);
 }
 
 //---------------------------------------------------------

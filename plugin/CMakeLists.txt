@@ -175,6 +175,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/ModulatorPanel/LFOComponent.h
 				source/LFOEdit.cpp
 				${INCLUDE_DIR}/GUI/LFOEditor/LFOEdit.h
+				source/BeatSyncToggle.cpp
+				${INCLUDE_DIR}/GUI/Util/BeatSyncToggle.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

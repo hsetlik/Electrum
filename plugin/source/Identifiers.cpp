@@ -17,6 +17,40 @@ static void addFloatParam(apvts::ParameterLayout* layout,
       std::make_unique<juce::AudioParameterFloat>(pID, name, range, fDefault));
 }
 
+static const float subdivLengths[NUM_SUBDIVS] = {
+    1.0f / 4.0f, 1.0f / 6.0f, 1.0f / 2.0f, 1.0f / 3.0f, 1.0f,
+    2.0f / 3.0f, 2.0f,        4.0f,        8.0f};
+
+float subdivToQuarterNotes(NoteSubdivE sd) {
+  return subdivLengths[(int)sd];
+}
+
+NoteSubdivE quarterNotesToSubdiv(float val) {
+  const float thresh = 0.1f;
+  for (int i = 0; i < NUM_SUBDIVS; ++i) {
+    auto diff = std::fabs(val - subdivLengths[i]);
+    if (diff < thresh) {
+      return (NoteSubdivE)i;
+    }
+  }
+  return quarterNotesToSubdiv(snapToSubdiv(val));
+}
+
+float snapToSubdiv(float value) {
+  float minDist = 50000000.0f;
+  int nearestIdx = -1;
+  for (int i = 0; i < NUM_SUBDIVS; ++i) {
+    auto diff = std::fabs(value - subdivLengths[i]);
+    if (diff < minDist) {
+      minDist = diff;
+      nearestIdx = i;
+    }
+  }
+  jassert(nearestIdx != -1);
+  return subdivLengths[nearestIdx];
+}
+
+//-----------------------------------------------------------------
 apvts::ParameterLayout ID::getParameterLayout() {
   apvts::ParameterLayout layout;
   // add your parameters here
@@ -138,7 +172,7 @@ apvts::ParameterLayout ID::getParameterLayout() {
     const String trigModeName = "LFO " + iStr + " trigger mode";
     const String syncID = lfoBeatSync.toString() + iStr;
     const String syncName = "LFO " + iStr + " beat sync";
-    const String subdivID = lfoFrequencySubdiv.toString() + iStr;
+    const String subdivID = lfoNoteSubdiv.toString() + iStr;
     const String subdivName = "LFO " + iStr + " speed (beat sync)";
 
     addFloatParam(&layout, freqID, freqName, lfoHzRange, LFO_HZ_CENTER);

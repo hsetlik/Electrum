@@ -2,6 +2,7 @@
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/GUI/Modulation/ModSourceButton.h"
+#include "Electrum/GUI/Util/BeatSyncToggle.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Shared/GraphingData.h"
@@ -31,6 +32,15 @@ public:
 };
 
 //---------------------------------------------------------
+// remember the VALUE of this slider is in terms of # of quarter notes
+class SubdivSlider : public juce::Slider {
+public:
+  SubdivSlider();
+  double snapValue(double attemptedValue,
+                   juce::Slider::DragMode dragMode) override;
+  String getTextFromValue(double value) override;
+};
+//---------------------------------------------------------
 
 #define LFO_STRING_CHECK_HZ 6
 class LFOComponent : public Component, public juce::Timer {
@@ -40,8 +50,15 @@ private:
   BoundedAttString nameLabel;
 
   BoundedAttString freqLabel;
-  juce::Slider freqSlider;
-  slider_attach_ptr freqAttach;
+  juce::Slider hzSlider;
+  slider_attach_ptr hzAttach;
+
+  BeatSyncToggle syncBtn;
+  button_attach_ptr syncAttach;
+
+  SubdivSlider subSlider;
+  param_attach_ptr subAttach;
+  void subAttachCallback(float val);
 
   BoundedAttString trigModeLabel;
   juce::ComboBox trigModeCB;
@@ -50,7 +67,6 @@ private:
   std::unique_ptr<LFOThumbnail> thumb;
 
   size_t lastLfoHash = 0;
-  ElectrumLnF lnf;
   frect_t thumbBounds;
 
 public:
