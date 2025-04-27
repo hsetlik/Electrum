@@ -2,6 +2,11 @@
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
+#include "Electrum/GUI/WaveEditor/EditValueTree.h"
+
+static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
+  return a.waveIdx < b.waveIdx;
+}
 
 namespace Pointwise {
 static const float headroomDbAbs = 4.0f;
@@ -24,6 +29,60 @@ fpoint_t projectWavePointToSpace(const frect_t& bounds,
   const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
   const float x = bounds.getX() + (xNorm * bounds.getWidth());
   return {x, y0 + (point.level * yAmplitude)};
+}
+
+//-------------------------------------------
+ValueTree wavePointToTree(const wave_point_t& point) {
+  ValueTree vt(WaveEdit::WAVE_POINT);
+  vt.setProperty(WaveEdit::pointWaveIdx, point.waveIdx, nullptr);
+  vt.setProperty(WaveEdit::pointLevel, point.level, nullptr);
+  vt.setProperty(WaveEdit::pointLockedOnX, point.xAxisLocked, nullptr);
+  vt.setProperty(WaveEdit::pointType, point.pointType, nullptr);
+  if (point.pointType > 0) {
+    ValueTree leftBez(WaveEdit::POINT_BEZIER_LEFT);
+    leftBez.setProperty(WaveEdit::pointBezierLength, point.leftBezLength,
+                        nullptr);
+    leftBez.setProperty(WaveEdit::pointBezierTheta, point.leftBezTheta,
+                        nullptr);
+
+    ValueTree rightBez(WaveEdit::POINT_BEZIER_LEFT);
+    rightBez.setProperty(WaveEdit::pointBezierLength, point.rightBezLength,
+                         nullptr);
+    rightBez.setProperty(WaveEdit::pointBezierTheta, point.rightBezTheta,
+                         nullptr);
+
+    vt.appendChild(leftBez, nullptr);
+    vt.appendChild(rightBez, nullptr);
+  }
+  return vt;
+}
+wave_point_t treeToWavePoint(const ValueTree& tree) {
+  wave_point_t wp;
+  jassert(tree.hasType(WaveEdit::WAVE_POINT));
+  wp.waveIdx = tree[WaveEdit::pointWaveIdx];
+  wp.level = tree[WaveEdit::pointLevel];
+  wp.xAxisLocked = tree[WaveEdit::pointLockedOnX];
+  wp.pointType = tree[WaveEdit::pointType];
+  return wp;
+}
+
+ValueTree wavePointsToValueTree(const wave_pt_vec& points) {
+  ValueTree vt(WaveEdit::POINTWISE_WARP);
+  for (auto& p : points) {
+    vt.appendChild(wavePointToTree(p), nullptr);
+  }
+  return vt;
+}
+
+wave_pt_vec valueTreeToWavePoints(const ValueTree& warpTree) {
+  jassert(warpTree.hasType(WaveEdit::POINTWISE_WARP));
+  wave_pt_vec vec = {};
+  for (auto it = warpTree.begin(); it != warpTree.end(); ++it) {
+    auto child = *it;
+    vec.push_back(treeToWavePoint(child));
+  }
+  std::sort(vec.begin(), vec.end(), s_compareWavePts);
+  return vec;
 }
 
 //-------------------------------------------
@@ -64,10 +123,6 @@ void parseWaveLinear(float* wave, wave_pt_vec& vec) {
 
 int Warp::indexOf(wave_point_t* pt) const {
   return (int)closestPointIndex(pt->waveIdx);
-}
-
-static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
-  return a.waveIdx < b.waveIdx;
 }
 
 size_t Warp::closestPointIndex(int waveIdx) const {

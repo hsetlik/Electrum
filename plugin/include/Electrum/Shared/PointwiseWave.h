@@ -3,14 +3,19 @@
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/Identifiers.h"
+// the different types of wave point we can have
+enum WavePtType { Linear, BezierLocked, BezierFree };
 
 // represents a a parametric point on the wave
 struct wave_point_t {
   int waveIdx;
   float level;
   bool xAxisLocked = false;
-  // TODO: this will eventually be an enum w different types of points
   int pointType = 0;
+  float leftBezLength = 0.0f;
+  float leftBezTheta = 0.0f;
+  float rightBezLength = 0.0f;
+  float rightBezTheta = 0.0f;
 };
 typedef std::vector<wave_point_t> wave_pt_vec;
 
@@ -19,8 +24,13 @@ fpoint_t projectWavePointToSpace(const frect_t& bounds,
                                  const wave_point_t& point);
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
                                      const fpoint_t& point);
-// TODO: maybe valuetree stuff up here eventually idk
 
+//---------------------------------------
+// for parsing to/from wave frame tree
+ValueTree wavePointToTree(const wave_point_t& point);
+wave_point_t treeToWavePoint(const ValueTree& tree);
+ValueTree wavePointsToValueTree(const wave_pt_vec& points);
+wave_pt_vec valueTreeToWavePoints(const ValueTree& frameTree);
 //---------------------------------------
 wave_pt_vec parseWaveLinear(float* wave);
 void parseWaveLinear(float* wave, wave_pt_vec& dest);

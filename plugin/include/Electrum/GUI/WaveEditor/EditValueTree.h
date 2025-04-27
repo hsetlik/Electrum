@@ -27,6 +27,19 @@ DECLARE_ID(gainPointFrequency)
 // this point's magnitude
 DECLARE_ID(gainPointMagnitude)
 
+DECLARE_ID(POINTWISE_WARP)
+
+DECLARE_ID(WAVE_POINT)
+DECLARE_ID(pointWaveIdx)
+DECLARE_ID(pointLevel)
+DECLARE_ID(pointLockedOnX)
+DECLARE_ID(pointType)
+
+DECLARE_ID(POINT_BEZIER_LEFT)
+DECLARE_ID(POINT_BEZIER_RIGHT)
+DECLARE_ID(pointBezierLength)
+DECLARE_ID(pointBezierTheta)
+
 DECLARE_ID(RAND_PHASES)
 
 #undef DECLARE_ID
