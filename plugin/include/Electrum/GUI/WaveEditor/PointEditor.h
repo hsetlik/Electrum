@@ -39,12 +39,13 @@ public:
 class PointEditor : public Component {
 private:
   float normScale = 0.5f;
+  juce::Slider scaleSlider;
   ViewedPointEditor editor;
-  ScalableViewport vpt;
+  juce::Viewport vpt;
 
 public:
   PointEditor(const String& frameStr);
   ~PointEditor() override;
   void loadFrameString(const String& frameStr);
-  void resized() override { vpt.setBounds(getLocalBounds()); }
+  void resized() override;
 };

@@ -133,6 +133,7 @@ WaveThumbnailBar::WaveThumbnailBar(const String& fullStr) : row(fullStr) {
   vpt.setViewPosition(0, 0);
   vpt.setInterceptsMouseClicks(true, true);
   addAndMakeVisible(vpt);
+  row.thumbnails[0]->setSelected(true);
   row.resized();
 }
 

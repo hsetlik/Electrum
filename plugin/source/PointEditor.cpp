@@ -57,13 +57,17 @@ PointEditor::PointEditor(const String& frameStr) : editor(frameStr) {
   vpt.setInterceptsMouseClicks(true, true);
   vpt.setRepaintsOnMouseActivity(false);
   addAndMakeVisible(vpt);
-
-  auto scaleCallback = [this](float value) {
-    normScale = value;
-    editor.setWidthForScale(value);
-  };
-  vpt.setScaleCallback(scaleCallback);
   editor.resized();
+
+  scaleSlider.setSliderStyle(juce::Slider::LinearBarVertical);
+  scaleSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
+  scaleSlider.setRange(0.0, 1.0);
+  scaleSlider.setValue(0.5);
+  addAndMakeVisible(scaleSlider);
+  scaleSlider.onValueChange = [this] {
+    const float norm = (float)scaleSlider.getValue();
+    editor.setWidthForScale(norm);
+  };
 }
 
 PointEditor::~PointEditor() {
@@ -75,6 +79,15 @@ PointEditor::~PointEditor() {
 
 void PointEditor::loadFrameString(const String& str) {
   normScale = 0.5f;
+  scaleSlider.setValue(0.5);
   vpt.setViewPosition(0, 0);
   editor.loadFrameString(str);
+}
+
+void PointEditor::resized() {
+  auto fBounds = getLocalBounds().toFloat();
+  static const float sliderWidth = 10.0f;
+  auto sBounds = fBounds.removeFromLeft(sliderWidth);
+  scaleSlider.setBounds(sBounds.toNearestInt());
+  vpt.setBounds(fBounds.toNearestInt());
 }

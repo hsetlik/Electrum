@@ -25,23 +25,31 @@ void ScalableViewport::setScaleCallback(const norm_scale_callback& cb) {
 
 void ScalableViewport::paint(juce::Graphics& g) {
   // check that the hbar is not out of bounds first
-  auto& hBar = getHorizontalScrollBar();
-  auto relBounds = hBar.getBounds();
-  if (relBounds.getX() < 10) {
-    resized();
-  }
+  // auto& hBar = getHorizontalScrollBar();
+  // auto relBounds = hBar.getBounds();
+  // if (relBounds.getX() < 10) {
+  //   resized();
+  // }
   this->juce::Viewport::paint(g);
 }
 
 void ScalableViewport::resized() {
   this->juce::Viewport::resized();
   auto& hBar = getHorizontalScrollBar();
+
   auto fBounds = hBar.getBounds().toFloat();
-  const float maxScaleWidth = 150.0f;
-  const float scaleWidth = std::min(maxScaleWidth, fBounds.getWidth() / 4.0f);
-  auto sBounds = fBounds.removeFromLeft(scaleWidth);
-  scaleSlider.setBounds(sBounds.toNearestInt());
-  hBar.setBounds(fBounds.toNearestInt());
-  hBar.toFront(false);
-  hBar.handleUpdateNowIfNeeded();
+  auto pBounds = getLocalBounds().toFloat();
+  if (pBounds.getWidth() > 0.0f) {
+    const float maxScaleWidth = 150.0f;
+    const float scaleWidth = std::min(maxScaleWidth, fBounds.getWidth() / 4.0f);
+    auto sBounds = fBounds.removeFromLeft(scaleWidth);
+    scaleSlider.setBounds(sBounds.toNearestInt());
+    const double normRangeStart =
+        (double)(sBounds.getWidth() / pBounds.getWidth());
+    jassert(normRangeStart < 1.0f);
+    auto prevLimits = hBar.getRangeLimit();
+    hBar.setRangeLimits(normRangeStart * prevLimits.getLength(),
+                        prevLimits.getEnd());
+    // hBar.triggerAsyncUpdate();
+  }
 }

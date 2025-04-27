@@ -14,7 +14,7 @@ wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
   const float lvlNorm = (bounds.getBottom() - point.y) / bounds.getHeight();
   const float xNorm = (point.x - bounds.getX()) / bounds.getWidth();
   const int waveIdx = (int)(xNorm * (float)(TABLE_SIZE - 1));
-  const float lvl = (lvlNorm * 2.0f) - 1.0f;
+  const float lvl = flerp(-1.0f, 1.0f, 1.0f - lvlNorm);
   return {waveIdx, lvl / yHeadroomNeg, false, 0};
 }
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
@@ -63,12 +63,7 @@ void parseWaveLinear(float* wave, wave_pt_vec& vec) {
 //===================================================
 
 int Warp::indexOf(wave_point_t* pt) const {
-  for (int i = 0; i < (int)points.size(); ++i) {
-    if (pt == &points[(size_t)i])
-      return i;
-  }
-  jassert(false);
-  return -1;
+  return (int)closestPointIndex(pt->waveIdx);
 }
 
 static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
@@ -135,12 +130,14 @@ bool Warp::canCreatePoint(int waveIdx, float lvl) const {
 bool Warp::pointCanMoveTo(wave_point_t* pt, int waveIdx, float lvl) const {
   if (lvl < -1.0f || lvl > 1.0f)
     return false;
-  if (pt->xAxisLocked)
-    return false;
-  auto nLeft = leftNeighborPointIndex(pt->waveIdx);
-  auto nRight = nLeft + 1;
-  jassert(nRight < points.size());
-  return points[nLeft].waveIdx < waveIdx && points[nRight].waveIdx > waveIdx;
+  if (pt->xAxisLocked) {
+    return waveIdx == pt->waveIdx;
+  }
+  size_t pIdx = closestPointIndex(pt->waveIdx);
+  jassert(pIdx > 0 && pIdx < (points.size() - 1));
+  auto& lPoint = points[pIdx - 1];
+  auto& rPoint = points[pIdx + 1];
+  return (waveIdx > lPoint.waveIdx) && (waveIdx < rPoint.waveIdx);
 }
 
 Warp::Warp(const String& frameStr) {
@@ -168,8 +165,9 @@ String Warp::encodeFrameString() const {
 void Warp::movePointConstrained(wave_point_t* pt, int waveIdx, float lvl) {
   pt->level = std::clamp(lvl, -1.0f, 1.0f);
   if (!pt->xAxisLocked) {
-    auto nLeft = leftNeighborPointIndex(pt->waveIdx);
-    auto nRight = nLeft + 1;
+    auto pIdx = closestPointIndex(pt->waveIdx);
+    auto nLeft = pIdx - 1;
+    auto nRight = pIdx + 1;
     jassert(nRight < points.size());
     const int minWaveIdx = points[nLeft].waveIdx + 1;
     const int maxWaveIdx = points[nRight].waveIdx - 1;
@@ -260,6 +258,7 @@ wave_point_t* Warp::getNearbyPoint(const frect_t& bounds,
 bool Warp::dragUpdateAllowed(const wave_point_t& newPoint) const {
   const float dLevel = newPoint.level - lastDragUpdatePoint.level;
   const int dIndex = newPoint.waveIdx - lastDragUpdatePoint.waveIdx;
+
   for (auto* sp : selectedPoints) {
     float newLevel = sp->level + dLevel;
     int newIdx = sp->waveIdx + dIndex;
@@ -270,16 +269,43 @@ bool Warp::dragUpdateAllowed(const wave_point_t& newPoint) const {
   return true;
 }
 
-void Warp::attemptDragUpdate(const wave_point_t& newPoint) {
-  if (dragUpdateAllowed(newPoint)) {
-    const float dLevel = newPoint.level - lastDragUpdatePoint.level;
-    const int dIndex = newPoint.waveIdx - lastDragUpdatePoint.waveIdx;
-    for (auto* sp : selectedPoints) {
-      sp->level += dLevel;
-      sp->waveIdx += dIndex;
+bool Warp::dragUpdateAllowed(const frect_t& bounds,
+                             const fpoint_t& newPoint) const {
+  if (selectedPoints.size() > 2)
+    return true;
+  auto prevPoint = projectWavePointToSpace(bounds, lastDragUpdatePoint);
+  const float dX = newPoint.x - prevPoint.x;
+  const float dY = newPoint.y - prevPoint.y;
+  for (auto* sp : selectedPoints) {
+    auto pSpace = projectWavePointToSpace(bounds, *sp);
+    pSpace.x += dX;
+    pSpace.y += dY;
+    auto pWave = projectSpaceToWavePoint(bounds, pSpace);
+    if (!pointCanMoveTo(sp, pWave.waveIdx, pWave.level))
+      return false;
+  }
+  return true;
+}
+
+void Warp::attemptMultiPointDrag(const wave_point_t& newPoint) {
+  const float dLevel = newPoint.level - lastDragUpdatePoint.level;
+  const int dIndex = newPoint.waveIdx - lastDragUpdatePoint.waveIdx;
+  for (auto* sp : selectedPoints) {
+    sp->level += dLevel;
+    sp->waveIdx += dIndex;
+  }
+  waveTouched = true;
+}
+
+void Warp::attemptDragUpdate(const frect_t& bounds, const fpoint_t& newPoint) {
+  if (dragUpdateAllowed(bounds, newPoint)) {
+    auto destWP = projectSpaceToWavePoint(bounds, newPoint);
+    if (selectedPoints.size() < 2) {  // we're only dragging one point
+      movePointConstrained(selectedPoints[0], destWP.waveIdx, destWP.level);
+    } else {
+      attemptMultiPointDrag(destWP);
     }
-    lastDragUpdatePoint = newPoint;
-    waveTouched = true;
+    lastDragUpdatePoint = destWP;
   }
 }
 
@@ -313,7 +339,7 @@ void Warp::processMouseDown(const frect_t& bounds, const juce::MouseEvent& me) {
 void Warp::processMouseDrag(const frect_t& bounds, const juce::MouseEvent& me) {
   if (downOnSelection) {
     auto newPoint = projectSpaceToWavePoint(bounds, me.position);
-    attemptDragUpdate(newPoint);
+    attemptDragUpdate(bounds, me.position);
   } else if (mouseIsDown) {
     shouldDrawLasso = true;
     lastDragUpdatePoint = projectSpaceToWavePoint(bounds, me.position);
@@ -323,8 +349,7 @@ void Warp::processMouseDrag(const frect_t& bounds, const juce::MouseEvent& me) {
 void Warp::processMouseUp(const frect_t& bounds, const juce::MouseEvent& me) {
   // do one more dragUpdate if we're moving points
   if (downOnSelection) {
-    auto newPoint = projectSpaceToWavePoint(bounds, me.position);
-    attemptDragUpdate(newPoint);
+    attemptDragUpdate(bounds, me.position);
   }
   mouseIsDown = false;
   downOnSelection = false;

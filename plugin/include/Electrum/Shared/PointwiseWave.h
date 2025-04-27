@@ -76,7 +76,10 @@ private:
 
   // handle dragging a the current selection
   bool dragUpdateAllowed(const wave_point_t& newPoint) const;
-  void attemptDragUpdate(const wave_point_t& newPoint);
+  bool dragUpdateAllowed(const frect_t& fBounds,
+                         const fpoint_t& newPoint) const;
+  void attemptMultiPointDrag(const wave_point_t& newPoint);
+  void attemptDragUpdate(const frect_t& bounds, const fpoint_t& newPoint);
   // mouse logic--------------------------
   wave_point_t lastMouseDownPoint;
   wave_point_t lastDragUpdatePoint;
@@ -108,4 +111,3 @@ private:
 };
 
 }  // namespace Pointwise
-
