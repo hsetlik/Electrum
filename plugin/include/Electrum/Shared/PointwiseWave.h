@@ -104,6 +104,10 @@ private:
                          const fpoint_t& newPoint) const;
   bool bezierDragAllowed(const frect_t& fBounds,
                          const fpoint_t& newPoint) const;
+  bool bezierCanMoveTo(const frect_t& bounds,
+                       const bez_handle_t& handle,
+                       float length,
+                       float angle) const;
   void attemptMultiPointDrag(const wave_point_t& newPoint);
   void attemptDragUpdate(const frect_t& bounds, const fpoint_t& newPoint);
   void attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint);

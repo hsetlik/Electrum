@@ -5,6 +5,7 @@
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "juce_core/juce_core.h"
 
 static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
   return a.waveIdx < b.waveIdx;
@@ -15,24 +16,6 @@ static const float headroomDbAbs = 4.0f;
 static const float yHeadroomNeg =
     juce::Decibels::decibelsToGain(-headroomDbAbs);
 static const float yHeadroomPos = juce::Decibels::decibelsToGain(headroomDbAbs);
-
-wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
-                                     const fpoint_t& point) {
-  const float lvlNorm = (bounds.getBottom() - point.y) / bounds.getHeight();
-  const float xNorm = (point.x - bounds.getX()) / bounds.getWidth();
-  const int waveIdx = (int)(xNorm * (float)(TABLE_SIZE - 1));
-  const float lvl = flerp(-1.0f, 1.0f, 1.0f - lvlNorm);
-  return {waveIdx, lvl / yHeadroomNeg, false, 0};
-}
-
-fpoint_t projectWavePointToSpace(const frect_t& bounds,
-                                 const wave_point_t& point) {
-  const float y0 = bounds.getY() + (bounds.getHeight() / 2.0f);
-  const float yAmplitude = (y0 - bounds.getY()) * yHeadroomNeg;
-  const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
-  const float x = bounds.getX() + (xNorm * bounds.getWidth());
-  return {x, y0 + (point.level * yAmplitude)};
-}
 
 // angle stuff------------------------------------------------
 static fpoint_t projectToUnitSpace(const wave_point_t& point) {
@@ -47,8 +30,6 @@ static wave_point_t projectFromUnitSpace(const fpoint_t& normPoint) {
   return wp;
 }
 
-// returns a normalized (-1 to 1) polar vector of the angle/distance between the
-// two wavepoints
 static std::complex<float> s_getPolarDistance(const wave_point_t& a,
                                               const wave_point_t& b) {
   auto aPoint = projectToUnitSpace(a);
@@ -76,6 +57,41 @@ static fpoint_t pointAtPolarDistance(const frect_t& bounds,
   return {point.x + dX, point.y + dY};
 }
 
+wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
+                                     const fpoint_t& point) {
+  const float lvlNorm = (bounds.getBottom() - point.y) / bounds.getHeight();
+  const float xNorm = (point.x - bounds.getX()) / bounds.getWidth();
+  const int waveIdx = (int)(xNorm * (float)(TABLE_SIZE - 1));
+  const float lvl = flerp(-1.0f, 1.0f, 1.0f - lvlNorm);
+  return {waveIdx, lvl / yHeadroomNeg, false, 0};
+}
+
+fpoint_t projectBezierHandleToSpace(const frect_t& bounds,
+                                    const bez_handle_t& handle) {
+  auto centerPt = projectWavePointToSpace(bounds, *handle.parent);
+  float mag, theta;
+  if (handle.isLeft) {
+    mag = handle.parent->leftBezLength;
+    theta = handle.parent->leftBezTheta;
+  } else {
+    mag = handle.parent->rightBezLength;
+    theta = handle.parent->rightBezTheta;
+  }
+  std::complex<float> distance = std::polar(mag, theta);
+  return pointAtPolarDistance(bounds, centerPt, distance);
+}
+
+fpoint_t projectWavePointToSpace(const frect_t& bounds,
+                                 const wave_point_t& point) {
+  const float y0 = bounds.getY() + (bounds.getHeight() / 2.0f);
+  const float yAmplitude = (y0 - bounds.getY()) * yHeadroomNeg;
+  const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
+  const float x = bounds.getX() + (xNorm * bounds.getWidth());
+  return {x, y0 + (point.level * yAmplitude)};
+}
+
+// returns a normalized (-1 to 1) polar vector of the angle/distance between the
+// two wavepoints
 //-------------------------------------------
 ValueTree wavePointToTree(const wave_point_t& point) {
   ValueTree vt(WaveEdit::WAVE_POINT);
@@ -312,6 +328,43 @@ bool Warp::deletePoint(size_t pointIdx) {
   }
   return true;
 }
+bool Warp::bezierCanMoveTo(const frect_t& bounds,
+                           const bez_handle_t& handle,
+                           float length,
+                           float angle) const {
+  // 1. project the center point
+  auto parentCenter = projectWavePointToSpace(bounds, *handle.parent);
+  auto parentIdx = closestPointIndex(handle.parent->waveIdx);
+  // 2. project the bezier point
+  auto distance = std::polar(length, angle);
+  auto newBezPoint = pointAtPolarDistance(bounds, parentCenter, distance);
+  // 3. figure out which side we're on
+  if (handle.isLeft) {
+    // make sure we're left of the parent
+    if (newBezPoint.x >= parentCenter.x)
+      return false;
+    // make sure we're right of the left neighbor
+    float leftLimit = bounds.getX();
+    if (parentIdx > 0) {
+      auto leftNeighborCenter =
+          projectWavePointToSpace(bounds, points[parentIdx - 1]);
+      leftLimit = leftNeighborCenter.x;
+    }
+    if (newBezPoint.x <= leftLimit)
+      return false;
+  } else {
+    if (newBezPoint.x <= parentCenter.x)
+      return false;
+    float rightLimit = bounds.getRight();
+    if (parentIdx < points.size() - 1) {
+      auto rCenter = projectWavePointToSpace(bounds, points[parentIdx + 1]);
+      rightLimit = rCenter.x;
+    }
+    if (newBezPoint.x >= rightLimit)
+      return false;
+  }
+  return newBezPoint.y > bounds.getY() && newBezPoint.y < bounds.getBottom();
+}
 
 // Selection stuff--------------------------
 bool Warp::isPointSelected(const wave_point_t* pt) const {
@@ -509,6 +562,48 @@ void Warp::processDoubleClick(const frect_t& bounds,
   } else {
     auto temp = projectSpaceToWavePoint(bounds, me.position);
     createPoint(temp.waveIdx, temp.level);
+  }
+}
+
+bool Warp::bezierDragAllowed(const frect_t& bounds,
+                             const fpoint_t& newPoint) const {
+  auto parentCenter = projectWavePointToSpace(bounds, *selectedBez.parent);
+  auto distance = s_getPolarDistance(bounds, parentCenter, newPoint);
+  const float mag = std::abs(distance);
+  const float theta = std::arg(distance);
+  bool firstAllowed = bezierCanMoveTo(bounds, selectedBez, mag, theta);
+  // if we're in locked mode we have to check the other one too
+  if (selectedBez.parent->pointType == (int)WavePtType::BezierFree) {
+    return firstAllowed;
+  } else if (firstAllowed) {
+    bez_handle_t recip = {selectedBez.parent, !selectedBez.isLeft};
+    return bezierCanMoveTo(bounds, recip, mag,
+                           theta + juce::MathConstants<float>::pi);
+  }
+  return false;
+}
+
+void Warp::attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint) {
+  if (bezierDragAllowed(bounds, newPoint)) {
+    auto parentCenter = projectWavePointToSpace(bounds, *selectedBez.parent);
+    auto distance = s_getPolarDistance(bounds, parentCenter, newPoint);
+    const float mag = std::abs(distance);
+    const float theta = std::arg(distance);
+    auto& rLength = selectedBez.isLeft ? selectedBez.parent->leftBezLength
+                                       : selectedBez.parent->rightBezLength;
+    auto& rTheta = selectedBez.isLeft ? selectedBez.parent->leftBezTheta
+                                      : selectedBez.parent->rightBezTheta;
+    rLength = mag;
+    rTheta = theta;
+    if (selectedBez.parent->pointType == (int)WavePtType::BezierLocked) {
+      auto& oLength = !selectedBez.isLeft ? selectedBez.parent->leftBezLength
+                                          : selectedBez.parent->rightBezLength;
+      auto& oTheta = !selectedBez.isLeft ? selectedBez.parent->leftBezTheta
+                                         : selectedBez.parent->rightBezTheta;
+      oLength = mag;
+      oTheta = theta + juce::MathConstants<float>::pi;
+    }
+    waveTouched = true;
   }
 }
 
