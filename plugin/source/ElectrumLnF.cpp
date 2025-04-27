@@ -2,6 +2,7 @@
 #include "Electrum/Common.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
+#include "juce_core/juce_core.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 //
 // static void _logColor(const String& name, color_t color) {
@@ -197,4 +198,32 @@ void ElectrumLnF::drawComboBox(juce::Graphics& g,
 
 juce::Font ElectrumLnF::getComboBoxFont(juce::ComboBox&) {
   return FontData::getFontWithHeight(FontE::RobotoThin, 14.0f);
+}
+//-----------------------------------------------------------------
+void ElectrumLnF::drawScrollbar(juce::Graphics& g,
+                                juce::ScrollBar& scrollbar,
+                                int x,
+                                int y,
+                                int width,
+                                int height,
+                                bool isScrollbarVertical,
+                                int startPos,
+                                int thumbSize,
+                                bool isMouseOver,
+                                bool isMouseDown) {
+  juce::ignoreUnused(isMouseDown);
+  juce::Rectangle<int> thumbBounds;
+
+  if (isScrollbarVertical)
+    thumbBounds = {x, startPos, width, thumbSize};
+  else {
+    // auto rBounds = scrollbar.getBounds();
+    // if (startPos < rBounds.getX())
+    //   startPos = rBounds.getX();
+    thumbBounds = {startPos, y, thumbSize, height};
+  }
+
+  auto c = scrollbar.findColour(juce::ScrollBar::ColourIds::thumbColourId);
+  g.setColour(isMouseOver ? c.brighter(0.25f) : c);
+  g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
 }

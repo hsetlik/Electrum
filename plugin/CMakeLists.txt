@@ -181,6 +181,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Shared/PointwiseWave.h
 				source/PointEditor.cpp
 				${INCLUDE_DIR}/GUI/WaveEditor/PointEditor.h
+				source/ScalableViewport.cpp
+				${INCLUDE_DIR}/GUI/Util/ScalableViewport.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

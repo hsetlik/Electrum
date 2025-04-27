@@ -7,36 +7,25 @@
 #include "Electrum/Shared/PointwiseWave.h"
 
 TimeView::TimeView(ValueTree& vt) : WaveEditListener(vt) {
-  frameWasFocused(0);
+  auto child = waveTree.getChild(0);
+  jassert(child.isValid() && child.hasType(WaveEdit::WAVE_FRAME));
+  String waveStr = child[WaveEdit::frameStringData];
+  editor.reset(new PointEditor(waveStr));
+  addAndMakeVisible(editor.get());
+  resized();
 }
 
 void TimeView::frameWasFocused(int idx) {
   auto child = waveTree.getChild(idx);
   jassert(child.isValid() && child.hasType(WaveEdit::WAVE_FRAME));
-  String waveStr = child[WaveEdit::frameStringData];
-  pFrame.reset(new Pointwise::Warp(waveStr));
-  stringDecodeWave(waveStr, currentWave);
-  repaint();
+  const String waveStr = child[WaveEdit::frameStringData];
+  editor->loadFrameString(waveStr);
+  editor->toFront(true);
+  resized();
 }
 
-void TimeView::paint(juce::Graphics& g) {
-  // 1. fill the background
-  auto fBounds = getLocalBounds().toFloat();
-  g.setColour(UIColor::windowBkgnd);
-  g.fillRect(fBounds);
-  // 2. draw the path
-  p.clear();
-  static const int viewPoints = TIME_VIEW_PTS;
-  const float y0 = fBounds.getHeight() / 2.0f;
-  const float yGain = y0 * 0.9f;
-  p.startNewSubPath(0.0f, y0 + (currentWave[0] * yGain));
-  for (int i = 1; i < viewPoints; ++i) {
-    float norm = (float)i / (float)viewPoints;
-    int waveIdx = (int)(norm * (float)TABLE_SIZE);
-    p.lineTo(norm * fBounds.getWidth(), y0 + (currentWave[waveIdx] * yGain));
-  }
-  juce::PathStrokeType pst(2.3f);
-  g.setColour(Color::qualifierPurple);
-  g.strokePath(p, pst);
+void TimeView::resized() {
+  editor->setBounds(getLocalBounds());
 }
+
 //===================================================

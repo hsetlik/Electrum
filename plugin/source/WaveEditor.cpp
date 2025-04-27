@@ -66,6 +66,7 @@ WaveEditor::WaveEditor(ElectrumState* s, Wavetable* wt, int idx)
   tabs.reset(new WaveViewerTabs(waveTree));
   addAndMakeVisible(*tabs);
   thumbBar->addListener(this);
+  frameWasFocused(0);
 }
 
 WaveEditor::~WaveEditor() {

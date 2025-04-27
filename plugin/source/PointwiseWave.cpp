@@ -4,21 +4,26 @@
 #include "Electrum/GUI/LookAndFeel/Color.h"
 
 namespace Pointwise {
+static const float headroomDbAbs = 4.0f;
+static const float yHeadroomNeg =
+    juce::Decibels::decibelsToGain(-headroomDbAbs);
+static const float yHeadroomPos = juce::Decibels::decibelsToGain(headroomDbAbs);
+
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
                                      const fpoint_t& point) {
   const float lvlNorm = (bounds.getBottom() - point.y) / bounds.getHeight();
   const float xNorm = (point.x - bounds.getX()) / bounds.getWidth();
   const int waveIdx = (int)(xNorm * (float)(TABLE_SIZE - 1));
   const float lvl = (lvlNorm * 2.0f) - 1.0f;
-  return {waveIdx, lvl, false, 0};
+  return {waveIdx, lvl / yHeadroomNeg, false, 0};
 }
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
                                  const wave_point_t& point) {
-  const float yNorm = (point.level + 1.0f) * 0.5f;
-  const float y = bounds.getBottom() - (bounds.getHeight() * yNorm);
-  const float xNorm = (float)point.waveIdx / (float)TABLE_SIZE;
+  const float y0 = bounds.getY() + (bounds.getHeight() / 2.0f);
+  const float yAmplitude = (y0 - bounds.getY()) * yHeadroomNeg;
+  const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
   const float x = bounds.getX() + (xNorm * bounds.getWidth());
-  return {x, y};
+  return {x, y0 + (point.level * yAmplitude)};
 }
 
 //-------------------------------------------
@@ -104,7 +109,7 @@ void Warp::sortPoints() {
 
 size_t Warp::leftNeighborPointIndex(int waveIdx) const {
   auto closest = closestPointIndex(waveIdx);
-  if (points[closest].waveIdx < waveIdx) {
+  if (points[closest].waveIdx <= waveIdx) {
     return closest;
   } else {
     jassert(closest > 0);
@@ -346,7 +351,7 @@ void Warp::drawSection(juce::Graphics& g,
                        float nStart,
                        float nEnd) {
   if (waveTouched || !fequal(nStart, prevStartNorm) ||
-      !fequal(nEnd, prevEndNorm)) {
+      !fequal(nEnd, prevEndNorm) || true) {
     drawAllParts(g, bounds, nStart, nEnd);
     waveTouched = false;
     prevStartNorm = nStart;
@@ -404,7 +409,7 @@ void Warp::drawWave(juce::Graphics& g,
   pWave.lineTo(bounds.getX() + (bounds.getWidth() * nEnd), bounds.getBottom());
   pWave.closeSubPath();
 
-  g.setColour(Color::qualifierPurple.withMultipliedSaturation(0.75f));
+  g.setColour(Color::qualifierPurple.withAlpha(0.8f));
   g.fillPath(pWave);
 }
 

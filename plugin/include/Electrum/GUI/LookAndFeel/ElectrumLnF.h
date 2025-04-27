@@ -32,4 +32,16 @@ public:
                     int buttonH,
                     juce::ComboBox& cb) override;
   juce::Font getComboBoxFont(juce::ComboBox& cb) override;
+  // Scroll Bar------------------------------------
+  void drawScrollbar(juce::Graphics& g,
+                     juce::ScrollBar& scrollbar,
+                     int x,
+                     int y,
+                     int width,
+                     int height,
+                     bool isScrollbarVertical,
+                     int thumbStartPosition,
+                     int thumbSize,
+                     bool isMouseOver,
+                     bool isMouseDown) override;
 };

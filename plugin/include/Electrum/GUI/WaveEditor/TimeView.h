@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Electrum/Audio/AudioUtil.h"
+#include "Electrum/GUI/WaveEditor/PointEditor.h"
 #include "Electrum/GUI/WaveEditor/WaveEdiorContext.h"
 #include "Electrum/Shared/PointwiseWave.h"
 
@@ -8,16 +9,14 @@
 
 class TimeView : public WaveEditListener {
 protected:
-  std::unique_ptr<Pointwise::Warp> pFrame;
   int displayedWaveIndex = -1;
-  float currentWave[TABLE_SIZE];
-  juce::Path p;
+  std::unique_ptr<PointEditor> editor;
 
 public:
   TimeView(ValueTree& vt);
   ~TimeView() override {}
   void frameWasFocused(int idx) override;
-  void paint(juce::Graphics& g) override;
+  void resized() override;
 };
 
 //=========================================================================
