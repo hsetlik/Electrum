@@ -17,11 +17,19 @@ struct wave_point_t {
   float rightBezLength = 0.0f;
   float rightBezTheta = 0.0f;
 };
+
 typedef std::vector<wave_point_t> wave_pt_vec;
+
+struct bez_handle_t {
+  wave_point_t* parent = nullptr;
+  bool isLeft = true;
+};
 
 namespace Pointwise {
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
                                  const wave_point_t& point);
+fpoint_t projectBezierHandleToSpace(const frect_t& bounds,
+                                    const bez_handle_t& point);
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
                                      const fpoint_t& point);
 
@@ -30,7 +38,7 @@ wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
 ValueTree wavePointToTree(const wave_point_t& point);
 wave_point_t treeToWavePoint(const ValueTree& tree);
 ValueTree wavePointsToValueTree(const wave_pt_vec& points);
-wave_pt_vec valueTreeToWavePoints(const ValueTree& frameTree);
+wave_pt_vec valueTreeToWavePoints(const ValueTree& warpTree);
 //---------------------------------------
 wave_pt_vec parseWaveLinear(float* wave);
 void parseWaveLinear(float* wave, wave_pt_vec& dest);
@@ -49,12 +57,15 @@ private:
 
 public:
   Warp(const String& frameStr);
+  Warp(const ValueTree& frameTree);
   // point validation -----------------------------------------------
   bool pointExistsAt(int waveIdx) const;
   bool canCreatePoint(int waveIdx, float lvl) const;
   bool pointCanMoveTo(wave_point_t* pt, int waveIdx, float lvl) const;
+
   // encode the editor contents back to a wave string----------------
   String encodeFrameString() const;
+  // parse the pointwise wave into a valueTree-----------------------
 
   // create, delete, move single points------------------------------
   size_t createPoint(int waveIdx, float lvl, int wType = 0);
@@ -83,19 +94,30 @@ private:
   wave_point_t* getNearbyPoint(const frect_t& bounds,
                                const fpoint_t& point,
                                float thresh = 4.0f);
+  bez_handle_t getNearbyBezHandle(const frect_t& bounds,
+                                  const fpoint_t& point,
+                                  float thresh = 4.0f);
 
   // handle dragging a the current selection
   bool dragUpdateAllowed(const wave_point_t& newPoint) const;
   bool dragUpdateAllowed(const frect_t& fBounds,
                          const fpoint_t& newPoint) const;
+  bool bezierDragAllowed(const frect_t& fBounds,
+                         const fpoint_t& newPoint) const;
   void attemptMultiPointDrag(const wave_point_t& newPoint);
   void attemptDragUpdate(const frect_t& bounds, const fpoint_t& newPoint);
+  void attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint);
+
   // mouse logic--------------------------
   wave_point_t lastMouseDownPoint;
   wave_point_t lastDragUpdatePoint;
   bool mouseIsDown = false;
   bool downOnSelection = false;
   bool shouldDrawLasso = false;
+
+  // bezier logic------------------------
+  bool downOnBezier = false;
+  bez_handle_t selectedBez;
 
   // drawing stuff------------------------------
   float prevStartNorm = -50.0f;

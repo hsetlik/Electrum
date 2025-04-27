@@ -1,6 +1,8 @@
 #include "Electrum/Shared/PointwiseWave.h"
+#include <complex>
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
+#include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
 
@@ -22,6 +24,7 @@ wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
   const float lvl = flerp(-1.0f, 1.0f, 1.0f - lvlNorm);
   return {waveIdx, lvl / yHeadroomNeg, false, 0};
 }
+
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
                                  const wave_point_t& point) {
   const float y0 = bounds.getY() + (bounds.getHeight() / 2.0f);
@@ -29,6 +32,48 @@ fpoint_t projectWavePointToSpace(const frect_t& bounds,
   const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
   const float x = bounds.getX() + (xNorm * bounds.getWidth());
   return {x, y0 + (point.level * yAmplitude)};
+}
+
+// angle stuff------------------------------------------------
+static fpoint_t projectToUnitSpace(const wave_point_t& point) {
+  const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
+  return {xNorm, (point.level - 1.0f) * 0.5f};
+}
+
+static wave_point_t projectFromUnitSpace(const fpoint_t& normPoint) {
+  wave_point_t wp;
+  wp.waveIdx = (int)(normPoint.x * (float)(TABLE_SIZE - 1));
+  wp.level = flerp(-1.0f, 1.0f, 1.0f - normPoint.y);
+  return wp;
+}
+
+// returns a normalized (-1 to 1) polar vector of the angle/distance between the
+// two wavepoints
+static std::complex<float> s_getPolarDistance(const wave_point_t& a,
+                                              const wave_point_t& b) {
+  auto aPoint = projectToUnitSpace(a);
+  auto bPoint = projectToUnitSpace(b);
+  const float mag = bPoint.getDistanceFrom(aPoint);
+  const float theta = aPoint.getAngleToPoint(bPoint);
+  return std::polar(mag, theta);
+}
+
+static std::complex<float> s_getPolarDistance(const frect_t& bounds,
+                                              const fpoint_t& a,
+                                              const fpoint_t& b) {
+  auto aPoint = bounds.getRelativePoint(a.x, a.y);
+  auto bPoint = bounds.getRelativePoint(b.x, b.y);
+  const float mag = bPoint.getDistanceFrom(aPoint);
+  const float theta = aPoint.getAngleToPoint(bPoint);
+  return std::polar(mag, theta);
+}
+
+static fpoint_t pointAtPolarDistance(const frect_t& bounds,
+                                     const fpoint_t& point,
+                                     std::complex<float> polarDist) {
+  const float dX = polarDist.real() * bounds.getWidth();
+  const float dY = polarDist.imag() * bounds.getHeight();
+  return {point.x + dX, point.y + dY};
 }
 
 //-------------------------------------------
@@ -203,6 +248,21 @@ Warp::Warp(const String& frameStr) {
   jassert(points.size() > 1);
 }
 
+Warp::Warp(const ValueTree& frameTree) {
+  jassert(frameTree.hasType(WaveEdit::WAVE_FRAME));
+  const String loadedStr = frameTree[WaveEdit::frameStringData];
+  stringDecodeWave(loadedStr, loadedWave);
+  // check if we already have warp data
+  auto existingWarp = frameTree.getChildWithName(WaveEdit::POINTWISE_WARP);
+  if (existingWarp.isValid()) {
+    points = valueTreeToWavePoints(existingWarp);
+  } else {
+    parseWaveLinear(loadedWave, points);
+  }
+  jassert(points.size() > 1);
+}
+
+// TODO: update this to handle bezier points
 String Warp::encodeFrameString() const {
   float data[TABLE_SIZE];
   size_t leftPt, rightPt;
@@ -310,6 +370,25 @@ wave_point_t* Warp::getNearbyPoint(const frect_t& bounds,
   return nullptr;
 }
 
+bez_handle_t Warp::getNearbyBezHandle(const frect_t& bounds,
+                                      const fpoint_t& point,
+                                      float thresh) {
+  for (auto& pt : points) {
+    if (pt.pointType > 0) {
+      bez_handle_t l = {&pt, true};
+      auto lPoint = projectBezierHandleToSpace(bounds, l);
+      if (point.getDistanceFrom(lPoint) < thresh)
+        return l;
+      bez_handle_t r = {&pt, false};
+      auto rPoint = projectBezierHandleToSpace(bounds, r);
+      if (point.getDistanceFrom(rPoint) < thresh) {
+        return r;
+      }
+    }
+  }
+  return {nullptr, true};
+}
+
 bool Warp::dragUpdateAllowed(const wave_point_t& newPoint) const {
   const float dLevel = newPoint.level - lastDragUpdatePoint.level;
   const int dIndex = newPoint.waveIdx - lastDragUpdatePoint.waveIdx;
@@ -385,9 +464,17 @@ void Warp::processMouseDown(const frect_t& bounds, const juce::MouseEvent& me) {
       selectPoint(clickedPoint);
     }
     downOnSelection = !selectedPoints.empty();
-  } else if (selectedPoints.size() > 0) {
-    clearSelection();
-    downOnSelection = false;
+  } else {
+    // check if we clicked a bezier point
+    selectedBez = getNearbyBezHandle(bounds, me.position);
+    if (selectedBez.parent != nullptr) {
+      downOnBezier = true;
+      waveTouched = true;
+    } else if (selectedPoints.size() > 0) {
+      lastSelectedPt = nullptr;
+      selectedPoints.clear();
+      waveTouched = true;
+    }
   }
 }
 
@@ -409,6 +496,7 @@ void Warp::processMouseUp(const frect_t& bounds, const juce::MouseEvent& me) {
   mouseIsDown = false;
   downOnSelection = false;
   shouldDrawLasso = false;
+  downOnBezier = false;
 }
 
 void Warp::processDoubleClick(const frect_t& bounds,
