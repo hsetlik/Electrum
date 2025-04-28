@@ -1,10 +1,10 @@
 #include "Electrum/Shared/PointwiseWave.h"
-#include <complex>
 #include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/WaveEditor/EditValueTree.h"
+#include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 
 static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
@@ -18,43 +18,16 @@ static const float yHeadroomNeg =
 static const float yHeadroomPos = juce::Decibels::decibelsToGain(headroomDbAbs);
 
 // angle stuff------------------------------------------------
-static fpoint_t projectToUnitSpace(const wave_point_t& point) {
-  const float xNorm = (float)point.waveIdx / (float)(TABLE_SIZE - 1);
-  return {xNorm, (point.level - 1.0f) * 0.5f};
+static fpoint_t normalizedWithin(const frect_t& bounds, const fpoint_t& point) {
+  const float x = (point.x - bounds.getX()) / bounds.getWidth();
+  const float y = (point.y - bounds.getY()) / bounds.getHeight();
+  return {x, y};
 }
 
-static wave_point_t projectFromUnitSpace(const fpoint_t& normPoint) {
-  wave_point_t wp;
-  wp.waveIdx = (int)(normPoint.x * (float)(TABLE_SIZE - 1));
-  wp.level = flerp(-1.0f, 1.0f, 1.0f - normPoint.y);
-  return wp;
-}
-
-static std::complex<float> s_getPolarDistance(const wave_point_t& a,
-                                              const wave_point_t& b) {
-  auto aPoint = projectToUnitSpace(a);
-  auto bPoint = projectToUnitSpace(b);
-  const float mag = bPoint.getDistanceFrom(aPoint);
-  const float theta = aPoint.getAngleToPoint(bPoint);
-  return std::polar(mag, theta);
-}
-
-static std::complex<float> s_getPolarDistance(const frect_t& bounds,
-                                              const fpoint_t& a,
-                                              const fpoint_t& b) {
-  auto aPoint = bounds.getRelativePoint(a.x, a.y);
-  auto bPoint = bounds.getRelativePoint(b.x, b.y);
-  const float mag = bPoint.getDistanceFrom(aPoint);
-  const float theta = aPoint.getAngleToPoint(bPoint);
-  return std::polar(mag, theta);
-}
-
-static fpoint_t pointAtPolarDistance(const frect_t& bounds,
-                                     const fpoint_t& point,
-                                     std::complex<float> polarDist) {
-  const float dX = polarDist.real() * bounds.getWidth();
-  const float dY = polarDist.imag() * bounds.getHeight();
-  return {point.x + dX, point.y + dY};
+static fpoint_t denormalizeTo(const frect_t& bounds, const fpoint_t& point) {
+  const float x = bounds.getX() + (point.x * bounds.getWidth());
+  const float y = bounds.getY() + (point.y * bounds.getHeight());
+  return {x, y};
 }
 
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
@@ -68,7 +41,6 @@ wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
 
 fpoint_t projectBezierHandleToSpace(const frect_t& bounds,
                                     const bez_handle_t& handle) {
-  auto centerPt = projectWavePointToSpace(bounds, *handle.parent);
   float mag, theta;
   if (handle.isLeft) {
     mag = handle.parent->leftBezLength;
@@ -77,8 +49,20 @@ fpoint_t projectBezierHandleToSpace(const frect_t& bounds,
     mag = handle.parent->rightBezLength;
     theta = handle.parent->rightBezTheta;
   }
-  std::complex<float> distance = std::polar(mag, theta);
-  return pointAtPolarDistance(bounds, centerPt, distance);
+  auto centerPt = projectWavePointToSpace(bounds, *handle.parent);
+  auto normCenter = normalizedWithin(bounds, centerPt);
+  auto normHandle = normCenter.getPointOnCircumference(mag, theta);
+  return denormalizeTo(bounds, normHandle);
+}
+
+bez_params_t projectSpaceToBezierHandle(const frect_t& bounds,
+                                        const fpoint_t& center,
+                                        const fpoint_t& handle) {
+  auto normCenter = normalizedWithin(bounds, center);
+  auto normHandle = normalizedWithin(bounds, handle);
+  const float length = normCenter.getDistanceFrom(normHandle);
+  const float angle = normCenter.getAngleToPoint(normHandle);
+  return {length, angle};
 }
 
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
@@ -336,8 +320,7 @@ bool Warp::bezierCanMoveTo(const frect_t& bounds,
   auto parentCenter = projectWavePointToSpace(bounds, *handle.parent);
   auto parentIdx = closestPointIndex(handle.parent->waveIdx);
   // 2. project the bezier point
-  auto distance = std::polar(length, angle);
-  auto newBezPoint = pointAtPolarDistance(bounds, parentCenter, distance);
+  auto newBezPoint = parentCenter.getPointOnCircumference(length, angle);
   // 3. figure out which side we're on
   if (handle.isLeft) {
     // make sure we're left of the parent
@@ -363,7 +346,7 @@ bool Warp::bezierCanMoveTo(const frect_t& bounds,
     if (newBezPoint.x >= rightLimit)
       return false;
   }
-  return newBezPoint.y > bounds.getY() && newBezPoint.y < bounds.getBottom();
+  return newBezPoint.y > bounds.getY() && newBezPoint.y <= bounds.getBottom();
 }
 
 // Selection stuff--------------------------
@@ -501,7 +484,7 @@ void Warp::processMouseDown(const frect_t& bounds, const juce::MouseEvent& me) {
   mouseIsDown = true;
   lastMouseDownPoint = projectSpaceToWavePoint(bounds, me.position);
   lastDragUpdatePoint = lastMouseDownPoint;
-
+  downWithAlt = me.mods.isAltDown();
   // 2. determine if we clicked on an existing point
   auto clickedPoint = getNearbyPoint(bounds, me.position);
   if (clickedPoint != nullptr) {
@@ -513,7 +496,9 @@ void Warp::processMouseDown(const frect_t& bounds, const juce::MouseEvent& me) {
         selectPoint(clickedPoint);
       }
     } else {
-      clearSelection();
+      if (selectedPoints.size() < 2) {
+        clearSelection();
+      }
       selectPoint(clickedPoint);
     }
     downOnSelection = !selectedPoints.empty();
@@ -522,6 +507,7 @@ void Warp::processMouseDown(const frect_t& bounds, const juce::MouseEvent& me) {
     selectedBez = getNearbyBezHandle(bounds, me.position);
     if (selectedBez.parent != nullptr) {
       downOnBezier = true;
+      downOnSelection = false;
       waveTouched = true;
     } else if (selectedPoints.size() > 0) {
       lastSelectedPt = nullptr;
@@ -535,6 +521,8 @@ void Warp::processMouseDrag(const frect_t& bounds, const juce::MouseEvent& me) {
   if (downOnSelection) {
     auto newPoint = projectSpaceToWavePoint(bounds, me.position);
     attemptDragUpdate(bounds, me.position);
+  } else if (downOnBezier) {
+    attemptBezierDrag(bounds, me.position);
   } else if (mouseIsDown) {
     shouldDrawLasso = true;
     lastDragUpdatePoint = projectSpaceToWavePoint(bounds, me.position);
@@ -543,17 +531,39 @@ void Warp::processMouseDrag(const frect_t& bounds, const juce::MouseEvent& me) {
 
 void Warp::processMouseUp(const frect_t& bounds, const juce::MouseEvent& me) {
   // do one more dragUpdate if we're moving points
+  if (downWithAlt && selectedPoints.size() == 1) {
+    advancePointType(lastSelectedPt);
+  }
   if (downOnSelection) {
     attemptDragUpdate(bounds, me.position);
+  }
+  // if we're in lasso mode we need to select the relevant
+  // points before un-drawing the lasso
+  if (shouldDrawLasso) {
+    clearSelection();
+    auto lassoStartPos = projectWavePointToSpace(bounds, lastMouseDownPoint);
+    // create a rectangle between the two corners of the lasso,
+    // select any points that fall inside it
+    frect_t lassoBounds(lassoStartPos, me.position);
+    for (auto& p : points) {
+      auto spacePoint = projectWavePointToSpace(bounds, p);
+      if (lassoBounds.contains(spacePoint)) {
+        selectPoint(&p);
+      }
+    }
   }
   mouseIsDown = false;
   downOnSelection = false;
   shouldDrawLasso = false;
   downOnBezier = false;
+  downWithAlt = false;
 }
 
 void Warp::processDoubleClick(const frect_t& bounds,
                               const juce::MouseEvent& me) {
+  // so we don't accidentally delete points when cycling through types
+  if (me.mods.isAltDown())
+    return;
   // in any case we'll clear the selection
   clearSelection();
   auto* existingPoint = getNearbyPoint(bounds, me.position);
@@ -568,17 +578,17 @@ void Warp::processDoubleClick(const frect_t& bounds,
 bool Warp::bezierDragAllowed(const frect_t& bounds,
                              const fpoint_t& newPoint) const {
   auto parentCenter = projectWavePointToSpace(bounds, *selectedBez.parent);
-  auto distance = s_getPolarDistance(bounds, parentCenter, newPoint);
-  const float mag = std::abs(distance);
-  const float theta = std::arg(distance);
-  bool firstAllowed = bezierCanMoveTo(bounds, selectedBez, mag, theta);
+  auto bParams = projectSpaceToBezierHandle(bounds, parentCenter, newPoint);
+
+  bool firstAllowed =
+      bezierCanMoveTo(bounds, selectedBez, bParams.normLength, bParams.theta);
   // if we're in locked mode we have to check the other one too
   if (selectedBez.parent->pointType == (int)WavePtType::BezierFree) {
     return firstAllowed;
   } else if (firstAllowed) {
     bez_handle_t recip = {selectedBez.parent, !selectedBez.isLeft};
-    return bezierCanMoveTo(bounds, recip, mag,
-                           theta + juce::MathConstants<float>::pi);
+    return bezierCanMoveTo(bounds, recip, bParams.normLength,
+                           bParams.theta + juce::MathConstants<float>::pi);
   }
   return false;
 }
@@ -586,9 +596,9 @@ bool Warp::bezierDragAllowed(const frect_t& bounds,
 void Warp::attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint) {
   if (bezierDragAllowed(bounds, newPoint)) {
     auto parentCenter = projectWavePointToSpace(bounds, *selectedBez.parent);
-    auto distance = s_getPolarDistance(bounds, parentCenter, newPoint);
-    const float mag = std::abs(distance);
-    const float theta = std::arg(distance);
+    auto distance = projectSpaceToBezierHandle(bounds, parentCenter, newPoint);
+    const float mag = distance.normLength;
+    const float theta = distance.theta;
     auto& rLength = selectedBez.isLeft ? selectedBez.parent->leftBezLength
                                        : selectedBez.parent->rightBezLength;
     auto& rTheta = selectedBez.isLeft ? selectedBez.parent->leftBezTheta
@@ -605,6 +615,23 @@ void Warp::attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint) {
     }
     waveTouched = true;
   }
+}
+
+void Warp::advancePointType(wave_point_t* pt) {
+  const int oldType = pt->pointType;
+  const int newType = (oldType + 1) % 3;
+  pt->pointType = newType;
+  WavePtType oldID = (WavePtType)oldType;
+  // if we're switching from linear to bezier, place the
+  // handles in a default position
+  static const float defaultBezLength = 1.0f / 12.0f;
+  if (oldID == WavePtType::Linear) {
+    pt->leftBezLength = defaultBezLength;
+    pt->rightBezLength = defaultBezLength;
+    pt->rightBezTheta = juce::MathConstants<float>::pi / 2.0f;
+    pt->leftBezTheta = (3.0f * juce::MathConstants<float>::pi) / 2.0f;
+  }
+  waveTouched = true;
 }
 
 // Drawing-----------------------------------------------------------------------------------
@@ -638,7 +665,7 @@ void Warp::drawAllParts(juce::Graphics& g,
 }
 
 static color_t bkgndUpper = UIColor::windowBkgnd;
-static color_t bkgndLower = UIColor::windowBkgnd.brighter();
+static color_t bkgndLower = UIColor::windowBkgnd.brighter(0.08f);
 
 void Warp::drawBackground(juce::Graphics& g,
                           const frect_t& bounds,
@@ -669,25 +696,122 @@ void Warp::drawWave(juce::Graphics& g,
   for (size_t i = firstPointIdx; i <= lastPointIdx; ++i) {
     pWave.lineTo(projectWavePointToSpace(bounds, points[i]));
   }
-  pWave.lineTo(bounds.getX() + (bounds.getWidth() * nEnd), bounds.getBottom());
-  pWave.closeSubPath();
 
-  g.setColour(Color::qualifierPurple.withAlpha(0.8f));
-  g.fillPath(pWave);
+  g.setColour(Color::periwinkle.withAlpha(0.8f));
+  juce::PathStrokeType pst(2.5f);
+  g.strokePath(pWave, pst);
 }
 
-static void s_drawPointHandle(juce::Graphics& g,
-                              const fpoint_t& centerPoint,
-                              bool isSelected) {
-  static const float pointWidth = 12.0f;
-  frect_t bounds;
-  bounds.setCentre(centerPoint);
-  bounds = bounds.withSizeKeepingCentre(pointWidth, pointWidth);
-  auto color = isSelected
-                   ? Color::qualifierPurple
-                   : Color::qualifierPurple.withMultipliedSaturation(0.75f);
+static const float pointWidth = 12.0f;
+static const float bezierPointWidth = 8.0f;
+
+static const float pointStroke = 2.0f;
+
+static void s_drawPointCircle(juce::Graphics& g,
+                              const frect_t& bounds,
+                              bool selected) {
+  auto color = selected ? Color::periwinkle
+                        : Color::periwinkle.withMultipliedSaturation(0.75f);
   g.setColour(color);
   g.fillEllipse(bounds);
+  if (selected) {
+    g.setColour(Color::darkBlue);
+    g.drawEllipse(bounds, pointStroke);
+  }
+}
+
+static void s_drawPointTriangle(juce::Graphics& g,
+                                const frect_t& bounds,
+                                bool selected) {
+  auto color = selected ? Color::periwinkle
+                        : Color::periwinkle.withMultipliedSaturation(0.75f);
+  g.setColour(color);
+  juce::Path p;
+  p.startNewSubPath(bounds.getX(), bounds.getY());
+  p.lineTo(bounds.getCentreX(), bounds.getBottom());
+  p.lineTo(bounds.getRight(), bounds.getY());
+  p.closeSubPath();
+  g.fillPath(p);
+  if (selected) {
+    g.setColour(Color::darkBlue);
+    juce::PathStrokeType pst(pointStroke);
+    g.strokePath(p, pst);
+  }
+}
+
+static void s_drawPointDiamond(juce::Graphics& g,
+                               const frect_t& bounds,
+                               bool selected) {
+  auto color = selected ? Color::periwinkle
+                        : Color::periwinkle.withMultipliedSaturation(0.75f);
+  g.setColour(color);
+  juce::Path p;
+  p.startNewSubPath(bounds.getX(), bounds.getCentreY());
+  p.lineTo(bounds.getCentreX(), bounds.getY());
+  p.lineTo(bounds.getRight(), bounds.getCentreY());
+  p.lineTo(bounds.getCentreX(), bounds.getBottom());
+  p.closeSubPath();
+  g.fillPath(p);
+  if (selected) {
+    g.setColour(Color::darkBlue);
+    juce::PathStrokeType pst(pointStroke);
+    g.strokePath(p, pst);
+  }
+}
+
+static void s_drawBezHandleAround(juce::Graphics& g, const fpoint_t& center) {
+  frect_t bounds;
+  bounds.setCentre(center);
+  bounds = bounds.withSizeKeepingCentre(bezierPointWidth, bezierPointWidth);
+  g.fillEllipse(bounds);
+}
+
+static void s_drawBezierHandles(juce::Graphics& g,
+                                const frect_t& bounds,
+                                const wave_point_t* _parent) {
+  // 1. find the center point to connect the handles
+  wave_point_t parent = *_parent;
+  auto parentCenter = projectWavePointToSpace(bounds, parent);
+  g.setColour(Color::periwinkle);
+  // 2. draw the handles
+  bez_handle_t hLeft = {&parent, true};
+  auto lCenter = projectBezierHandleToSpace(bounds, hLeft);
+  juce::Line leftLine(parentCenter, lCenter);
+  g.drawLine(leftLine, 2.0f);
+  s_drawBezHandleAround(g, lCenter);
+
+  bez_handle_t hRight = {&parent, false};
+  auto rCenter = projectBezierHandleToSpace(bounds, hRight);
+  juce::Line rightLine(parentCenter, rCenter);
+  g.drawLine(rightLine, 2.0f);
+  s_drawBezHandleAround(g, rCenter);
+}
+
+void Warp::drawWavePoint(juce::Graphics& g,
+                         const frect_t& bounds,
+                         const wave_point_t* pt) const {
+  auto centerPt = projectWavePointToSpace(bounds, *pt);
+  frect_t handleArea;
+  handleArea.setCentre(centerPt);
+  handleArea = handleArea.withSizeKeepingCentre(pointWidth, pointWidth);
+  bool selected = isPointSelected(pt);
+  auto id = (WavePtType)pt->pointType;
+  switch (id) {
+    case WavePtType::Linear:
+      s_drawPointCircle(g, handleArea, selected);
+      break;
+    case WavePtType::BezierFree:
+      s_drawBezierHandles(g, bounds, pt);
+      s_drawPointDiamond(g, handleArea, selected);
+      break;
+    case WavePtType::BezierLocked:
+      s_drawBezierHandles(g, bounds, pt);
+      s_drawPointTriangle(g, handleArea, selected);
+      break;
+    default:
+      jassert(false);
+      break;
+  }
 }
 
 void Warp::drawPointHandles(juce::Graphics& g,
@@ -699,9 +823,7 @@ void Warp::drawPointHandles(juce::Graphics& g,
   const size_t firstPointIdx = leftNeighborPointIndex(waveStart);
   const size_t lastPointIdx = leftNeighborPointIndex(waveEnd) + 1;
   for (size_t i = firstPointIdx; i <= lastPointIdx; ++i) {
-    auto& p = points[i];
-    auto center = projectWavePointToSpace(bounds, p);
-    s_drawPointHandle(g, center, isPointSelected(&p));
+    drawWavePoint(g, bounds, &points[i]);
   }
 }
 

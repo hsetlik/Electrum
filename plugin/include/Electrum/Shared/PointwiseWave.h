@@ -25,11 +25,20 @@ struct bez_handle_t {
   bool isLeft = true;
 };
 
+struct bez_params_t {
+  float normLength;
+  float theta;
+};
+
 namespace Pointwise {
 fpoint_t projectWavePointToSpace(const frect_t& bounds,
                                  const wave_point_t& point);
 fpoint_t projectBezierHandleToSpace(const frect_t& bounds,
                                     const bez_handle_t& point);
+
+bez_params_t projectSpaceToBezierHandle(const frect_t& bounds,
+                                        const fpoint_t& center,
+                                        const fpoint_t& handle);
 wave_point_t projectSpaceToWavePoint(const frect_t& bounds,
                                      const fpoint_t& point);
 
@@ -117,11 +126,13 @@ private:
   wave_point_t lastDragUpdatePoint;
   bool mouseIsDown = false;
   bool downOnSelection = false;
+  bool downWithAlt = false;
   bool shouldDrawLasso = false;
 
   // bezier logic------------------------
   bool downOnBezier = false;
   bez_handle_t selectedBez;
+  void advancePointType(wave_point_t* pt);
 
   // drawing stuff------------------------------
   float prevStartNorm = -50.0f;
@@ -143,6 +154,9 @@ private:
                         const frect_t& bounds,
                         float startNorm,
                         float endNorm) const;
+  void drawWavePoint(juce::Graphics& g,
+                     const frect_t& bounds,
+                     const wave_point_t* pt) const;
   void drawLasso(juce::Graphics& g, const frect_t& lassoArea) const;
 };
 
