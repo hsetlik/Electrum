@@ -237,7 +237,9 @@ bool Warp::pointCanMoveTo(wave_point_t* pt, int waveIdx, float lvl) const {
   jassert(pIdx > 0 && pIdx < (points.size() - 1));
   auto& lPoint = points[pIdx - 1];
   auto& rPoint = points[pIdx + 1];
-  return (waveIdx > lPoint.waveIdx) && (waveIdx < rPoint.waveIdx);
+  const int leftIdx = maxWaveIdxControlled(&lPoint);
+  const int rightIdx = minWaveIdxControlled(&rPoint);
+  return (waveIdx > leftIdx) && (waveIdx < rightIdx);
 }
 
 Warp::Warp(const String& frameStr) {
@@ -320,7 +322,16 @@ bool Warp::bezierCanMoveTo(const frect_t& bounds,
   auto parentCenter = projectWavePointToSpace(bounds, *handle.parent);
   auto parentIdx = closestPointIndex(handle.parent->waveIdx);
   // 2. project the bezier point
-  auto newBezPoint = parentCenter.getPointOnCircumference(length, angle);
+  auto tempParent = *handle.parent;
+  if (handle.isLeft) {
+    tempParent.leftBezLength = length;
+    tempParent.leftBezTheta = angle;
+  } else {
+    tempParent.rightBezLength = length;
+    tempParent.rightBezTheta = angle;
+  }
+  bez_handle_t tempHandle = {&tempParent, handle.isLeft};
+  auto newBezPoint = projectBezierHandleToSpace(bounds, tempHandle);
   // 3. figure out which side we're on
   if (handle.isLeft) {
     // make sure we're left of the parent
@@ -349,7 +360,6 @@ bool Warp::bezierCanMoveTo(const frect_t& bounds,
   return newBezPoint.y > bounds.getY() && newBezPoint.y <= bounds.getBottom();
 }
 
-// Selection stuff--------------------------
 bool Warp::isPointSelected(const wave_point_t* pt) const {
   for (auto* s : selectedPoints) {
     if (s == pt)
@@ -425,23 +435,9 @@ bez_handle_t Warp::getNearbyBezHandle(const frect_t& bounds,
   return {nullptr, true};
 }
 
-bool Warp::dragUpdateAllowed(const wave_point_t& newPoint) const {
-  const float dLevel = newPoint.level - lastDragUpdatePoint.level;
-  const int dIndex = newPoint.waveIdx - lastDragUpdatePoint.waveIdx;
-
-  for (auto* sp : selectedPoints) {
-    float newLevel = sp->level + dLevel;
-    int newIdx = sp->waveIdx + dIndex;
-    if (!pointCanMoveTo(sp, newIdx, newLevel)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool Warp::dragUpdateAllowed(const frect_t& bounds,
                              const fpoint_t& newPoint) const {
-  if (selectedPoints.size() > 2)
+  if (selectedPoints.size() < 2)
     return true;
   auto prevPoint = projectWavePointToSpace(bounds, lastDragUpdatePoint);
   const float dX = newPoint.x - prevPoint.x;
@@ -617,6 +613,28 @@ void Warp::attemptBezierDrag(const frect_t& bounds, const fpoint_t& newPoint) {
   }
 }
 
+int Warp::maxWaveIdxControlled(const wave_point_t* point) const {
+  if (point->waveIdx == TABLE_SIZE - 1)
+    return TABLE_SIZE - 1;
+  frect_t bounds = {0.0f, 0.0f, 1.0f, 1.0f};
+  wave_point_t temp = *point;
+  bez_handle_t rightBez = {&temp, false};
+  auto bezCenter = projectBezierHandleToSpace(bounds, rightBez);
+  auto bezWavePt = projectSpaceToWavePoint(bounds, bezCenter);
+  return bezWavePt.waveIdx;
+}
+
+int Warp::minWaveIdxControlled(const wave_point_t* point) const {
+  if (point->waveIdx == TABLE_SIZE - 1)
+    return TABLE_SIZE - 1;
+  frect_t bounds = {0.0f, 0.0f, 1.0f, 1.0f};
+  wave_point_t temp = *point;
+  bez_handle_t leftBez = {&temp, true};
+  auto bezCenter = projectBezierHandleToSpace(bounds, leftBez);
+  auto bezWavePt = projectSpaceToWavePoint(bounds, bezCenter);
+  return bezWavePt.waveIdx;
+}
+
 void Warp::advancePointType(wave_point_t* pt) {
   const int oldType = pt->pointType;
   const int newType = (oldType + 1) % 3;
@@ -624,7 +642,7 @@ void Warp::advancePointType(wave_point_t* pt) {
   WavePtType oldID = (WavePtType)oldType;
   // if we're switching from linear to bezier, place the
   // handles in a default position
-  static const float defaultBezLength = 1.0f / 12.0f;
+  static const float defaultBezLength = 1.0f / 20.0f;
   if (oldID == WavePtType::Linear) {
     pt->leftBezLength = defaultBezLength;
     pt->rightBezLength = defaultBezLength;
@@ -693,8 +711,31 @@ void Warp::drawWave(juce::Graphics& g,
   juce::Path pWave;
   pWave.startNewSubPath(bounds.getX() + (bounds.getWidth() * nStart),
                         bounds.getBottom());
-  for (size_t i = firstPointIdx; i <= lastPointIdx; ++i) {
-    pWave.lineTo(projectWavePointToSpace(bounds, points[i]));
+  auto firstPt = projectWavePointToSpace(bounds, points[firstPointIdx]);
+  pWave.lineTo(firstPt);
+  for (size_t i = firstPointIdx + 1; i <= lastPointIdx; ++i) {
+    auto pLeft = points[i - 1];
+    auto pRight = points[i];
+    auto pEnd = projectWavePointToSpace(bounds, pRight);
+    if (pLeft.pointType == 0 && pRight.pointType == 0) {
+      pWave.lineTo(pEnd);
+    } else if (pLeft.pointType > 0 && pRight.pointType > 0) {
+      bez_handle_t h1 = {&pLeft, true};
+      bez_handle_t h2 = {&pRight, false};
+      auto c1 = projectBezierHandleToSpace(bounds, h1);
+      auto c2 = projectBezierHandleToSpace(bounds, h2);
+      pWave.cubicTo(c1, c2, pEnd);
+    } else {
+      fpoint_t controlPt;
+      if (pLeft.pointType > 0) {
+        bez_handle_t handle = {&pLeft, false};
+        controlPt = projectBezierHandleToSpace(bounds, handle);
+      } else {
+        bez_handle_t handle = {&pRight, true};
+        controlPt = projectBezierHandleToSpace(bounds, handle);
+      }
+      pWave.quadraticTo(controlPt, pEnd);
+    }
   }
 
   g.setColour(Color::periwinkle.withAlpha(0.8f));
@@ -703,6 +744,7 @@ void Warp::drawWave(juce::Graphics& g,
 }
 
 static const float pointWidth = 12.0f;
+
 static const float bezierPointWidth = 8.0f;
 
 static const float pointStroke = 2.0f;

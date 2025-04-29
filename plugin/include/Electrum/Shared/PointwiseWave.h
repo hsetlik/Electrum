@@ -108,7 +108,6 @@ private:
                                   float thresh = 4.0f);
 
   // handle dragging a the current selection
-  bool dragUpdateAllowed(const wave_point_t& newPoint) const;
   bool dragUpdateAllowed(const frect_t& fBounds,
                          const fpoint_t& newPoint) const;
   bool bezierDragAllowed(const frect_t& fBounds,
@@ -132,6 +131,10 @@ private:
   // bezier logic------------------------
   bool downOnBezier = false;
   bez_handle_t selectedBez;
+  // returns the minimum waveIdx this point's right neighbor can have,
+  // taking bezier handles into account
+  int maxWaveIdxControlled(const wave_point_t* point) const;
+  int minWaveIdxControlled(const wave_point_t* point) const;
   void advancePointType(wave_point_t* pt);
 
   // drawing stuff------------------------------
