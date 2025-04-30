@@ -8,9 +8,20 @@
 
 // structs for modulations
 
-enum ModSourceE { Env1, Env2, Env3, LFO1, LFO2, LFO3, ModWheel, Velocity };
+enum ModSourceE {
+  Env1,
+  Env2,
+  Env3,
+  LFO1,
+  LFO2,
+  LFO3,
+  LevelMono,
+  LevelPoly,
+  ModWheel,
+  Velocity
+};
 
-#define MOD_SOURCES 8
+#define MOD_SOURCES 10
 
 enum ModDestE {
   osc1Coarse,

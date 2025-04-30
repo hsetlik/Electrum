@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/Audio/Filters/RollingRMS.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "Voice.h"

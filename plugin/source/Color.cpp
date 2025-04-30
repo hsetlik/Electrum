@@ -3,8 +3,11 @@
 
 namespace Color {
 
-static color_t modSrcColors[MOD_SOURCES] = {sandyYellow, aquamarine, salmon,
-                                            gainsboro, darkSeaGreen};
+static color_t modSrcColors[MOD_SOURCES] = {
+    sandyYellow,       aquamarine,     salmon,
+    gainsboro,         darkSeaGreen,   highlightedDarkBlue,
+    literalOrangePale, assignmentPink, qualifierPurple.darker(0.2f),
+    periwinkle};
 color_t getModSourceColor(ModSourceE src) {
   return modSrcColors[(size_t)src];
 }

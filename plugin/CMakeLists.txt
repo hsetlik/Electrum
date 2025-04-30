@@ -183,10 +183,10 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/GUI/WaveEditor/PointEditor.h
 				source/ScalableViewport.cpp
 				${INCLUDE_DIR}/GUI/Util/ScalableViewport.h
-				source/TempoSync.cpp
-				${INCLUDE_DIR}/Audio/TempoSync.h
 				source/RollingRMS.cpp
 				${INCLUDE_DIR}/Audio/Filters/RollingRMS.h
+				source/LevelSourceComponent.cpp
+				${INCLUDE_DIR}/GUI/ModulatorPanel/LevelSourceComponent.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

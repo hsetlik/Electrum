@@ -16,7 +16,8 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
       macroPanel(s),
       browser(s),
       envPanel(s),
-      lfoPanel(s) {
+      lfoPanel(s),
+      levelComp(s) {
   juce::ignoreUnused(p);
   addAndMakeVisible(&kbdView);
   addAndMakeVisible(&filterTabs);
@@ -24,6 +25,7 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
   addAndMakeVisible(&envPanel);
   addAndMakeVisible(&lfoPanel);
   addAndMakeVisible(&browser);
+  addAndMakeVisible(&levelComp);
   // add the oscs
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
     auto* osc = oscs.add(new OscillatorPanel(state, i));
@@ -38,8 +40,10 @@ void ElectrumMainView::resized() {
   static const int oscPanelHeight = std::min(iBounds.getHeight(), 500);
   static const int leftPanelWidth = std::min(iBounds.getWidth() / 5, 400);
   auto leftPanel = iBounds.removeFromLeft(leftPanelWidth);
-  const int macroPanelHeight = std::max(leftPanel.getHeight() / 7, 110);
+  const int macroPanelHeight = std::max(leftPanel.getHeight() / 8, 110);
   macroPanel.setBounds(leftPanel.removeFromTop(macroPanelHeight));
+  const int levelCompHeight = (int)((float)leftPanel.getHeight() * 0.35f);
+  levelComp.setBounds(leftPanel.removeFromTop(levelCompHeight));
   browser.setBounds(leftPanel);
 
   auto fOscArea = iBounds.removeFromTop(oscPanelHeight).toFloat();

@@ -1,3 +1,4 @@
+
 #include "Electrum/GUI/Modulation/ModSourceComponent.h"
 #include "Electrum/GUI/LayoutHelpers.h"
 #include "Electrum/GUI/LookAndFeel/Color.h"
@@ -20,6 +21,10 @@ static String _tooltipForModSource(ModSourceE id) {
       return "LFO 3";
     case ModWheel:
       return "Mod. wheel";
+    case LevelMono:
+      return "Level (monophonic)";
+    case LevelPoly:
+      return "Level (polyphonic)";
     case Velocity:
       return "Note Velocity";
     default:

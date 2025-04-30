@@ -106,6 +106,7 @@ void SynthEngine::renderNextSample(float& left,
   for (auto* v : voices) {
     v->renderNextSample(left, right, updateDests);
   }
+  state->audioData.polyRMS.tick(left, right);
 }
 
 //===================================================
@@ -135,6 +136,7 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   updateParamsForBlock();
   // 1b. check if the GUI wants graphing data updates
   if (state->graph.wantsUpdate()) {
+    state->graph.setPolyLevel(state->audioData.polyRMS.currentLevel());
     auto* v = voices[state->graph.getNewestVoiceIndex()];
     jassert(v != nullptr);
     v->updateGraphData(&state->graph);

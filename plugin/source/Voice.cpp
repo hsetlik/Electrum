@@ -67,8 +67,12 @@ float ElectrumVoice::_currentModSrcVal(int src) {
   const ModSourceE id = (ModSourceE)src;
   if (id < ModSourceE::LFO1) {
     return envs[src]->getCurrentSample();
-  } else if (id < ModSourceE::ModWheel) {
+  } else if (id < ModSourceE::LevelMono) {
     return lfos[src - NUM_ENVELOPES]->getCurrentSample();
+  } else if (id == ModSourceE::LevelMono) {
+    return rms.currentLevel();
+  } else if (id == ModSourceE::LevelPoly) {
+    return state->audioData.polyRMS.currentLevel();
   }
   // TODO: other modulation sources get implemented here
   else
@@ -276,4 +280,5 @@ void ElectrumVoice::updateGraphData(GraphingData* gd) {
   for (int i = 0; i < NUM_LFOS; ++i) {
     gd->updateLFOPhase(i, lfos[i]->getCurrentPhase());
   }
+  gd->setMonoLevel(rms.currentLevel());
 }

@@ -1,6 +1,4 @@
 #pragma once
-#include "Electrum/Audio/Wavetable.h"
-#include "Electrum/Common.h"
 #include "Electrum/Identifiers.h"
 #include "juce_core/juce_core.h"
 #include "juce_core/system/juce_PlatformDefs.h"
@@ -48,6 +46,8 @@ private:
   std::array<float_at, NUM_OSCILLATORS> newestOscPositions;
   std::array<float_at, NUM_ENVELOPES> newestEnvLevels;
   std::array<float_at, NUM_LFOS> newestLfoPhases;
+  float_at polyLevel;
+  float_at monoLevel;
 
   // keep track of when we want updates
   bool_at updateRequested;
@@ -97,6 +97,10 @@ public:
   float getLFOPhase(int lfoID) const {
     return newestLfoPhases[(size_t)lfoID].load();
   }
+  void setPolyLevel(float val) { polyLevel = val; }
+  float getPolyLevel() const { return polyLevel.load(); }
+  void setMonoLevel(float val) { monoLevel = val; }
+  float getMonoLevel() const { return monoLevel.load(); }
 
   // wave string stuff
   bool needsWavetableData() const { return needsWaveStrings; }
