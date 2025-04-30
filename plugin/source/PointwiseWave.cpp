@@ -374,6 +374,7 @@ bool Warp::deletePoint(size_t pointIdx) {
   }
   return true;
 }
+
 bool Warp::bezierCanMoveTo(const frect_t& bounds,
                            const bez_handle_t& handle,
                            float length,

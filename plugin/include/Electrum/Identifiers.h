@@ -166,6 +166,9 @@ DECLARE_ID(filterType)
 DECLARE_ID(filterCutoff)
 DECLARE_ID(filterResonance)
 DECLARE_ID(filterGainDb)
+DECLARE_ID(filterOsc1On)
+DECLARE_ID(filterOsc2On)
+DECLARE_ID(filterOsc3On)
 
 // LFO
 DECLARE_ID(lfoFrequencyHz)

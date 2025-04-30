@@ -158,9 +158,18 @@ apvts::ParameterLayout ID::getParameterLayout() {
     addFloatParam(&layout, cutoffID, cutoffName, cutoffRange, 1000.0f);
     addFloatParam(&layout, resID, resName, resonanceRange, FILTER_RES_DEFAULT);
     addFloatParam(&layout, gainID, gainName, filterGainRange, 0.0f);
-    juce::ParameterID pID{activeID, 1};
-    layout.add(
-        std::make_unique<juce::AudioParameterBool>(pID, activeName, i < 1));
+    juce::ParameterID activePID{activeID, 1};
+    layout.add(std::make_unique<juce::AudioParameterBool>(activePID, activeName,
+                                                          i < 1));
+    // routing countrols
+    for (int o = 0; o < NUM_OSCILLATORS; ++o) {
+      String oStr(o + 1);
+      String routeID = "filterOsc" + oStr + "On" + iStr;
+      String routeName = "Route osc. " + oStr + " to filter " + iStr;
+      juce::ParameterID routePID{routeID, 1};
+      layout.add(std::make_unique<juce::AudioParameterBool>(routePID, routeName,
+                                                            i < 1));
+    }
   }
   // LFO params--------------------------------------
   frange_t lfoHzRange = rangeWithCenter(LFO_HZ_MIN, LFO_HZ_MAX, LFO_HZ_CENTER);

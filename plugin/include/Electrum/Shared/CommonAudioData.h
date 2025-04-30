@@ -12,6 +12,7 @@ struct shared_filter_params {
   float baseCutoff = 1000.0f;
   float baseResLin = 1.0f;
   float baseGainLin = 1.0f;
+  bool oscActive[NUM_OSCILLATORS] = {true, true, true};
 };
 
 class CommonAudioData {

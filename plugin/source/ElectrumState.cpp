@@ -350,12 +350,6 @@ void ElectrumState::updateCommonAudioData() {
     const String gainID = ID::filterGainDb.toString() + iStr;
     const String typeID = ID::filterType.toString() + iStr;
 
-    // jassert(s_parameterExists(this, activeID));
-    // jassert(s_parameterExists(this, cutoffID));
-    // jassert(s_parameterExists(this, resID));
-    // jassert(s_parameterExists(this, gainID));
-    // jassert(s_parameterExists(this, typeID));
-
     const float _fActive = getRawParameterValue(activeID)->load();
     const float _cutoff = getRawParameterValue(cutoffID)->load();
     const float _res = getRawParameterValue(resID)->load();
@@ -368,6 +362,13 @@ void ElectrumState::updateCommonAudioData() {
     audioData.filters[i].baseCutoff = _cutoff;
     audioData.filters[i].baseResLin = _res;
     audioData.filters[i].baseGainLin = juce::Decibels::decibelsToGain(_gainDb);
+    // handle the oscillator routing
+    for (int o = 0; o < NUM_OSCILLATORS; ++o) {
+      const String oStr(o + 1);
+      const String routeID = "filterOsc" + oStr + "On" + iStr;
+      const float _route = getRawParameterValue(routeID)->load();
+      audioData.filters[i].oscActive[o] = _route > 0.5f;
+    }
   }
   // LFOs----------------------------------------------------
   for (int i = 0; i < NUM_LFOS; ++i) {
