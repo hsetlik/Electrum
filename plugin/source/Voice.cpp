@@ -243,8 +243,11 @@ void ElectrumVoice::renderNextSample(float& left,
   }
   // 5. add to the output
   const float gateLvl = vge.getCurrentSample();
-  left += filterSums.getLeftSum() * gateLvl;
-  right += filterSums.getRightSum() * gateLvl;
+  auto vLeft = filterSums.getLeftSum() * gateLvl;
+  auto vRight = filterSums.getRightSum() * gateLvl;
+  rms.tick(vLeft, vRight);
+  left += vLeft;
+  right += vRight;
   // 6. deal with any killQuick that may be happening
   if (inQuickKill && gateLvl <= minEnvelopeLvl) {
     inQuickKill = false;

@@ -1,4 +1,5 @@
 #pragma once
+#include "Electrum/Audio/Filters/RollingRMS.h"
 #include "Electrum/Audio/Filters/VoiceFilter.h"
 #include "Electrum/Audio/Generator/Oscillator.h"
 #include "Electrum/Audio/Modulator/AHDSR.h"
@@ -100,6 +101,8 @@ private:
   // filters
   juce::OwnedArray<VoiceFilter> filters;
   FilterSumHandler filterSums;
+  // RMS meter
+  RollingRMS rms;
 
 public:
   const int voiceIndex;
