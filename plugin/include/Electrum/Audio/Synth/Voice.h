@@ -40,6 +40,34 @@ private:
   bool parentIsFinished();
 };
 
+class FilterSumHandler {
+private:
+  std::array<float, 6> data = {};
+
+public:
+  FilterSumHandler() = default;
+  // clear all the sums for the next sample
+  void clear() { std::fill(data.begin(), data.end(), 0.0f); }
+  void addToFilter1(float l, float r) {
+    data[0] += l;
+    data[1] += r;
+  }
+  void addToFilter2(float l, float r) {
+    data[2] += l;
+    data[3] += r;
+  }
+  void addToDry(float l, float r) {
+    data[4] += l;
+    data[5] += r;
+  }
+  float* filterLeft(int f);
+  float* filterRight(int f);
+  // call this with the references to the passed in samples
+  void addCurrentSumTo(float& left, float& right) const;
+  float getLeftSum() const { return data[0] + data[2] + data[4]; }
+  float getRightSum() const { return data[1] + data[3] + data[5]; }
+};
+
 //========================================================
 class ElectrumVoice {
 private:
@@ -71,6 +99,7 @@ private:
   juce::OwnedArray<VoiceLFO> lfos;
   // filters
   juce::OwnedArray<VoiceFilter> filters;
+  FilterSumHandler filterSums;
 
 public:
   const int voiceIndex;
@@ -92,6 +121,8 @@ public:
   void updateGraphData(GraphingData* gd);
 
 private:
+  void addToFilterSums(float oscL, float oscR, int oscID);
+
   // this gets called on the state pointer's ModMap for every
   // sample that we want to update the modulated parameters
   void _updateModDests(ModMap* map);

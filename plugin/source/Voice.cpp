@@ -42,6 +42,24 @@ bool VoiceGateEnvelope::isFinished() const {
 }
 
 //===================================================
+
+float* FilterSumHandler::filterLeft(int f) {
+  size_t i = (size_t)(2 * f);
+  return &data[i];
+}
+
+float* FilterSumHandler::filterRight(int f) {
+  size_t i = (size_t)(2 * f) + 1;
+  return &data[i];
+}
+// call this with the references to the passed in samples
+void FilterSumHandler::addCurrentSumTo(float& left, float& right) const {
+  for (size_t i = 0; i < 3; ++i) {
+    left += data[(2 * i)];
+    right += data[(2 * i) + 1];
+  }
+}
+
 //
 // the input value coresponds to the 'mod_source_t' enum
 // in ElectrumState.h
@@ -170,6 +188,23 @@ void ElectrumVoice::sampleRateSet(double sr) {
   }
 }
 
+void ElectrumVoice::addToFilterSums(float oscL, float oscR, int oscID) {
+  bool filtered = false;
+  auto& params1 = state->audioData.filters[0];
+  if (params1.oscActive[(size_t)oscID]) {
+    filtered = true;
+    filterSums.addToFilter1(oscL, oscR);
+  }
+  auto& params2 = state->audioData.filters[1];
+  if (params2.oscActive[(size_t)oscID]) {
+    filtered = true;
+    filterSums.addToFilter2(oscL, oscR);
+  }
+  if (!filtered) {
+    filterSums.addToDry(oscL, oscR);
+  }
+}
+
 void ElectrumVoice::renderNextSample(float& left,
                                      float& right,
                                      bool updateDests) {
@@ -191,22 +226,25 @@ void ElectrumVoice::renderNextSample(float& left,
   if (updateDests)
     _updateModDests(&state->modulations);
   // 3. add samples from the oscillators
-  float voiceLeft = 0.0f;
-  float voiceRight = 0.0f;
+  filterSums.clear();
   for (int i = 0; i < NUM_OSCILLATORS; ++i) {
+    float oscLeft = 0.0f;
+    float oscRight = 0.0f;
     oscs[i]->renderSampleStereo(currentNote, oscModState[i].levelMod,
                                 oscModState[i].posMod, oscModState[i].panMod,
                                 oscModState[i].coarseMod,
-                                oscModState[i].fineMod, voiceLeft, voiceRight);
+                                oscModState[i].fineMod, oscLeft, oscRight);
+    addToFilterSums(oscLeft, oscRight, i);
   }
   // 4. this is where filters and any other per-voice waveshaping happens
   for (int i = 0; i < NUM_FILTERS; ++i) {
-    filters[i]->processStereo(voiceLeft, voiceRight);
+    filters[i]->processStereo(*filterSums.filterLeft(i),
+                              *filterSums.filterRight(i));
   }
   // 5. add to the output
   const float gateLvl = vge.getCurrentSample();
-  left += voiceLeft * gateLvl;
-  right += voiceRight * gateLvl;
+  left += filterSums.getLeftSum() * gateLvl;
+  right += filterSums.getRightSum() * gateLvl;
   // 6. deal with any killQuick that may be happening
   if (inQuickKill && gateLvl <= minEnvelopeLvl) {
     inQuickKill = false;
