@@ -11,6 +11,12 @@ static bool s_compareWavePts(wave_point_t a, wave_point_t b) {
   return a.waveIdx < b.waveIdx;
 }
 
+static fpoint_t pointLerp(const fpoint_t& a, const fpoint_t& b, float n) {
+  auto x = flerp(a.x, b.x, n);
+  auto y = flerp(a.y, b.y, n);
+  return {x, y};
+}
+
 namespace Pointwise {
 static const float headroomDbAbs = 4.0f;
 static const float yHeadroomNeg =
@@ -264,17 +270,71 @@ Warp::Warp(const ValueTree& frameTree) {
   jassert(points.size() > 1);
 }
 
-// TODO: update this to handle bezier points
+static float s_quadraticAtSample(const wave_point_t& _leftWP,
+                                 const wave_point_t& _rightWP,
+                                 int waveIdx) {
+  wave_point_t leftWP = _leftWP;
+  wave_point_t rightWP = _rightWP;
+  // 1. find t and project to a normalized rectangle
+  frect_t normBounds = {0.0f, 0.0f, 1.0f, 1.0f};
+  const float t = (float)(waveIdx - leftWP.waveIdx) /
+                  (float)(rightWP.waveIdx - leftWP.waveIdx);
+  auto lPoint = projectWavePointToSpace(normBounds, leftWP);
+  auto rPoint = projectWavePointToSpace(normBounds, rightWP);
+  fpoint_t cPoint;
+  // 2. figure out which point is the bezier one
+  if (leftWP.pointType > 0) {
+    bez_handle_t handle = {&leftWP, false};
+    cPoint = projectBezierHandleToSpace(normBounds, handle);
+  } else {
+    bez_handle_t handle = {&rightWP, true};
+    cPoint = projectBezierHandleToSpace(normBounds, handle);
+  }
+  // 3. lerp between them
+  auto p1 = pointLerp(lPoint, cPoint, t);
+  auto p2 = pointLerp(rPoint, cPoint, t);
+  auto crossingPt = pointLerp(p1, p2, t);
+  // 4. return a denormalized y-value
+  return flerp(-1.0f, 1.0f, crossingPt.y);
+}
+
+static float s_cubicAtSample(const wave_point_t& _leftWP,
+                             const wave_point_t& _rightWP,
+                             int waveIdx) {
+  // 1. find t and project to a normalized rectangle
+  wave_point_t leftWP = _leftWP;
+  wave_point_t rightWP = _rightWP;
+  frect_t normBounds = {0.0f, 0.0f, 1.0f, 1.0f};
+  const float t = (float)(waveIdx - leftWP.waveIdx) /
+                  (float)(rightWP.waveIdx - leftWP.waveIdx);
+  auto lPoint = projectWavePointToSpace(normBounds, leftWP);
+  auto rPoint = projectWavePointToSpace(normBounds, rightWP);
+  auto lControl = projectBezierHandleToSpace(normBounds, {&leftWP, false});
+  auto rControl = projectBezierHandleToSpace(normBounds, {&leftWP, false});
+  auto lCurrent = pointLerp(lPoint, lControl, t);
+  auto rCurrent = pointLerp(rPoint, rControl, t);
+  fpoint_t crossingPt = pointLerp(lCurrent, rCurrent, t);
+  return flerp(-1.0f, 1.0f, crossingPt.y);
+}
+
 String Warp::encodeFrameString() const {
   float data[TABLE_SIZE];
   size_t leftPt, rightPt;
   for (int i = 0; i < TABLE_SIZE; ++i) {
     leftPt = leftNeighborPointIndex(i);
     rightPt = leftPt + 1;
+    auto& pLeft = points[leftPt];
+    auto& pRight = points[rightPt];
     jassert(rightPt < points.size());
-    const float n = (float)(i - points[leftPt].waveIdx) /
-                    (float)(points[rightPt].waveIdx - points[leftPt].waveIdx);
-    data[i] = flerp(points[leftPt].level, points[rightPt].level, n);
+    const float n =
+        (float)(i - pLeft.waveIdx) / (float)(pRight.waveIdx - pLeft.waveIdx);
+    if (pLeft.pointType < 1 && pRight.pointType < 1) {
+      data[i] = flerp(pLeft.level, pRight.level, n);
+    } else if (pLeft.pointType > 0 && pRight.pointType > 0) {
+      data[i] = s_cubicAtSample(pLeft, pRight, i);
+    } else {
+      data[i] = s_quadraticAtSample(pLeft, pRight, i);
+    }
   }
   return stringEncodeWave(data);
 }
