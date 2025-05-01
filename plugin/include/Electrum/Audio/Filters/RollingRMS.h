@@ -14,6 +14,7 @@ private:
 
 public:
   RollingRMS() = default;
+  void clear() { std::fill(data.begin(), data.end(), 0.0f); }
   void tick(float left, float right);
   float currentLevel() const;
 };

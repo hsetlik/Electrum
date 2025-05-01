@@ -56,6 +56,7 @@ std::vector<edit_handle_t> edit_handle_t::parseValueTree(
 std::vector<edit_handle_t> edit_handle_t::parseShapeString(const String& str) {
   std::vector<lfo_handle_t> chudHandles = {};
   LFO::stringDecode(str, chudHandles);
+  jassert(chudHandles.size() > 1);
   std::vector<edit_handle_t> handles = {};
   for (auto& ch : chudHandles) {
     handles.push_back({(int)ch.tableIdx, ch.level, false});
@@ -463,12 +464,12 @@ int LFOEditState::findClosestEditHandle(const frect_t& bounds,
 // Drawing===================================================================
 
 int LFOEditState::firstHandleToDraw(float xStart) const {
+  const int tableIdxStart = (int)(xStart * (float)(LFO_SIZE - 1));
   for (size_t i = 0; i < handles.size() - 1; ++i) {
-    const float normLow = (float)handles[i].tableIdx / (float)(LFO_SIZE - 1);
-    const float normHigh =
-        (float)handles[i + 1].tableIdx / (float)(LFO_SIZE - 1);
-    if (normLow <= xStart && normHigh > xStart)
+    if (handles[i].tableIdx <= tableIdxStart &&
+        handles[i + 1].tableIdx >= tableIdxStart) {
       return (int)i;
+    }
   }
   jassert(false);
   return -1;
@@ -482,6 +483,23 @@ int LFOEditState::lastHandleToDraw(float xEnd) const {
       return (int)i;
   }
   return (int)handles.size() - 1;
+}
+
+bool LFOEditState::shouldRedraw(float normStart, float normEnd) const {
+  return needsRedraw || !fequal(normStart, lastNormStart) ||
+         !fequal(normEnd, lastNormEnd);
+}
+
+void LFOEditState::drawAsNeeded(juce::Graphics& g,
+                                const frect_t& bounds,
+                                float nStart,
+                                float nEnd) {
+  if (shouldRedraw(nStart, nEnd)) {
+    drawSection(g, bounds, nStart, nEnd);
+    lastNormStart = nStart;
+    lastNormEnd = nEnd;
+    needsRedraw = false;
+  }
 }
 
 void LFOEditState::drawSection(juce::Graphics& g,
@@ -602,9 +620,11 @@ ViewedLFOEditor::ViewedLFOEditor(ElectrumState* s, int idx)
 }
 
 void ViewedLFOEditor::timerCallback() {
-  if (eState->shouldRedraw()) {
-    repaint();
-  }
+  triggerAsyncUpdate();
+}
+
+void ViewedLFOEditor::handleAsyncUpdate() {
+  repaint();
   auto now = juce::Time::getMillisecondCounter();
   if (now - lastShapeUpdateMs > 850) {
     checkShapeUpdate();
@@ -659,10 +679,7 @@ void ViewedLFOEditor::paint(juce::Graphics& g) {
   const float normStart = viewedBounds.getX() / fBounds.getWidth();
   const float normEnd = viewedBounds.getRight() / fBounds.getWidth();
   // 2. have the `LFOEditState` do the drawing
-  if (eState->shouldRedraw()) {
-    eState->drawSection(g, fBounds, normStart, normEnd);
-    eState->redrawFinished();
-  }
+  eState->drawSection(g, fBounds, normStart, normEnd);
 }
 
 //============================================================
@@ -718,12 +735,12 @@ void BasicShapeMenu::updateSliderRange(BasicShapeE id) {
       defaultVal = 35.0;
       break;
     case RisingRamp:
-      range = juce::Range<double>(1.0, 100.0);
-      defaultVal = 1.0;
+      range = juce::Range<double>(2.0, 100.0);
+      defaultVal = 2.0;
       break;
     case FallingRamp:
-      range = juce::Range<double>(1.0, 100.0);
-      defaultVal = 1.0;
+      range = juce::Range<double>(2.0, 100.0);
+      defaultVal = 2.0;
       break;
     case Triangle:
       range = juce::Range<double>(2.0, 100.0);
@@ -740,8 +757,8 @@ void BasicShapeMenu::updateSliderRange(BasicShapeE id) {
 
 static handle_vector_t s_getSineHandles(int numPoints) {
   handle_vector_t handles = {};
-  for (int i = 0; i <= numPoints; ++i) {
-    float normPhase = (float)i / (float)numPoints;
+  for (int i = 0; i < numPoints; ++i) {
+    float normPhase = (float)i / (float)(numPoints - 1);
     const float angle = normPhase * juce::MathConstants<float>::twoPi;
     const float lvl = (std::sinf(angle) + 1.0f) * 0.5f;
     const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
@@ -752,8 +769,8 @@ static handle_vector_t s_getSineHandles(int numPoints) {
 
 static handle_vector_t s_getRisingHandles(int numPoints) {
   handle_vector_t handles = {};
-  for (int i = 0; i <= numPoints; ++i) {
-    float normPhase = (float)i / (float)numPoints;
+  for (int i = 0; i < numPoints; ++i) {
+    float normPhase = (float)i / (float)(numPoints - 1);
     const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
     handles.push_back({tIdx, normPhase});
   }
@@ -762,8 +779,8 @@ static handle_vector_t s_getRisingHandles(int numPoints) {
 
 static handle_vector_t s_getFallingHandles(int numPoints) {
   handle_vector_t handles = {};
-  for (int i = 0; i <= numPoints; ++i) {
-    float normPhase = (float)i / (float)numPoints;
+  for (int i = 0; i < numPoints; ++i) {
+    float normPhase = (float)i / (float)(numPoints - 1);
     const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
     handles.push_back({tIdx, 1.0f - normPhase});
   }
@@ -772,8 +789,8 @@ static handle_vector_t s_getFallingHandles(int numPoints) {
 
 static handle_vector_t s_getTriangleHandles(int numPoints) {
   handle_vector_t handles = {};
-  for (int i = 0; i <= numPoints; ++i) {
-    float normPhase = (float)i / (float)numPoints;
+  for (int i = 0; i < numPoints; ++i) {
+    float normPhase = (float)i / (float)(numPoints - 1);
     const float distFromPeak = std::fabs(0.5f - normPhase);
     const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
     handles.push_back({tIdx, 1.0f - (2.0f * distFromPeak)});
@@ -784,8 +801,8 @@ static handle_vector_t s_getTriangleHandles(int numPoints) {
 static handle_vector_t s_getRandomHandles(int numPoints) {
   juce::Random rng;
   handle_vector_t handles = {};
-  for (int i = 0; i <= numPoints; ++i) {
-    float normPhase = (float)i / (float)numPoints;
+  for (int i = 0; i < numPoints; ++i) {
+    float normPhase = (float)i / (float)(numPoints - 1);
     const int tIdx = (int)(normPhase * (float)(LFO_SIZE - 1));
     handles.push_back({tIdx, rng.nextFloat()});
   }
@@ -793,7 +810,7 @@ static handle_vector_t s_getRandomHandles(int numPoints) {
 }
 
 handle_vector_t BasicShapeMenu::getHandlesForSelection() {
-  const int numPoints = (int)pointsSlider.getValue() + 1;
+  const int numPoints = (int)pointsSlider.getValue();
   BasicShapeE id = (BasicShapeE)shapeBox.getSelectedItemIndex();
   switch (id) {
     case Sine:

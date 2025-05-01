@@ -4,6 +4,7 @@
 #include "Electrum/Audio/Modulator/LFO.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "juce_events/juce_events.h"
 
 // namespace for our identifiers
 namespace LFOID {
@@ -86,12 +87,18 @@ public:
                    const frect_t& bounds,
                    float xNormStart,
                    float xNormEnd) const;
-
+  void drawAsNeeded(juce::Graphics& g,
+                    const frect_t& bounds,
+                    float xNormStart,
+                    float xNormEnd);
   bool shouldRedraw() const { return needsRedraw; }
+  bool shouldRedraw(float normStart, float normEnd) const;
   void redrawFinished() { needsRedraw = false; }
   void requestRedraw() { needsRedraw = true; }
 
 private:
+  float lastNormStart = 0.0f;
+  float lastNormEnd = 0.0f;
   // help us not redraw 5 gajillion times
   bool needsRedraw;
   // clicking/dragging helpers
@@ -164,7 +171,9 @@ private:
 //--------------COMPONENTS------------------------------------
 //============================================================
 
-class ViewedLFOEditor : public Component, public juce::Timer {
+class ViewedLFOEditor : public Component,
+                        public juce::Timer,
+                        juce::AsyncUpdater {
 private:
   // bool viewportChanged = false;
   std::unique_ptr<LFOEditState> eState;
@@ -176,6 +185,7 @@ public:
   void resized() override;
   void paint(juce::Graphics& g) override;
   void timerCallback() override;
+  void handleAsyncUpdate() override;
   void setWidthForScale(float normScale);
 
   String getCurrentShapeString() const {

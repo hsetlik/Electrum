@@ -18,8 +18,7 @@ static String s_handleToString(const lfo_handle_t& h) {
 
 static std::vector<String> s_extractHandleStrings(const String& lfoStr) {
   std::vector<String> s = {};
-  String handles = lfoStr.trimCharactersAtStart(lfoStartToken);
-  handles = handles.trimCharactersAtEnd(lfoEndToken);
+  String handles = lfoStr.substring(lfoStartToken.length());
   int delimIdx = handles.indexOf(handleDelim);
   while (delimIdx != -1) {
     String hStr = handles.substring(0, delimIdx);
@@ -27,6 +26,7 @@ static std::vector<String> s_extractHandleStrings(const String& lfoStr) {
     handles = handles.substring(hStr.length() + handleDelim.length());
     delimIdx = handles.indexOf(handleDelim);
   }
+  jassert(s.size() > 1);
   return s;
 }
 
@@ -40,7 +40,6 @@ static lfo_handle_t s_parseHandleString(const String& str) {
 }
 //---------------------------------------------------------
 
-void stringDecode(const String& str, handle_vector_t& dest);
 String stringEncode(handle_vector_t& handles) {
   String out = lfoStartToken;
   for (auto& h : handles) {
@@ -61,7 +60,7 @@ void stringDecode(const String& str, handle_vector_t& dest) {
 }
 
 void parseHandlesToTable(const handle_vector_t& handles, lfo_table_t& dest) {
-  jassert(handles.size() > 2);
+  jassert(handles.size() >= 2);
   size_t leftHandleIdx = 0;
   bool wrapped = false;
   for (size_t i = 0; i < LFO_SIZE; ++i) {

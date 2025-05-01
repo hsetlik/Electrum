@@ -280,5 +280,9 @@ void ElectrumVoice::updateGraphData(GraphingData* gd) {
   for (int i = 0; i < NUM_LFOS; ++i) {
     gd->updateLFOPhase(i, lfos[i]->getCurrentPhase());
   }
-  gd->setMonoLevel(rms.currentLevel());
+  if (isBusy())
+    gd->setMonoLevel(rms.currentLevel());
+  else {
+    gd->setMonoLevel(0.0f);
+  }
 }
