@@ -19,7 +19,7 @@ void VoiceFilter::prepareCutoff() {
         ladderHP.setCutoffHz(workingCutoff);
         break;
       case LadderBP:
-        ladderHP.setCutoffHz(workingCutoff);
+        ladderBP.setCutoffHz(workingCutoff);
         break;
       default:
         return;
@@ -43,7 +43,7 @@ void VoiceFilter::prepareResonance() {
         ladderHP.setResonance(workingRes);
         break;
       case LadderBP:
-        ladderHP.setResonance(workingRes);
+        ladderBP.setResonance(workingRes);
         break;
       default:
         return;
@@ -64,6 +64,7 @@ void VoiceFilter::prepareGain() {
 }
 
 float VoiceFilter::processChannel(float input, int channel) {
+  input *= workingGainLin;
   float raw;
   switch (currentFilterType) {
     case LadderLPLinear:
@@ -76,11 +77,11 @@ float VoiceFilter::processChannel(float input, int channel) {
       raw = ladderHP.processMono(input, channel);
       break;
     case LadderBP:
-      raw = ladderHP.processMono(input, channel);
+      raw = ladderBP.processMono(input, channel);
     default:
       break;
   }
-  return raw * workingGainLin;
+  return raw;
 }
 
 //===================================================
@@ -88,6 +89,7 @@ VoiceFilter::VoiceFilter(shared_filter_params* p) : params(p) {
   ladderBasic.prepare(44100.0);
   ladderLoPass.prepare(44100.0);
   ladderHP.prepare(44100.0);
+  ladderBP.prepare(44100.0);
   prepareCutoff();
   prepareResonance();
   prepareGain();
@@ -117,6 +119,8 @@ void VoiceFilter::updateForBlock() {
 void VoiceFilter::prepare(double sampleRate) {
   ladderBasic.prepare(sampleRate);
   ladderLoPass.prepare(sampleRate);
+  ladderHP.prepare(sampleRate);
+  ladderBP.prepare(sampleRate);
 }
 
 void VoiceFilter::setCutoffMod(float val) {

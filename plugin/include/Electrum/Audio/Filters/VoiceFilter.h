@@ -9,6 +9,7 @@ private:
   LadderLPBasic ladderBasic;
   LadderLP ladderLoPass;
   LadderHighPass ladderHP;
+  LadderBandPass ladderBP;
 
   // holds the current modulation state for this voice's filter
   // same idea as 'osc_mod_t' in Voice.h

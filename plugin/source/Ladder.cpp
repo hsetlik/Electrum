@@ -151,3 +151,63 @@ void LadderHighPass::setCutoffHz(float hz) {
     updateG(SampleRate::get());
   }
 }
+
+//----------------------------------------------------------------------------------------------------
+
+LadderBandPass::LadderBandPass() {
+  for (int i = 0; i < 4; ++i) {
+    zState[0][i] = 0.0f;
+    zState[1][i] = 0.0f;
+  }
+}
+
+void LadderBandPass::updateG(double sampleRate) {
+  g = (float)std::tan(juce::MathConstants<double>::pi * (double)cutoffHz /
+                      sampleRate);
+
+  g2 = g * g;
+  g3 = g2 * g;
+  g4 = g3 * g;
+  bigG = g / (1.0f + g);
+}
+
+float LadderBandPass::processMono(float input, int channel) {
+  auto S = (g3 * zState[channel][0]) + (g2 * zState[channel][1]) +
+           (g * zState[channel][2]) + zState[channel][3];
+  // 2. now we can find U (input of the low pass series)
+  float u = (input - k * S) / (1.0f + k * g4);
+  // 2.5 put u through a tanh function as a
+  // "cheap" means of applying saturation (p. 73 in the Zavalishin book)
+  u = std::tanhf(u);
+
+  // 3. now we process each filter
+  float hp = u;
+  float v, s;
+  for (int i = 0; i < 2; ++i) {
+    s = zState[channel][i];
+    v = (hp - s) * bigG;
+    u = v + s;
+    zState[channel][i] = u + v;
+    hp = hp - u;
+  }
+  u = hp;
+  for (int i = 2; i < 4; ++i) {
+    s = zState[channel][i];
+    v = (u - s) * bigG;
+    u = v + s;
+    zState[channel][i] = u + v;
+  }
+  return u * ladderMakeupGain;
+}
+
+void LadderBandPass::processStereo(float& left, float& right) {
+  left = processMono(left, 0);
+  right = processMono(right, 1);
+}
+
+void LadderBandPass::setCutoffHz(float hz) {
+  if (!fequal(hz, cutoffHz)) {
+    cutoffHz = hz;
+    updateG(SampleRate::get());
+  }
+}
