@@ -15,10 +15,12 @@ private:
   ModSourceComponent polySrc;
   float lastPolyLevel = 0.0f;
   float lastMonoLevel = 0.0f;
+  bool fontsAreSet = false;
 
 public:
   LevelSourceComponent(ElectrumState* s);
   ~LevelSourceComponent() override;
+  void enablementChanged() override;
   void graphingDataUpdated(GraphingData* gd) override;
   void handleAsyncUpdate() override { repaint(); }
   void resized() override;

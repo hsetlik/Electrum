@@ -4,7 +4,8 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 
 juce::StringArray getFilterTypeNames() {
-  return {"Ladder Low Pass 1", "Ladder Low Pass 2"};
+  return {"Ladder Low Pass (basic)", "Ladder Low Pass", "Ladder High Pass",
+          "Ladder Bandpass"};
 }
 // helper
 static void addFloatParam(apvts::ParameterLayout* layout,

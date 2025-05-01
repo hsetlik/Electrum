@@ -11,18 +11,6 @@ LevelSourceComponent::LevelSourceComponent(ElectrumState* s)
   addAndMakeVisible(monoSrc);
   addAndMakeVisible(polySrc);
   state->graph.addListener(this);
-
-  monoLabel.aString.setFont(
-      FontData::getFontWithHeight(FontE::RobotoMI, 16.0f));
-  monoLabel.aString.setJustification(juce::Justification::centred);
-  monoLabel.aString.setColour(Color::literalOrangeBright);
-  monoLabel.aString.setText("Mono Level");
-
-  polyLabel.aString.setFont(
-      FontData::getFontWithHeight(FontE::RobotoMI, 16.0f));
-  polyLabel.aString.setJustification(juce::Justification::centred);
-  polyLabel.aString.setColour(Color::literalOrangeBright);
-  polyLabel.aString.setText("Poly Level");
 }
 
 LevelSourceComponent::~LevelSourceComponent() {
@@ -38,6 +26,8 @@ void LevelSourceComponent::graphingDataUpdated(GraphingData* gd) {
     triggerAsyncUpdate();
   }
 }
+
+void LevelSourceComponent::enablementChanged() {}
 
 void LevelSourceComponent::resized() {
   auto rBounds = getLocalBounds().toFloat();
@@ -55,6 +45,17 @@ static float levelDisplayMid = juce::Decibels::decibelsToGain(-12.0f);
 static frange_t levelYCurve = rangeWithCenter(0.0f, 1.0f, levelDisplayMid);
 
 void LevelSourceComponent::paint(juce::Graphics& g) {
+  monoLabel.aString.setFont(
+      FontData::getFontWithHeight(FontE::RobotoMI, 16.0f));
+  monoLabel.aString.setJustification(juce::Justification::centred);
+  monoLabel.aString.setColour(UIColor::defaultText);
+  monoLabel.aString.setText("Mono Level");
+
+  polyLabel.aString.setFont(
+      FontData::getFontWithHeight(FontE::RobotoMI, 16.0f));
+  polyLabel.aString.setJustification(juce::Justification::centred);
+  polyLabel.aString.setColour(UIColor::defaultText);
+  polyLabel.aString.setText("Poly Level");
   auto rBounds = getLocalBounds().toFloat();
   g.setColour(UIColor::windowBkgnd);
   g.fillRect(rBounds);

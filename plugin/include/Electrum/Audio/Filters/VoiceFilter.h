@@ -6,8 +6,9 @@
 class VoiceFilter {
 private:
   shared_filter_params* params;
-  TPTLadderLinear ladderLin;
-  TPTLadderNonLinear ladderNonLin;
+  LadderLPBasic ladderBasic;
+  LadderLP ladderLoPass;
+  LadderHighPass ladderHP;
 
   // holds the current modulation state for this voice's filter
   // same idea as 'osc_mod_t' in Voice.h

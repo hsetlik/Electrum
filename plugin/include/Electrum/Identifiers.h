@@ -38,10 +38,10 @@ typedef juce::Component Component;
 typedef juce::ValueTree ValueTree;
 
 // this enum needs to contain every filter type we have
-enum FilterTypeE { LadderLPLinear, LadderLPSaturated };
+enum FilterTypeE { LadderLPLinear, LadderLPSaturated, LadderHP, LadderBP };
 
 juce::StringArray getFilterTypeNames();
-#define NUM_FILTER_TYPES 2
+#define NUM_FILTER_TYPES 4
 
 // similar thing for LFO trigger types
 enum LFOTriggerE { Global, RetrigStart, RetrigRand };

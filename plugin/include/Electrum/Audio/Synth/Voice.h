@@ -8,6 +8,7 @@
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
 #include "Electrum/Shared/GraphingData.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 
 //========================================================
 #define QUICK_KILL_MS 4.0f

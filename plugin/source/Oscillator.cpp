@@ -23,12 +23,14 @@ float WavetableOscillator::getNextSample(int midiNote,
       COARSE_TUNE_MIN, COARSE_TUNE_MAX, wave->getCoarse(), coarseMod);
   const float _fine = AudioUtil::signed_flerp(FINE_TUNE_MIN, FINE_TUNE_MAX,
                                               wave->getFine(), fineMod);
+  const float _lvl =
+      AudioUtil::signed_flerp(0.0f, _oscMaxGain, wave->getLevel(), levelMod);
   const float _pos =
       AudioUtil::signed_flerp(0.0f, 1.0f, wave->getPos(), posMod);
   const float _phaseDelt =
       AudioUtil::phaseDeltForNote(midiNote, _coarse, _fine);
   phase = std::fmod(phase + _phaseDelt, 1.0f);
-  return wave->getSampleFixed(phase, _phaseDelt, _pos) * _oscMaxGain;
+  return wave->getSampleFixed(phase, _phaseDelt, _pos) * _lvl;
 }
 
 void WavetableOscillator::renderSampleStereo(int midiNote,
