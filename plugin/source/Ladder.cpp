@@ -1,4 +1,5 @@
 #include "Electrum/Audio/Filters/Ladder.h"
+#include "Electrum/Common.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_core/juce_core.h"
 static const float ladderMakeupGain = juce::Decibels::decibelsToGain(16.0f);
@@ -179,7 +180,6 @@ float LadderBandPass::processMono(float input, int channel) {
   // 2.5 put u through a tanh function as a
   // "cheap" means of applying saturation (p. 73 in the Zavalishin book)
   u = std::tanhf(u);
-
   // 3. now we process each filter
   float hp = u;
   float v, s;

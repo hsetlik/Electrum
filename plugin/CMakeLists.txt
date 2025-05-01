@@ -187,6 +187,8 @@ target_sources(${PROJECT_NAME}
 				${INCLUDE_DIR}/Audio/Filters/RollingRMS.h
 				source/LevelSourceComponent.cpp
 				${INCLUDE_DIR}/GUI/ModulatorPanel/LevelSourceComponent.h
+				source/Perlin.cpp
+				${INCLUDE_DIR}/Audio/Modulator/Perlin.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/GUI/Modulation/ModSourceComponent.h
         ${INCLUDE_DIR}/Shared/ElectrumState.h

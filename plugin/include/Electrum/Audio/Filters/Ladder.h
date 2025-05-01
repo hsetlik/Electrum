@@ -1,7 +1,5 @@
 #pragma once
 
-#include "TPTFilter.h"
-
 class LadderLPBasic {
 private:
   // 2-D array for the filter state variables

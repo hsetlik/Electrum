@@ -124,7 +124,21 @@ inline juce::StringArray getNoteSubdivNames() {
 
 #define FILTER_DB_MAX 6.0f
 #define FILTER_DB_MIN -18.0f
-#define FILTER_DB_DEFAULT 0.0f;
+#define FILTER_DB_DEFAULT 0.0f
+
+#define PERLIN_OCTAVES_MIN 2
+#define PERLIN_OCTAVES_MAX 8
+#define PERLIN_OCTAVES_DEFAULT 2
+
+#define PERLIN_FREQ_MIN 0.5f
+#define PERLIN_FREQ_MAX 10.0f
+#define PERLIN_FREQ_DEFAULT 1.0f
+
+#define PERLIN_LAC_MIN 1.0f
+#define PERLIN_LAC_MAX 12.0f
+#define PERLIN_LAC_DEAULT 2.0f
+
+#define NUM_PERLIN_GENS 2
 
 #define MAX_NUM_WAVETABLES 512
 
@@ -175,6 +189,11 @@ DECLARE_ID(lfoFrequencyHz)
 DECLARE_ID(lfoTriggerMode)
 DECLARE_ID(lfoNoteSubdiv)
 DECLARE_ID(lfoBeatSync)
+
+// Perlin
+DECLARE_ID(perlinFrequency)
+DECLARE_ID(perlinOctaves)
+DECLARE_ID(perlinLacunarity)
 
 //--------------------------------------------------
 // patch metadata stuff

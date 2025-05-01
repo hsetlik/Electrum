@@ -1,7 +1,6 @@
 #pragma once
 // the per-voice object that sets up our wavetable oscillators
 #include "../Wavetable.h"
-#include "juce_audio_basics/juce_audio_basics.h"
 
 class WavetableOscillator {
 private:

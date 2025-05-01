@@ -199,5 +199,25 @@ apvts::ParameterLayout ID::getParameterLayout() {
         subdivPID, subdivName, getNoteSubdivNames(), 4));
   }
 
+  // Perlin--------------------------------------
+  frange_t perlinFreqRange =
+      rangeWithCenter(PERLIN_FREQ_MIN, PERLIN_FREQ_MAX, PERLIN_FREQ_DEFAULT);
+  frange_t perlinLacRange =
+      rangeWithCenter(PERLIN_LAC_MIN, PERLIN_LAC_MAX, PERLIN_LAC_DEAULT);
+  for (int i = 0; i < NUM_PERLIN_GENS; ++i) {
+    const String iStr(i);
+    const String freqID = perlinFrequency.toString() + iStr;
+    const String freqName = "Perlin gen. " + iStr + " speed";
+    const String octaveID = perlinOctaves.toString() + iStr;
+    const String octaveName = "Perlin gen. " + iStr + " octaves";
+    const String lacID = perlinLacunarity.toString() + iStr;
+    const String lacName = "Perlin gen. " + iStr + " lacunarity";
+    addFloatParam(&layout, freqID, freqName, perlinFreqRange,
+                  PERLIN_FREQ_DEFAULT);
+    addFloatParam(&layout, lacID, lacName, perlinLacRange, PERLIN_LAC_DEAULT);
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID{octaveID, 1}, octaveName, PERLIN_OCTAVES_MIN,
+        PERLIN_OCTAVES_MAX, PERLIN_OCTAVES_DEFAULT));
+  }
   return layout;
 }
