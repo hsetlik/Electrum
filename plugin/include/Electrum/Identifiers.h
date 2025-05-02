@@ -1,4 +1,5 @@
 #pragma once
+
 /* This namespace is were all the string identifiers for
  * parameters, components, and anything else should live.
  * Simply use the `DECLARE_ID` macro and never worry about
@@ -8,10 +9,10 @@
  * `ID::getParameterLayout()` function which we use to set up
  * the AudioProcessorValueTreeState that runs everything
  * */
-#include <juce_core/juce_core.h>
-#include <juce_audio_processors/juce_audio_processors.h>
-#include "juce_graphics/juce_graphics.h"
+
 // typedefs bc some of these types are a mouthful
+#include <memory>
+#include "juce_audio_processors/juce_audio_processors.h"
 typedef juce::AudioProcessorValueTreeState apvts;
 typedef std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
     slider_attach_ptr;

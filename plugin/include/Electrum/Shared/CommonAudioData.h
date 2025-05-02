@@ -3,6 +3,7 @@
 #include "Electrum/Audio/Filters/RollingRMS.h"
 #include "Electrum/Audio/Modulator/AHDSR.h"
 #include "Electrum/Audio/Modulator/LFO.h"
+#include "Electrum/Audio/Modulator/Perlin.h"
 #include "Electrum/Audio/Wavetable.h"
 #include "Electrum/Identifiers.h"
 
@@ -23,5 +24,6 @@ public:
   shared_filter_params filters[NUM_FILTERS];
   LowFrequencyLUT lfos[NUM_LFOS];
   RollingRMS polyRMS;
+  PerlinGenerator perlinGens[NUM_PERLIN_GENS];
   CommonAudioData() = default;
 };

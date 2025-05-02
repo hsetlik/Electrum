@@ -10,6 +10,25 @@
 #include "juce_graphics/juce_graphics.h"
 // Wave Path drawing================================
 
+// 3D math stuff---------------
+
+static void projectToPoints(const wave_vertices_t& verts,
+                            wave_points_t& points,
+                            Mat3x3 rotationMatrix) {
+  const float yHeight = 1.4f;
+  vec3D_f c = {-0.5f, yHeight, 0.0f};         // represents the camera pinhole
+  vec3D_f e = {0.0f, 0.0f, CAMERA_DISTANCE};  // represents
+  for (size_t i = 0; i < WAVE_PATH_POINTS; ++i) {
+    auto d = verts[i] - c;
+    // multiply by the rotation matrix
+    d = rotationMatrix * d;
+    // now convert to the 2d plane
+    float xPos = ((e.z / d.z) * d.x) + e.x;
+    float yPos = ((e.z / d.z) * d.y) + e.y;
+    points[i] = {xPos * (float)GRAPH_W, yPos * (float)GRAPH_H};
+  }
+}
+
 static void loadVertsForWave(wave_vertices_t& dest,
                              float* waveData,
                              float zPos) {
@@ -44,6 +63,7 @@ vec3D_f WavetableGraph::vertexLerp(const vec3D_f& a,
 
 void WavetableGraph::updateVertices(const String& waveStr) {
   waveVertArrays.clear();
+  wavePaths.clear();
   auto waves = splitWaveStrings(waveStr);
   float waveBuf[TABLE_SIZE];
   float zPos;
@@ -61,8 +81,16 @@ void WavetableGraph::updateVertices(const String& waveStr) {
     if (lowestY < minVertexY) {
       minVertexY = lowestY;
     }
+    // 4. convert to a path
+    wave_points_t points;
+    projectToPoints(verts, points, rotationMatrix);
+    juce::Path path;
+    path.startNewSubPath(points[0]);
+    for (size_t p = 1; p < WAVE_PATH_POINTS; ++p) {
+      path.lineTo(points[p]);
+    }
+    wavePaths.push_back(path);
   }
-  // DBG("Minimun y value: " + String(minVertexY));
   jassert(waveVertArrays.size() > 1);
 }
 
@@ -100,24 +128,13 @@ void WavetableGraph::updateVirtualVertices() {
     virtualVerts[i + 1] = vertexLerp(vLow, vHigh, t);
   }
   virtualVerts[WAVE_PATH_POINTS - 1] = {1.0f, 0.0f, zPos};
-}
-
-// 3D math stuff---------------
-
-static void projectToPoints(const wave_vertices_t& verts,
-                            wave_points_t& points,
-                            Mat3x3 rotationMatrix) {
-  const float yHeight = 1.4f;
-  vec3D_f c = {-0.5f, yHeight, 0.0f};         // represents the camera pinhole
-  vec3D_f e = {0.0f, 0.0f, CAMERA_DISTANCE};  // represents
-  for (size_t i = 0; i < WAVE_PATH_POINTS; ++i) {
-    auto d = verts[i] - c;
-    // multiply by the rotation matrix
-    d = rotationMatrix * d;
-    // now convert to the 2d plane
-    float xPos = ((e.z / d.z) * d.x) + e.x;
-    float yPos = ((e.z / d.z) * d.y) + e.y;
-    points[i] = {xPos * (float)GRAPH_W, yPos * (float)GRAPH_H};
+  // 4. convert it to a path
+  wave_points_t vPoints;
+  projectToPoints(virtualVerts, vPoints, rotationMatrix);
+  virtualWavePath.clear();
+  virtualWavePath.startNewSubPath(vPoints[0]);
+  for (size_t i = 1; i < WAVE_PATH_POINTS; ++i) {
+    virtualWavePath.lineTo(vPoints[i]);
   }
 }
 
@@ -135,33 +152,18 @@ static float _getStrokeWidth(float waveZ) {
   return strokeRange.convertFrom0to1(1.0f - (waveZ - Z_SETBACK));
 }
 
-static void drawWave(juce::Graphics& g,
-                     const wave_points_t& points,
-                     float stroke) {
-  // 1. convert to juce::Path object
-  juce::Path path;
-  path.startNewSubPath(points[0]);
-  for (size_t i = 1; i < WAVE_PATH_POINTS; ++i) {
-    path.lineTo(points[i]);
-  }
-  // path.closeSubPath();
-  //  2. draw it
-  juce::PathStrokeType pst(stroke);
-  g.strokePath(path, pst);
-}
-
 // Bitmap redrawing code===========================
 void WavetableGraph::redrawBitmap() {
   if (singleWaveMode) {
-    redrawBitmapSingle();
+    redrawBitmapSingle(idleImg);
   } else {
-    redrawBitmapMulti();
+    redrawBitmapMulti(idleImg);
   }
 }
 
 void WavetableGraph::redrawBitmapMulti() {
-  img.clear(img.getBounds(), Color::nearBlack);
-  juce::Graphics g(img);
+  imgA.clear(imgA.getBounds(), Color::nearBlack);
+  juce::Graphics g(imgA);
   wave_points_t pathPoints;
   wave_points_t virtualPoints;
   const size_t virtualIdx = AudioUtil::fastFloor64(
@@ -175,22 +177,53 @@ void WavetableGraph::redrawBitmapMulti() {
     auto stroke = _getStrokeWidth(zPos);
     g.setColour(color);
     // 3. draw the wave
-    drawWave(g, pathPoints, stroke);
+    juce::PathStrokeType pst(stroke);
+    g.strokePath(wavePaths[i], pst);
     // 4. check if it's time to draw the virtual wave
     if (i == virtualIdx) {
       zPos = virtualVerts[0].z;
       projectToPoints(virtualVerts, virtualPoints, rotationMatrix);
       g.setColour(Color::qualifierPurple);
       stroke = _getStrokeWidth(zPos) * 1.035f;
-      drawWave(g, virtualPoints, stroke);
+      juce::PathStrokeType vPst(stroke);
+      g.strokePath(virtualWavePath, vPst);
     }
   }
 }
 
+void WavetableGraph::redrawBitmapMulti(juce::Image* img) {
+  img->clear(img->getBounds(), Color::nearBlack);
+  juce::Graphics g(*img);
+  wave_points_t pathPoints;
+  wave_points_t virtualPoints;
+  const size_t virtualIdx = AudioUtil::fastFloor64(
+      currentWavePos * (float)(waveVertArrays.size() - 1));
+  for (size_t i = 0; i < waveVertArrays.size(); ++i) {
+    // 1. project to 2d points
+    float zPos = waveVertArrays[i][0].z;
+    projectToPoints(waveVertArrays[i], pathPoints, rotationMatrix);
+    // 2. set color and stroke width
+    auto color = _getWaveColor(zPos - Z_SETBACK, currentWavePos);
+    auto stroke = _getStrokeWidth(zPos);
+    g.setColour(color);
+    // 3. draw the wave
+    juce::PathStrokeType pst(stroke);
+    g.strokePath(wavePaths[i], pst);
+    // 4. check if it's time to draw the virtual wave
+    if (i == virtualIdx) {
+      zPos = virtualVerts[0].z;
+      projectToPoints(virtualVerts, virtualPoints, rotationMatrix);
+      g.setColour(Color::qualifierPurple);
+      stroke = _getStrokeWidth(zPos) * 1.035f;
+      juce::PathStrokeType vPst(stroke);
+      g.strokePath(virtualWavePath, vPst);
+    }
+  }
+}
 void WavetableGraph::redrawBitmapSingle() {
-  img.clear(img.getBounds(), Color::nearBlack);
-  juce::Graphics g(img);
-  auto fBounds = img.getBounds().toFloat().reduced(8.0f);
+  imgA.clear(imgA.getBounds(), Color::nearBlack);
+  juce::Graphics g(imgA);
+  auto fBounds = imgA.getBounds().toFloat().reduced(8.0f);
   const float x0 = fBounds.getX();
   juce::Path path;
   path.startNewSubPath(x0, fBounds.getBottom());
@@ -200,15 +233,38 @@ void WavetableGraph::redrawBitmapSingle() {
     y = fBounds.getBottom() - (virtualVerts[i].y * fBounds.getHeight());
     path.lineTo(x, y);
   }
-  path.closeSubPath();
+  // path.closeSubPath();
   g.setColour(Color::qualifierPurple);
   juce::PathStrokeType pst(2.5f);
   g.strokePath(path, pst);
 }
+
+void WavetableGraph::redrawBitmapSingle(juce::Image* img) {
+  img->clear(img->getBounds(), Color::nearBlack);
+  juce::Graphics g(*img);
+  auto fBounds = img->getBounds().toFloat().reduced(8.0f);
+  const float x0 = fBounds.getX();
+  juce::Path path;
+  path.startNewSubPath(x0, fBounds.getBottom());
+  float x, y;
+  for (size_t i = 1; i < WAVE_PATH_POINTS; ++i) {
+    x = x0 + (virtualVerts[i].x * fBounds.getWidth());
+    y = fBounds.getBottom() - (virtualVerts[i].y * fBounds.getHeight());
+    path.lineTo(x, y);
+  }
+  // path.closeSubPath();
+  g.setColour(Color::qualifierPurple);
+  juce::PathStrokeType pst(2.5f);
+  g.strokePath(path, pst);
+}
+
 //===================================================
 
 WavetableGraph::WavetableGraph(ElectrumState* s, int osc)
-    : state(s), img(juce::Image::RGB, GRAPH_W, GRAPH_H, true), oscID(osc) {
+    : state(s),
+      imgA(juce::Image::RGB, GRAPH_W, GRAPH_H, true),
+      imgB(juce::Image::RGB, GRAPH_W, GRAPH_H, true),
+      oscID(osc) {
   // 1. initialize our vertices
   if (!state->graph.needsWavetableData()) {
     auto str = state->graph.getWavetableString(oscID);
@@ -246,26 +302,39 @@ void WavetableGraph::enablementChanged() {
   }
 }
 
+void WavetableGraph::handleAsyncUpdate() {
+  // 1. compute the vertices/paths
+  if (!wavesReady) {
+    auto str = state->graph.getWavetableString(oscID);
+    updateVertices(str);
+    updateVirtualVertices();
+    wavesReady = true;
+  } else {
+    updateVirtualVertices();
+  }
+  // 2. redraw the image
+  redrawBitmap();
+  // 3. swap the image pointers
+  auto* prevViewed = viewedImg;
+  viewedImg = idleImg;
+  idleImg = prevViewed;
+  // 4. repaint
+  repaint();
+}
+
 void WavetableGraph::timerCallback() {
   if (wavesReady) {
     auto _pos = state->graph.getOscPos(oscID);
     if (!fequal(_pos, currentWavePos)) {
       currentWavePos = _pos;
-      updateVirtualVertices();
+      triggerAsyncUpdate();
     }
-    redrawBitmap();
-    repaint();
   } else if (!state->graph.needsWavetableData()) {
-    auto str = state->graph.getWavetableString(oscID);
-    updateVertices(str);
-    updateVirtualVertices();
-    redrawBitmap();
-    wavesReady = true;
-    repaint();
+    triggerAsyncUpdate();
   }
 }
 
 void WavetableGraph::paint(juce::Graphics& g) {
   auto fBounds = getLocalBounds().toFloat();
-  g.drawImage(img, fBounds);
+  g.drawImage(*viewedImg, fBounds);
 }

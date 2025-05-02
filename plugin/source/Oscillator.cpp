@@ -15,6 +15,7 @@ float WavetableOscillator::getNextSample(int midiNote,
                                          float posMod,
                                          float coarseMod,
                                          float fineMod) {
+  jassert(!std::isnan(posMod));
   static const float minLvl = juce::Decibels::decibelsToGain(-50.0f);
   static const float _oscMaxGain = juce::Decibels::decibelsToGain(-5.0f);
   if (wave->getLevel() + levelMod < minLvl)
