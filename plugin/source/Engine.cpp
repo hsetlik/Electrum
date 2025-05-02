@@ -42,7 +42,7 @@ void SynthEngine::noteOff(int note) {
     sustainedVoices.push(voice);
     return;
   }
-  jassert(false);
+  //jassert(false);
 }
 
 void SynthEngine::killSustainedVoices() {

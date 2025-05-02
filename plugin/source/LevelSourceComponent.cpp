@@ -20,9 +20,13 @@ LevelSourceComponent::~LevelSourceComponent() {
 void LevelSourceComponent::graphingDataUpdated(GraphingData* gd) {
   const float _mono = gd->getMonoLevel();
   const float _poly = gd->getPolyLevel();
+  jassert(!std::isnan(_mono));
+  jassert(!std::isnan(_poly));
   if (!fequal(_poly, lastPolyLevel) || !fequal(_mono, lastMonoLevel)) {
     lastPolyLevel = std::clamp(_poly, 0.0f, 1.0f);
     lastMonoLevel = std::clamp(_mono, 0.0f, 1.0f);
+    jassert(!std::isnan(lastPolyLevel));
+    jassert(!std::isnan(lastMonoLevel));
     triggerAsyncUpdate();
   }
 }

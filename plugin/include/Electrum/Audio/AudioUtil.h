@@ -28,6 +28,7 @@ int fastFloor32(float fValue);
 size_t fastFloor64(float fValue);
 float fastSine(float phaseNorm);
 inline float signed_flerp(float min, float max, float current, float t) {
+  jassert(!std::isnan(t));
   if (t > 0.0f)
     return flerp(current, max, t);
   return flerp(min, current, 1.0f - std::fabs(t));

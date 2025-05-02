@@ -162,7 +162,7 @@ inline juce::StringArray getNoteSubdivNames() {
 
 #define FILTER_CUTOFF_MIN 20.0f
 #define FILTER_CUTOFF_MAX 18000.0f
-#define FILTER_CUTOFF_CENTER 4000.0f
+#define FILTER_CUTOFF_CENTER 2000.0f
 
 #define FILTER_RES_MIN 0.0f
 #define FILTER_RES_MAX 1.0f
