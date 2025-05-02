@@ -290,6 +290,7 @@ WavetableGraph::~WavetableGraph() {
 void WavetableGraph::mouseUp(const juce::MouseEvent& me) {
   if (me.mouseWasClicked()) {
     singleWaveMode = !singleWaveMode;
+    triggerAsyncUpdate();
   }
 }
 

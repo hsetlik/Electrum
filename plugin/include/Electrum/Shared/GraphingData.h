@@ -47,6 +47,7 @@ private:
   std::array<float_at, NUM_ENVELOPES> newestEnvLevels;
   std::array<float_at, NUM_LFOS> newestLfoPhases;
   std::array<float_at, NUM_PERLIN_GENS> newestPerlinLevels;
+  std::array<float_at, MOD_DESTS> newestModDestValues;
   float_at polyLevel;
   float_at monoLevel;
 
@@ -131,6 +132,13 @@ public:
   //-----------------------
   void addListener(Listener* l) { graphListeners.push_back(l); }
   void removeListener(Listener* l);
+  // modulation dests------------------
+  void updateModulationDest(int destID, float value) {
+    newestModDestValues[(size_t)destID] = value;
+  }
+  float getModulationDest(int destID) const {
+    return newestModDestValues[(size_t)destID].load();
+  }
 
 private:
   std::vector<Listener*> graphListeners = {};

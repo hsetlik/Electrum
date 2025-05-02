@@ -26,6 +26,51 @@ typedef juce::Rectangle<float> frect_t;
 typedef juce::Rectangle<int> irect_t;
 typedef juce::File File;
 
+// structs for modulations
+
+enum ModSourceE {
+  Env1,
+  Env2,
+  Env3,
+  LFO1,
+  LFO2,
+  LFO3,
+  Perlin1,
+  Perlin2,
+  LevelMono,
+  LevelPoly,
+  ModWheel,
+  Velocity
+};
+
+#define MOD_SOURCES 12
+
+enum ModDestE {
+  osc1Coarse,
+  osc1Fine,
+  osc1Pos,
+  osc1Level,
+  osc1Pan,
+  osc2Coarse,
+  osc2Fine,
+  osc2Pos,
+  osc2Level,
+  osc2Pan,
+  osc3Coarse,
+  osc3Fine,
+  osc3Pos,
+  osc3Level,
+  osc3Pan,
+  filt1Cutoff,
+  filt1Res,
+  filt1Gain,
+  filt2Cutoff,
+  filt2Res,
+  filt2Gain,
+};
+
+#define MOD_DESTS 21
+
 // very helpful
 inline frange_t rangeWithCenter(float min, float max, float center) {
   frange_t range(min, max);

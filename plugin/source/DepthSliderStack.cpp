@@ -14,19 +14,6 @@ constexpr float safeAngleRight = 2.65f * juce::MathConstants<float>::pi;
 //
 
 // Depth Sliders ====================================
-static void _strokeArc(juce::Graphics& g,
-                       juce::Rectangle<float>& area,
-                       float startAngle,
-                       float endAngle,
-                       float strokeWidth) {
-  juce::Path p;
-  p.addArc(area.getX(), area.getY(), area.getWidth(), area.getHeight(),
-           startAngle, endAngle, true);
-  juce::PathStrokeType pst(strokeWidth, juce::PathStrokeType::mitered,
-                           juce::PathStrokeType::rounded);
-  g.strokePath(p, pst);
-}
-
 void DepthSliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
                                               int x,
                                               int y,
@@ -36,24 +23,27 @@ void DepthSliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
                                               float rotaryStartAngle,
                                               float rotaryEndAngle,
                                               juce::Slider&) {
-  //  step 1: Draw the main arc
-  juce::Rectangle<int> iArea(x, y, width, height);
-  auto fArea = iArea.toFloat();
-  g.setColour(juce::Colours::aliceblue);
-  auto sliderArea = fArea.reduced(5.0f);
-  _strokeArc(g, sliderArea, rotaryStartAngle, rotaryEndAngle, 2.0f);
-  auto toAngle = flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
-  // step 2: Draw the thumb
-  const float thumbWidth = 9.0f;
-  auto radius = (fArea.getWidth() / 2.0f) - (thumbWidth / 2.0f);
-  juce::Point<float> thumbPoint(
-      fArea.getCentreX() +
-          radius * std::cos(toAngle - juce::MathConstants<float>::halfPi),
-      fArea.getCentreY() +
-          radius * std::sin(toAngle - juce::MathConstants<float>::halfPi));
-  g.setColour(juce::Colours::darkseagreen);
-  g.fillEllipse(
-      juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
+  auto fBounds = juce::Rectangle<int>(x, y, width, height).toFloat();
+  const float midAngle = flerp(rotaryStartAngle, rotaryEndAngle, 0.5f);
+  const float thumbAngle =
+      flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
+  juce::Path path;
+  const float outerRadius = (float)width / 2.0f;
+  const float innerRadius = outerRadius - 8.0f;
+  if (thumbAngle < midAngle) {
+    g.setColour(Color::assignmentPink);
+    path.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), outerRadius,
+                       outerRadius, 0.0f, midAngle, thumbAngle, true);
+    path.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), innerRadius,
+                       innerRadius, 0.0f, thumbAngle, midAngle, false);
+  } else {
+    g.setColour(Color::mintGreenPale);
+    path.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), outerRadius,
+                       outerRadius, 0.0f, thumbAngle, midAngle, true);
+    path.addCentredArc(fBounds.getCentreX(), fBounds.getCentreY(), innerRadius,
+                       innerRadius, 0.0f, midAngle, thumbAngle, false);
+  }
+  g.fillPath(path);
 }
 
 ModSelectButton::ModSelectButton(int* sel, int idx, int source)
