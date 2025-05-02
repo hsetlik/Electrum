@@ -2,6 +2,7 @@
 #include "Electrum/GUI/GUITypedefs.h"
 #include "Electrum/GUI/LookAndFeel/ElectrumLnF.h"
 #include "Electrum/GUI/Modulation/ModSourceButton.h"
+#include "Electrum/GUI/ModulatorPanel/PerlinPanel.h"
 #include "Electrum/GUI/Util/BeatSyncToggle.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
@@ -84,7 +85,9 @@ public:
 class LFOTabs : public Component {
 private:
   juce::OwnedArray<LFOComponent> lfos;
+  juce::OwnedArray<PerlinComponent> perlins;
   juce::OwnedArray<ModSourceButton> buttons;
+  std::vector<Component*> viewedComps;
   //---------------
   int selectedLfo = -1;
   void setSelected(int idx);

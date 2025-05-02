@@ -103,6 +103,9 @@ void SynthEngine::renderNextSample(float& left,
   for (auto& lfo : state->audioData.lfos) {
     lfo.tick();
   }
+  for (auto& perlin : state->audioData.perlinGens) {
+    perlin.tick();
+  }
   for (auto* v : voices) {
     v->renderNextSample(left, right, updateDests);
   }
@@ -137,6 +140,10 @@ void SynthEngine::processBlock(juce::AudioBuffer<float>& audioBuf,
   // 1b. check if the GUI wants graphing data updates
   if (state->graph.wantsUpdate()) {
     state->graph.setPolyLevel(state->audioData.polyRMS.currentLevel());
+    for (int i = 0; i < NUM_PERLIN_GENS; ++i) {
+      state->graph.updatePerlinLevel(i,
+                                     state->audioData.perlinGens[i].getValue());
+    }
     auto* v = voices[state->graph.getNewestVoiceIndex()];
     jassert(v != nullptr);
     v->updateGraphData(&state->graph);

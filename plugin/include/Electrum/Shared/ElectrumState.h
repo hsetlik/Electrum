@@ -15,13 +15,15 @@ enum ModSourceE {
   LFO1,
   LFO2,
   LFO3,
+  Perlin1,
+  Perlin2,
   LevelMono,
   LevelPoly,
   ModWheel,
   Velocity
 };
 
-#define MOD_SOURCES 10
+#define MOD_SOURCES 12
 
 enum ModDestE {
   osc1Coarse,

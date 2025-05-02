@@ -19,6 +19,10 @@ static String _tooltipForModSource(ModSourceE id) {
       return "LFO 2";
     case LFO3:
       return "LFO 3";
+    case Perlin1:
+      return "Perlin 1";
+    case Perlin2:
+      return "Perlin 2";
     case ModWheel:
       return "Mod. wheel";
     case LevelMono:

@@ -265,6 +265,7 @@ LFOTabs::LFOTabs(ElectrumState* s) {
     // 1. add the content panels
     auto* lfo = lfos.add(new LFOComponent(s, i));
     addAndMakeVisible(lfo);
+    viewedComps.push_back(lfo);
     // 2. add the buttons
     String name = "LFO " + String(i + 1);
     const int srcID = (int)(ModSourceE::LFO1) + i;
@@ -272,17 +273,27 @@ LFOTabs::LFOTabs(ElectrumState* s) {
     btn->onClick = [this, i]() { setSelected(i); };
     addAndMakeVisible(btn);
   }
-  buttons.getLast()->setSelected(true);
+  for (int i = 0; i < NUM_PERLIN_GENS; ++i) {
+    auto* perlin = perlins.add(new PerlinComponent(s, i));
+    addAndMakeVisible(perlin);
+    viewedComps.push_back(perlin);
+    String name = "Perlin " + String(i + 1);
+    const int srcID = (int)(ModSourceE::Perlin1) + i;
+    auto* btn = buttons.add(new ModSourceButton(s, srcID, name));
+    btn->onClick = [this, i]() { setSelected(NUM_LFOS + i); };
+    addAndMakeVisible(btn);
+  }
+  setSelected(0);
 }
 
 void LFOTabs::setSelected(int idx) {
   if (idx != selectedLfo) {
     selectedLfo = idx;
-    for (int i = 0; i < NUM_LFOS; ++i) {
+    for (int i = 0; i < (int)viewedComps.size(); ++i) {
       const bool sel = i == selectedLfo;
       buttons[i]->setSelected(sel);
-      lfos[i]->setVisible(sel);
-      lfos[i]->setEnabled(sel);
+      viewedComps[(size_t)i]->setVisible(sel);
+      viewedComps[(size_t)i]->setEnabled(sel);
     }
   }
   resized();
@@ -295,8 +306,8 @@ void LFOTabs::resized() {
   const float tabHeight =
       std::min(fBounds.getHeight() / (float)NUM_LFOS, maxTabHeight);
   auto tabBounds = fBounds.removeFromLeft(tabWidth);
-  for (int i = 0; i < lfos.size(); ++i) {
-    lfos[i]->setBounds(fBounds.toNearestInt());
+  for (int i = 0; i < (int)viewedComps.size(); ++i) {
+    viewedComps[(size_t)i]->setBounds(fBounds.toNearestInt());
     auto tBounds = tabBounds.removeFromTop(tabHeight);
     buttons[i]->setBounds(tBounds.toNearestInt());
   }

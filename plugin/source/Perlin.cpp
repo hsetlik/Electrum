@@ -2,6 +2,12 @@
 #include "Electrum/Audio/AudioUtil.h"
 
 namespace Perlin {
+
+static int32_t foolishFloor(float fp) {
+  int32_t i = static_cast<int32_t>(fp);
+  return (fp < i) ? (i - 1) : (i);
+}
+
 /**
  * Permutation table. This is just a random jumble of all numbers 0-255.
  *
@@ -89,7 +95,7 @@ float getNoise(float x) {
   float n0 = 0.0f;
   float n1 = 0.0f;
 
-  int32_t i0 = AudioUtil::fastFloor32(x);
+  int32_t i0 = AudioUtil::fastFloor32(x) - 1;
   int32_t i1 = i0 + 1;
 
   float x0 = x - (float)i0;

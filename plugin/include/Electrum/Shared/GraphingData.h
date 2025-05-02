@@ -46,6 +46,7 @@ private:
   std::array<float_at, NUM_OSCILLATORS> newestOscPositions;
   std::array<float_at, NUM_ENVELOPES> newestEnvLevels;
   std::array<float_at, NUM_LFOS> newestLfoPhases;
+  std::array<float_at, NUM_PERLIN_GENS> newestPerlinLevels;
   float_at polyLevel;
   float_at monoLevel;
 
@@ -101,6 +102,12 @@ public:
   float getPolyLevel() const { return polyLevel.load(); }
   void setMonoLevel(float val) { monoLevel = val; }
   float getMonoLevel() const { return monoLevel.load(); }
+  void updatePerlinLevel(int idx, float level) {
+    newestPerlinLevels[(size_t)idx] = level;
+  }
+  float getPerlinLevel(int idx) const {
+    return newestPerlinLevels[(size_t)idx].load();
+  }
 
   // wave string stuff
   bool needsWavetableData() const { return needsWaveStrings; }

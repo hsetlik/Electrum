@@ -67,8 +67,11 @@ float ElectrumVoice::_currentModSrcVal(int src) {
   const ModSourceE id = (ModSourceE)src;
   if (id < ModSourceE::LFO1) {
     return envs[src]->getCurrentSample();
-  } else if (id < ModSourceE::LevelMono) {
+  } else if (id < ModSourceE::Perlin1) {
     return lfos[src - NUM_ENVELOPES]->getCurrentSample();
+  } else if (id < ModSourceE::LevelMono) {
+    return state->audioData.perlinGens[src - (NUM_ENVELOPES + NUM_LFOS)]
+        .getValue();
   } else if (id == ModSourceE::LevelMono) {
     return rms.currentLevel();
   } else if (id == ModSourceE::LevelPoly) {
