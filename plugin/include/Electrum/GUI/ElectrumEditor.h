@@ -41,6 +41,7 @@ private:
 
 public:
   ElectrumMainView(ElectrumState* s, audio_plugin::ElectrumAudioProcessor* p);
+  ~ElectrumMainView() override;
   void resized() override;
 };
 

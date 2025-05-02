@@ -6,7 +6,8 @@ GraphingData::GraphingData()
       newestVoice(0),
       updateRequested(false),
       needsWaveStrings(true),
-      waveStringsHaveChanged(false) {
+      waveStringsHaveChanged(false),
+      editorOpen(false) {
   for (int i = 0; i < NUM_ENVELOPES; i++) {
     newestEnvLevels[(size_t)i] = 0.0f;
   }

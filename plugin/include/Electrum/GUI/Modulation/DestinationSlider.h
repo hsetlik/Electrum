@@ -3,7 +3,9 @@
 #include "Electrum/GUI/Modulation/ModContextComponent.h"
 #include "Electrum/Identifiers.h"
 #include "Electrum/Shared/ElectrumState.h"
+#include "Electrum/Shared/GraphingData.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
 class DestinationLabel : public Component, public juce::Label::Listener {
@@ -24,12 +26,42 @@ public:
 };
 
 //============================================================
+class DestSliderLnF : public juce::LookAndFeel_V4 {
+public:
+  DestSliderLnF() = default;
+  void drawRotarySlider(juce::Graphics& g,
+                        int x,
+                        int y,
+                        int width,
+                        int height,
+                        float sliderPosProportional,
+                        float rotaryStartAngle,
+                        float rotaryEndAngle,
+                        juce::Slider& slider) override;
+};
+
+class DestSliderCore : public juce::Slider,
+                       public GraphingData::Listener,
+                       public juce::AsyncUpdater {
+private:
+  float lastModNormalized = 0.0f;
+  ElectrumState* state;
+  const int destID;
+  DestSliderLnF lnf;
+
+public:
+  DestSliderCore(ElectrumState* s, int id);
+  ~DestSliderCore() override;
+  void graphingDataUpdated(GraphingData* gd) override;
+  void handleAsyncUpdate() override { repaint(); }
+  float getNormalizedMod() const { return lastModNormalized; }
+};
 
 class DestinationSlider : public ModDestAttachment,
                           public juce::DragAndDropTarget {
 private:
   ElectrumState* const state;
-  juce::Slider slider;
+  DestSliderCore slider;
   DestinationLabel label;
   slider_attach_ptr attach;
 

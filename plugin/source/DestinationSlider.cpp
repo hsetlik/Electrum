@@ -1,5 +1,7 @@
 #include "Electrum/GUI/Modulation/DestinationSlider.h"
+#include "Electrum/Audio/AudioUtil.h"
 #include "Electrum/GUI/GUITypedefs.h"
+#include "Electrum/GUI/LookAndFeel/Color.h"
 #include "Electrum/GUI/LookAndFeel/Fonts.h"
 #include "Electrum/GUI/Modulation/ModContextComponent.h"
 #include "Electrum/Shared/ElectrumState.h"
@@ -36,6 +38,83 @@ void DestinationLabel::labelTextChanged(juce::Label* l) {
 }
 
 //------------------------------------------------------------
+void DestSliderLnF::drawRotarySlider(juce::Graphics& g,
+                                     int x,
+                                     int y,
+                                     int width,
+                                     int height,
+                                     float sliderPosProportional,
+                                     float rotaryStartAngle,
+                                     float rotaryEndAngle,
+                                     juce::Slider& slider) {
+  const color_t trackRight = UIColor::widgetBkgnd.darker();
+  const color_t trackLeft = Color::periwinkle;
+  auto fBounds =
+      juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);
+  const float diameter = std::min(fBounds.getHeight(), fBounds.getWidth());
+  const float outerRadius = diameter / 2.0f;
+  const float innerRadius = outerRadius * 0.85f;
+  const float x0 = fBounds.getCentreX();
+  const float y0 = fBounds.getCentreY();
+  // 1. draw the background track
+  juce::Path pTrack;
+  pTrack.addCentredArc(x0, y0, outerRadius, outerRadius, 0.0f, rotaryStartAngle,
+                       rotaryEndAngle, true);
+  pTrack.addCentredArc(x0, y0, innerRadius, innerRadius, 0.0f, rotaryEndAngle,
+                       rotaryStartAngle, false);
+  g.setColour(trackRight);
+  g.fillPath(pTrack);
+  // 2. draw the regular left side path
+  g.setColour(trackLeft.withAlpha(0.8f));
+  const float thumbAngle =
+      flerp(rotaryStartAngle, rotaryEndAngle, sliderPosProportional);
+  juce::Path pLeft;
+  pLeft.addCentredArc(x0, y0, outerRadius, outerRadius, 0.0f, rotaryStartAngle,
+                      thumbAngle, true);
+  pLeft.addCentredArc(x0, y0, innerRadius, innerRadius, 0.0f, thumbAngle,
+                      rotaryStartAngle, false);
+  g.fillPath(pLeft);
+  // 3. draw the working modulation value
+  auto* dSlider = dynamic_cast<DestSliderCore*>(&slider);
+  jassert(dSlider != nullptr);
+  auto denormRange = slider.getRange();
+  auto val = (float)slider.getValue();
+  auto modPos = AudioUtil::signed_flerp((float)denormRange.getStart(),
+                                        (float)denormRange.getEnd(), val,
+                                        dSlider->getNormalizedMod());
+  modPos = (float)denormRange.clipValue((double)modPos);
+  auto normRange = slider.getNormalisableRange();
+  auto modPosNorm = (float)normRange.convertTo0to1((float)modPos);
+  const float modAngle = flerp(rotaryStartAngle, rotaryEndAngle, modPosNorm);
+  g.setColour(Color::qualifierPurple.withAlpha(0.8f));
+  juce::Path pMod;
+  pMod.addCentredArc(x0, y0, outerRadius, outerRadius, 0.0f, thumbAngle,
+                     modAngle, true);
+  pMod.addCentredArc(x0, y0, innerRadius, innerRadius, 0.0f, modAngle,
+                     thumbAngle, false);
+  g.fillPath(pMod);
+}
+
+DestSliderCore::DestSliderCore(ElectrumState* s, int id)
+    : juce::Slider(juce::Slider::Rotary, juce::Slider::NoTextBox),
+      state(s),
+      destID(id) {
+  state->graph.addListener(this);
+  setLookAndFeel(&lnf);
+}
+
+DestSliderCore::~DestSliderCore() {
+  state->graph.removeListener(this);
+  setLookAndFeel(nullptr);
+}
+
+void DestSliderCore::graphingDataUpdated(GraphingData* gd) {
+  lastModNormalized = gd->getModulationDest(destID);
+
+  triggerAsyncUpdate();
+}
+
+//------------------------------------------------------------
 static String oscParamNames[5] = {"Coarse tune", "Fine Tune", "Position",
                                   "Level", "Pan"};
 
@@ -62,7 +141,7 @@ static AttString getDestAttString(int id) {
 DestinationSlider::DestinationSlider(ElectrumState* s, int d)
     : ModDestAttachment(d),
       state(s),
-      slider(juce::Slider::Rotary, juce::Slider::NoTextBox),
+      slider(s, d),
       label(s, d),
       depthSliders(s, d) {
   addAndMakeVisible(&slider);

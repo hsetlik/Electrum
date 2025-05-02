@@ -61,12 +61,15 @@ private:
   bool_at needsWaveStrings;
   bool_at waveStringsHaveChanged;
 
+  // get some performance by skipping updates here when the editor isn't open
+  bool_at editorOpen;
+
 public:
   GraphingData();
   void timerCallback() override { updateRequested = true; }
   bool wantsUpdate() const {
     // return updateRequested.load() && newestVoice != -1;
-    return updateRequested.load();
+    return updateRequested.load() && editorOpen.load();
   }
   void updateFinished() {
     _notifyListeners();
@@ -74,6 +77,8 @@ public:
     waveStringsHaveChanged = false;
     needsWaveStrings = false;
   }
+
+  void setEditorOpen(bool open) { editorOpen = open; }
   // call this so we can keep track of which voice to be tracking from
   void voiceStarted(int idx);
   void voiceEnded(int idx);

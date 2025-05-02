@@ -31,6 +31,11 @@ ElectrumMainView::ElectrumMainView(ElectrumState* s,
     auto* osc = oscs.add(new OscillatorPanel(state, i));
     addAndMakeVisible(osc);
   }
+  state->graph.setEditorOpen(true);
+}
+
+ElectrumMainView::~ElectrumMainView() {
+  state->graph.setEditorOpen(false);
 }
 
 void ElectrumMainView::resized() {
