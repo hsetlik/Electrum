@@ -385,6 +385,18 @@ void ElectrumState::updateCommonAudioData() {
     audioData.lfos[i].setHz(_freq);
     audioData.lfos[i].setTriggerMode(_fMode);
   }
+  // Perlin Generators----------------------------------------
+  for (int i = 0; i < NUM_PERLIN_GENS; ++i) {
+    String iStr(i);
+    const String freqID = ID::perlinFrequency.toString() + iStr;
+    const String octaveID = ID::perlinOctaves.toString() + iStr;
+    const String lacID = ID::perlinLacunarity.toString() + iStr;
+
+    const float _freq = getRawParameterValue(freqID)->load();
+    const float _octaves = getRawParameterValue(octaveID)->load();
+    const float _lac = getRawParameterValue(lacID)->load();
+    audioData.perlinGens[i].setParams((size_t)_octaves, _freq, _lac);
+  }
 }
 
 void ElectrumState::updateLFOString(const String& shapeString, int lfoID) {
